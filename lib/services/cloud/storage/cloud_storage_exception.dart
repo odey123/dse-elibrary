@@ -1,0 +1,1 @@
+class ErrorUploadingFile implements Exception {}

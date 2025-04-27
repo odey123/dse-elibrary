@@ -1,0 +1,1 @@
+class TopicWeekAlreadySetException implements Exception {}

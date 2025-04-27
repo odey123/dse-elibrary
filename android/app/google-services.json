@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "256248141188",
+    "firebase_url": "https://dse-elibrary-75930-default-rtdb.firebaseio.com",
+    "project_id": "dse-elibrary-75930",
+    "storage_bucket": "dse-elibrary-75930.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:256248141188:android:837b59afef5876f70179d1",
+        "android_client_info": {
+          "package_name": "com.systemsengineering.elibrary"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "256248141188-l7bpvjpmrendllcddsl2147l3br6h1mr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-gZFo0rL7RAKee2IwMiDHvHu_pQRU5gc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "256248141188-l7bpvjpmrendllcddsl2147l3br6h1mr.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "256248141188-43bi4tr032fnc9qd1sn4e7fktkcg1tl0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.systemsengineering.elibrary"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
