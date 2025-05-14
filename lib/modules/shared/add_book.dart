@@ -1,12 +1,14 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:systems_app/app/custom_snack_bar/custom_snack_bar_for_empty_field.dart';
 import 'package:systems_app/app/dialogs/error_dialog.dart';
-import 'package:systems_app/app/dialogs/onboarding_success_dialog.dart';
+import 'package:systems_app/app/dialogs/success_dialog.dart';
 import 'package:systems_app/app/function/handle_profile_submit.dart';
 import 'package:systems_app/app/function/image_picker.dart';
+import 'package:systems_app/app/function/reference.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/app/loading/loading_screen.dart';
 import 'package:systems_app/modules/reuseables/profile_drawer.dart';
@@ -16,8 +18,7 @@ import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
 import 'package:systems_app/services/cloud/database/cloud_profile.dart';
 import 'package:systems_app/services/cloud/database/database_actions.dart';
-import 'package:systems_app/services/cloud/function/function_exception.dart';
-import 'package:systems_app/services/cloud/function/functions_actions.dart';
+import 'package:systems_app/services/cloud/storage/cloud_storage_exception.dart';
 import 'package:systems_app/services/cloud/storage/storage.actions.dart';
 import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
@@ -25,26 +26,20 @@ import 'package:systems_app/utils/strings.dart';
 import 'package:systems_app/utils/text_button_comp.dart';
 import 'package:systems_app/utils/text_field_comp.dart';
 
-class AddCourse extends ConsumerStatefulWidget {
-  const AddCourse({
-    super.key,
-  });
+class AddBook extends ConsumerStatefulWidget {
+  const AddBook({super.key});
 
   @override
-  ConsumerState<AddCourse> createState() => _AddCourseState();
+  ConsumerState<AddBook> createState() => _AddBookState();
 }
 
-class _AddCourseState extends ConsumerState<AddCourse> {
+class _AddBookState extends ConsumerState<AddBook> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late final AuthenticationAsyncNotifier _auth;
   late final DatabaseAsyncNotifier _database;
-  late final FunctionsAsyncNotifier _function;
   late final StorageAsyncNotifier _storage;
-  late final TextEditingController _courseName;
-  late final TextEditingController _courseCode;
-  late final TextEditingController _numOfUnit;
-  late final TextEditingController _semester;
-  late final TextEditingController _level;
+  late final TextEditingController _title;
+  late final TextEditingController _author;
   late final TextEditingController _firstName;
   late final TextEditingController _lastName;
   late final TextEditingController _prefferedAcademicName;
@@ -52,21 +47,23 @@ class _AddCourseState extends ConsumerState<AddCourse> {
   late final TextEditingController _levelCourseAdvisor;
   late final TextEditingController _currentLevel;
   late final TextEditingController _email;
-  bool _isLoading = false;
   bool _isProfileEditLoading = false;
+  PlatformFile? _bookPicked;
+  PlatformFile? _coverPicked;
+  bool _isLoading = false;
+  bool _isCoverUploaded = false;
+  bool _isBookUploaded = false;
+  String _bookFilename = '';
+  String _coverFilename = '';
   bool _showSignOut = false;
 
   @override
   void initState() {
     _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
     _database = ref.read(databaseAsyncNotifierProvider.notifier);
-    _function = ref.read(functionsAsyncNotifierProvider.notifier);
     _storage = ref.read(storageAsyncNotifierProvider.notifier);
-    _courseName = TextEditingController();
-    _courseCode = TextEditingController();
-    _numOfUnit = TextEditingController();
-    _semester = TextEditingController();
-    _level = TextEditingController();
+    _title = TextEditingController();
+    _author = TextEditingController();
     _firstName = TextEditingController();
     _lastName = TextEditingController();
     _prefferedAcademicName = TextEditingController();
@@ -76,6 +73,15 @@ class _AddCourseState extends ConsumerState<AddCourse> {
     _email = TextEditingController();
     setControllerText();
     super.initState();
+  }
+
+  Future<FilePickerResult?> _pickFile({required List<String> type}) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: type,
+      allowCompression: true,
+    );
+    return result;
   }
 
   void openEndDrawer() {
@@ -94,11 +100,16 @@ class _AddCourseState extends ConsumerState<AddCourse> {
   }
 
   void _undoController() {
-    _courseName.clear();
-    _courseCode.clear();
-    _numOfUnit.clear();
-    _semester.clear();
-    _level.clear();
+    _title.clear();
+    _author.clear();
+    setState(() {
+      _isBookUploaded = false;
+      _isCoverUploaded = false;
+      _bookFilename = '';
+      _coverFilename = '';
+      _bookPicked = null;
+      _coverPicked = null;
+    });
   }
 
   @override
@@ -114,7 +125,6 @@ class _AddCourseState extends ConsumerState<AddCourse> {
       },
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: kGry400,
         endDrawer: ProfileDrawer(
           firstNameController: _firstName,
           lastNameController: _lastName,
@@ -308,9 +318,7 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                         children: [
                           (!kIsWeb || isPhoneWeb)
                               ? YBox(kMacroPadding)
-                              : Container(
-                                  height: kMacroPadding,
-                                ),
+                              : Container(),
                           (!kIsWeb || isPhoneWeb)
                               ? InkWell(
                                   onTap: () {
@@ -361,7 +369,7 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  addACourse,
+                                  addABook,
                                   style: textTheme.titleMedium!.copyWith(
                                     fontSize: (!kIsWeb || isPhoneWeb) ? 19 : 16,
                                     fontWeight: FontWeight.w600,
@@ -369,7 +377,7 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                                   ),
                                 ),
                                 Text(
-                                  courses,
+                                  book,
                                   style: textTheme.titleMedium!.copyWith(
                                     fontSize: (!kIsWeb || isPhoneWeb) ? 11 : 9,
                                     fontWeight: FontWeight.w400,
@@ -396,7 +404,7 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  courseInfo,
+                                  bookInfo,
                                   style: textTheme.titleMedium!.copyWith(
                                     fontSize: (!kIsWeb || isPhoneWeb) ? 19 : 16,
                                     fontWeight: FontWeight.w600,
@@ -417,41 +425,259 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                                 ),
                                 YBox(kMacroPadding),
                                 CustomTextInputField(
-                                  label: courseName,
-                                  hintText: enterCourseName,
-                                  controller: _courseName,
+                                  label: bookTitle,
+                                  hintText: enterBookTitle,
+                                  controller: _title,
                                 ),
                                 YBox(kMacroPadding),
                                 CustomTextInputField(
-                                  label: courseCode,
-                                  hintText: enterCourseCode,
-                                  controller: _courseCode,
+                                  label: author,
+                                  hintText: enterAuthorName,
+                                  controller: _author,
                                 ),
                                 YBox(kMacroPadding),
-                                CustomTextInputField(
-                                  label: courseUnit,
-                                  hintText: enterCourseUnits,
-                                  controller: _numOfUnit,
-                                  keyboardType: TextInputType.number,
+                                Text(
+                                  uploadCoverImage,
+                                  style: textTheme.titleMedium!.copyWith(
+                                    fontSize: (!kIsWeb || isPhoneWeb) ? 16 : 13,
+                                    fontWeight: FontWeight.w400,
+                                    color: kBlack,
+                                  ),
                                 ),
-                                YBox(kMacroPadding),
-                                CustomDropdownField(
-                                  label: semester,
-                                  hintText: selectSemester,
-                                  items: semesters,
-                                  controller: _semester,
-                                  dropdownColor: kPrimaryWhite,
-                                  dropdownIcon: Icons.keyboard_arrow_down,
+                                YBox(kSmallPadding),
+                                Text(
+                                  uploadOneSupportedImage,
+                                  style: textTheme.titleMedium!.copyWith(
+                                    fontSize: (!kIsWeb || isPhoneWeb) ? 14 : 11,
+                                    fontWeight: FontWeight.w400,
+                                    color: kGry600,
+                                  ),
                                 ),
-                                YBox(kMacroPadding),
-                                CustomDropdownField(
-                                  label: courseLevel,
-                                  hintText: selectLevel,
-                                  items: levels,
-                                  controller: _level,
-                                  dropdownColor: kPrimaryWhite,
-                                  dropdownIcon: Icons.keyboard_arrow_down,
+                                YBox(kSmallPadding),
+                                _isCoverUploaded
+                                    ? Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: kSmallPadding,
+                                          vertical: kPadding + 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                          border: Border.all(color: kGry450),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Transform.translate(
+                                              offset: const Offset(0, 2),
+                                              child: Text(
+                                                _coverFilename,
+                                                style: textTheme.titleMedium!
+                                                    .copyWith(
+                                                  fontSize:
+                                                      (!kIsWeb || isPhoneWeb)
+                                                          ? 14
+                                                          : 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: kBlack,
+                                                ),
+                                              ),
+                                            ),
+                                            XBox(kPadding),
+                                            InkWell(
+                                              onTap: () {
+                                                setState(() {
+                                                  _isCoverUploaded = false;
+                                                });
+                                              },
+                                              child: const Icon(
+                                                Icons.cancel,
+                                                color: kPrimaryColor,
+                                                size: 20,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : TextButton(
+                                        onPressed: () async {
+                                          final result = await _pickFile(type: [
+                                            'jpg',
+                                            'png',
+                                            'jpeg',
+                                          ]);
+                                          if (result != null &&
+                                              result.files.isNotEmpty) {
+                                            setState(() {
+                                              _isCoverUploaded = true;
+                                              _coverFilename =
+                                                  result.files.first.name;
+                                              _coverPicked = result.files.first;
+                                            });
+                                          }
+                                        },
+                                        style: TextButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: kSmallPadding,
+                                            vertical: kSmallPadding,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                            side: const BorderSide(
+                                                color: kGry450),
+                                          ),
+                                          backgroundColor: Colors.transparent,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.file_upload,
+                                              color: kPrimaryColor,
+                                              size: 20,
+                                            ),
+                                            XBox(kPadding),
+                                            Transform.translate(
+                                              offset: const Offset(0, 2),
+                                              child: Text(
+                                                addFile,
+                                                style: textTheme.titleMedium!
+                                                    .copyWith(
+                                                  fontSize:
+                                                      (!kIsWeb || isPhoneWeb)
+                                                          ? 14
+                                                          : 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: kPrimaryColor,
+                                                ),
+                                              ),
+                                            ),
+                                            XBox(kSmallPadding),
+                                          ],
+                                        ),
+                                      ),
+                                YBox(kMicroPadding),
+                                Text(
+                                  uploadProjectPaper,
+                                  style: textTheme.titleMedium!.copyWith(
+                                    fontSize: (!kIsWeb || isPhoneWeb) ? 16 : 13,
+                                    fontWeight: FontWeight.w400,
+                                    color: kBlack,
+                                  ),
                                 ),
+                                YBox(kSmallPadding),
+                                Text(
+                                  uploadOneSupportedPDF,
+                                  style: textTheme.titleMedium!.copyWith(
+                                    fontSize: (!kIsWeb || isPhoneWeb) ? 14 : 11,
+                                    fontWeight: FontWeight.w400,
+                                    color: kGry600,
+                                  ),
+                                ),
+                                YBox(kSmallPadding),
+                                _isBookUploaded
+                                    ? Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: kSmallPadding,
+                                          vertical: kPadding + 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                          border: Border.all(color: kGry450),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Transform.translate(
+                                              offset: const Offset(0, 2),
+                                              child: Text(
+                                                _bookFilename,
+                                                style: textTheme.titleMedium!
+                                                    .copyWith(
+                                                  fontSize:
+                                                      (!kIsWeb || isPhoneWeb)
+                                                          ? 14
+                                                          : 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: kBlack,
+                                                ),
+                                              ),
+                                            ),
+                                            XBox(kPadding),
+                                            InkWell(
+                                              onTap: () {
+                                                setState(() {
+                                                  _isBookUploaded = false;
+                                                });
+                                              },
+                                              child: const Icon(
+                                                Icons.cancel,
+                                                color: kPrimaryColor,
+                                                size: 20,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : TextButton(
+                                        onPressed: () async {
+                                          final result = await _pickFile(type: [
+                                            'pdf',
+                                          ]);
+                                          if (result != null &&
+                                              result.files.isNotEmpty) {
+                                            setState(() {
+                                              _isBookUploaded = true;
+                                              _bookFilename =
+                                                  result.files.first.name;
+                                              _bookPicked = result.files.first;
+                                            });
+                                          }
+                                        },
+                                        style: TextButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: kSmallPadding,
+                                            vertical: kSmallPadding,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                            side: const BorderSide(
+                                                color: kGry450),
+                                          ),
+                                          backgroundColor: Colors.transparent,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.file_upload,
+                                              color: kPrimaryColor,
+                                              size: 20,
+                                            ),
+                                            XBox(kPadding),
+                                            Transform.translate(
+                                              offset: const Offset(0, 2),
+                                              child: Text(
+                                                addFile,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: textTheme.titleMedium!
+                                                    .copyWith(
+                                                  fontSize:
+                                                      (!kIsWeb || isPhoneWeb)
+                                                          ? 14
+                                                          : 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: kPrimaryColor,
+                                                ),
+                                              ),
+                                            ),
+                                            XBox(kSmallPadding),
+                                          ],
+                                        ),
+                                      ),
                                 YBox(kMacroPadding),
                                 Row(
                                   children: [
@@ -470,17 +696,14 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                                     CustomTextButton(
                                       text: submit,
                                       onPressed: () async {
-                                        final courseName = _courseName.text;
-                                        final courseCode = _courseCode.text;
-                                        final units = _numOfUnit.text;
-                                        final level = _level.text;
-                                        final semester = _semester.text;
-
-                                        if (courseName.isEmpty ||
-                                            courseCode.isEmpty ||
-                                            units.isEmpty ||
-                                            level.isEmpty ||
-                                            semester.isEmpty) {
+                                        final title = _title.text;
+                                        final author = _author.text;
+                                        final bookfile = _bookPicked;
+                                        final coverfile = _coverPicked;
+                                        if (title.isEmpty ||
+                                            author.isEmpty ||
+                                            bookfile == null ||
+                                            coverfile == null) {
                                           CustomSnackBarForEmptyField.show(
                                             mainContext,
                                             'Field must not be empty',
@@ -494,36 +717,45 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                                               context: mainContext,
                                               showProgress: false);
                                           try {
-                                            final profile = await _database
-                                                .getUserProfile(
-                                                  ownerUserId:
-                                                      _auth.currentUser!.uid,
-                                                  role: lecturerRole,
-                                                )
-                                                .first;
-                                            final currentUser =
-                                                _auth.currentUser;
-
-                                            await _function.addCourse(
-                                              courseName: courseName,
-                                              courseCode: courseCode,
-                                              unit: units,
-                                              level: level,
-                                              semester: semester,
-                                              ownerName:
-                                                  profile.preferredAcademicName,
-                                              ownerUid: currentUser!.uid,
+                                            final coverUrl =
+                                                await _storage.addBookCover(
+                                              title: title,
+                                              ext: coverfile.name
+                                                  .split('.')
+                                                  .last,
+                                              path: coverfile.path!,
+                                              bytes: coverfile.bytes!,
+                                              projectSupervisorUid:
+                                                  _auth.currentUser!.uid,
+                                            );
+                                            final bookUrl =
+                                                await _storage.addBook(
+                                              title: title,
+                                              ext:
+                                                  bookfile.name.split('.').last,
+                                              path: bookfile.path!,
+                                              bytes: bookfile.bytes!,
+                                              projectSupervisorUid:
+                                                  _auth.currentUser!.uid,
+                                            );
+                                            await _database.addBook(
+                                              title: title,
+                                              author: author,
+                                              ownerUid: _auth.currentUser!.uid,
+                                              bookUrl: bookUrl,
+                                              coverUrl: coverUrl,
+                                              id: generateReference(),
                                             );
                                             setState(() {
                                               _isLoading = false;
                                             });
                                             LoadingScreen().hide();
                                             _undoController();
-                                            await showOnboardingSuccessDialog(
+                                            await showSuccessDialog(
                                               context: mainContext,
-                                              name: courseCode,
-                                              buttonText: addCourse,
-                                              placeholder: course,
+                                              name: title,
+                                              buttonText: addBook,
+                                              placeholder: book,
                                             );
                                           } on Exception catch (e) {
                                             if (mounted) {
@@ -531,54 +763,15 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                                                 _isLoading = false;
                                               });
                                               LoadingScreen().hide();
-                                              if (e
-                                                  is UnAuthenticatedFunctionException) {
+                                              if (e is ErrorUploadingFile) {
                                                 showErrorDialog(
                                                   context: mainContext,
-                                                  text:
-                                                      'User must be signed in.',
+                                                  text: 'Error uploading file',
                                                 );
-                                              } else if (e
-                                                  is PermissionDeniedFunctionException) {
+                                              } else {
                                                 showErrorDialog(
                                                   context: mainContext,
-                                                  text:
-                                                      'You do not have permission to add a course.',
-                                                );
-                                              } else if (e
-                                                  is InvalidArgumentFunctionException) {
-                                                showErrorDialog(
-                                                  context: mainContext,
-                                                  text:
-                                                      'Invalid or missing input fields.',
-                                                );
-                                              } else if (e
-                                                  is AlreadyExistsFunctionException) {
-                                                showErrorDialog(
-                                                  context: mainContext,
-                                                  text:
-                                                      'Course has already been added.',
-                                                );
-                                              } else if (e
-                                                  is DeadlineExceededFunctionException) {
-                                                showErrorDialog(
-                                                  context: mainContext,
-                                                  text:
-                                                      'The request took too long, please try again.',
-                                                );
-                                              } else if (e
-                                                  is ResourceExhaustedFunctionException) {
-                                                showErrorDialog(
-                                                  context: mainContext,
-                                                  text:
-                                                      'Too many requests, please try later.',
-                                                );
-                                              } else if (e
-                                                  is GenericFunctionException) {
-                                                showErrorDialog(
-                                                  context: mainContext,
-                                                  text:
-                                                      'Please try again later.',
+                                                  text: 'Try again later',
                                                 );
                                               }
                                             }

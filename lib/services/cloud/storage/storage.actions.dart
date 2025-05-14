@@ -141,4 +141,34 @@ class StorageAsyncNotifier extends _$StorageAsyncNotifier {
       throw ErrorUploadingFile();
     }
   }
+
+  Future<String> uploadProfileImage({
+    required String ext,
+    required String path,
+    required Uint8List bytes,
+    required String uid,
+  }) async {
+    try {
+      final Reference storageReference =
+          initialize().ref().child('profileImage/$uid/profile.$ext');
+
+      UploadTask uploadTask;
+
+      if (kIsWeb) {
+        // For Flutter Web, use the bytes
+        uploadTask = storageReference.putData(bytes);
+      } else {
+        // For Mobile/Desktop, use the file path
+        final file = io.File(path);
+        uploadTask = storageReference.putFile(file);
+      }
+
+      final TaskSnapshot taskSnapshot = await uploadTask;
+      final String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } on Exception catch (e) {
+      log('$e');
+      throw ErrorUploadingFile();
+    }
+  }
 }

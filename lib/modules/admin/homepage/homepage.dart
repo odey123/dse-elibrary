@@ -166,22 +166,22 @@ class _HomePageAdminState extends State<HomePageAdmin> {
                             );
                           },
                         ),
-                        TabItem(
-                          label: courses,
-                          iconPath: AssetPaths.homeIcon,
-                          selectedTab: tabSelected,
-                          currentTab: courses,
-                          unselectedtextColor: kPrimaryWhite,
-                          onTap: (tab) {
-                            adminNavigateTo(
-                                coursesRoute, navigatorKeyForDesktopWeb);
-                            setState(
-                              () {
-                                tabSelected = tab;
-                              },
-                            );
-                          },
-                        ),
+                        // TabItem(
+                        //   label: courses,
+                        //   iconPath: AssetPaths.homeIcon,
+                        //   selectedTab: tabSelected,
+                        //   currentTab: courses,
+                        //   unselectedtextColor: kPrimaryWhite,
+                        //   onTap: (tab) {
+                        //     adminNavigateTo(
+                        //         coursesRoute, navigatorKeyForDesktopWeb);
+                        //     setState(
+                        //       () {
+                        //         tabSelected = tab;
+                        //       },
+                        //     );
+                        //   },
+                        // ),
                         TabItem(
                           label: books,
                           iconPath: AssetPaths.bookOpenIcon,
@@ -191,6 +191,24 @@ class _HomePageAdminState extends State<HomePageAdmin> {
                           onTap: (tab) {
                             adminNavigateTo(
                                 booksRoute, navigatorKeyForDesktopWeb);
+                            setState(
+                              () {
+                                tabSelected = tab;
+                              },
+                            );
+                          },
+                        ),
+                        TabItem(
+                          label: projects,
+                          iconPath: AssetPaths.projectIcon,
+                          selectedTab: tabSelected,
+                          currentTab: projects,
+                          unselectedtextColor: kPrimaryWhite,
+                          onTap: (tab) {
+                            adminNavigateTo(
+                              projectsRoute,
+                              navigatorKeyForDesktopWeb,
+                            );
                             setState(
                               () {
                                 tabSelected = tab;

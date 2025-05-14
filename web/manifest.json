@@ -1,11 +1,11 @@
 {
-    "name": "systems_app",
-    "short_name": "systems_app",
+    "name": "Systems ELibrary",
+    "short_name": "Systems ELibrary",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "This is the Department of Systems Engineering E-Library and Filling System.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

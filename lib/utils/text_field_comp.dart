@@ -13,6 +13,7 @@ class CustomTextInputField extends StatelessWidget {
   final double width;
   final double height;
   final bool isReadOnly;
+  final Color textColor;
 
   const CustomTextInputField({
     super.key,
@@ -25,6 +26,7 @@ class CustomTextInputField extends StatelessWidget {
     this.isReadOnly = false,
     this.width = 350,
     this.height = 35,
+    this.textColor = kBlack,
   });
 
   @override
@@ -53,7 +55,7 @@ class CustomTextInputField extends StatelessWidget {
             enableSuggestions: enableSuggestions,
             autocorrect: autocorrect,
             style: textTheme.bodySmall!.copyWith(
-              color: kBlack,
+              color: textColor,
               fontSize: (!kIsWeb || isPhoneWeb) ? 14 : 12,
               fontWeight: FontWeight.w400,
             ),
@@ -103,6 +105,9 @@ class CustomDropdownField extends StatelessWidget {
   final double height;
   final Color dropdownColor;
   final IconData dropdownIcon;
+  final bool isReadOnly;
+  final Color textColor;
+  final Color iconColor;
 
   const CustomDropdownField({
     super.key,
@@ -114,6 +119,9 @@ class CustomDropdownField extends StatelessWidget {
     this.height = 35,
     this.dropdownColor = Colors.white,
     this.dropdownIcon = Icons.keyboard_arrow_down,
+    this.isReadOnly = false,
+    this.textColor = kBlack,
+    this.iconColor = kBlack,
   });
 
   @override
@@ -132,59 +140,62 @@ class CustomDropdownField extends StatelessWidget {
           ),
         ),
         YBox(kSmallPadding),
-        SizedBox(
-          height: height,
-          width: width,
-          child: DropdownButtonFormField<String>(
-            value: controller.text.isNotEmpty ? controller.text : null,
-            items: items
-                .map((item) => DropdownMenuItem(
-                      value: item,
-                      child: Text(
-                        item,
-                        style: textTheme.bodySmall!.copyWith(
-                          color: kBlack,
-                          fontSize: (!kIsWeb || isPhoneWeb) ? 14 : 12,
-                          fontWeight: FontWeight.w400,
+        IgnorePointer(
+          ignoring: isReadOnly,
+          child: SizedBox(
+            height: height,
+            width: width,
+            child: DropdownButtonFormField<String>(
+              value: controller.text.isNotEmpty ? controller.text : null,
+              items: items
+                  .map((item) => DropdownMenuItem(
+                        value: item,
+                        child: Text(
+                          item,
+                          style: textTheme.bodySmall!.copyWith(
+                            color: textColor,
+                            fontSize: (!kIsWeb || isPhoneWeb) ? 14 : 12,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                    ))
-                .toList(),
-            onChanged: (value) {
-              controller.text = value!;
-            },
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-              hintText: hintText,
-              hintStyle: textTheme.bodySmall!.copyWith(
-                color: kGry600,
-                fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 12,
-                fontWeight: FontWeight.w400,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: const BorderSide(
-                  color: kGry450,
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                controller.text = value!;
+              },
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                hintText: hintText,
+                hintStyle: textTheme.bodySmall!.copyWith(
+                  color: kGry600,
+                  fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 12,
+                  fontWeight: FontWeight.w400,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: const BorderSide(
+                    color: kGry450,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: const BorderSide(
+                    color: kGry450,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  borderSide: const BorderSide(
+                    color: kGry450,
+                  ),
                 ),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: const BorderSide(
-                  color: kGry450,
-                ),
+              dropdownColor: dropdownColor,
+              icon: Icon(
+                dropdownIcon,
+                color: iconColor,
+                size: 18,
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(5),
-                borderSide: const BorderSide(
-                  color: kGry450,
-                ),
-              ),
-            ),
-            dropdownColor: dropdownColor,
-            icon: Icon(
-              dropdownIcon,
-              color: kBlack,
-              size: 18,
             ),
           ),
         ),

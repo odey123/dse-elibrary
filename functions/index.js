@@ -330,8 +330,22 @@ exports.addCourse = functions.https.onCall(async (requests, response) => {
             .get();
 
         if (!existingCourseQuery.empty) {
-            throw new functions.https.HttpsError("already-exists", "A course with this code already exists.");
+            const existingDoc = existingCourseQuery.docs[0];
+            const existingOwners = existingDoc.data().owner_uid || [];
+
+            // Avoid duplicate UIDs
+            if (!existingOwners.includes(ownerUid)) {
+                await existingDoc.ref.update({
+                    owner_uid: admin.firestore.FieldValue.arrayUnion(ownerUid)
+                });
+            }
+
+            return {
+                success: true,
+                message: `You’ve been added as a co-owner to course ${courseCode} - ${courseName}.`,
+            };
         }
+
 
         try {
             const courseRef = admin.firestore().collection("courses").doc();
@@ -341,7 +355,7 @@ exports.addCourse = functions.https.onCall(async (requests, response) => {
                 unit: unit,
                 level: level,
                 semester: semester,
-                owner_uid: ownerUid,
+                owner_uid: [ownerUid],
                 owner_name: ownerName,
                 course_id: courseRef.id,
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),

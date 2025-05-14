@@ -11,6 +11,9 @@ class Courses extends StatefulWidget {
 class _CoursesState extends State<Courses> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return const PopScope(
+      canPop: false,
+      child: Scaffold(),
+    );
   }
 }

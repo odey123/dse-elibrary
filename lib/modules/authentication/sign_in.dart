@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:systems_app/app/custom_snack_bar/custom_snack_bar_for_empty_field.dart';
@@ -52,441 +53,459 @@ class _SignInState extends State<SignIn> {
 
   @override
   Widget build(BuildContext mainContext) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: (!kIsWeb || isPhoneWeb) ? 15 : 25,
-                  vertical: (!kIsWeb || isPhoneWeb) ? 40 : 25,
-                ),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.only(
-                      left: 9,
-                      right: 9,
-                      top: 6,
-                      bottom: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: kGry300,
-                      border: Border.all(
-                        color: kGry450,
-                      ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(8),
-                      ),
-                    ),
-                    child: SizedBox(
-                      width: 9,
-                      height: 15,
-                      child: SvgPicture.asset(
-                        AssetPaths.back,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              InkWell(
-                splashColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                hoverColor: Colors.transparent,
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    signInAsAdminRoute,
-                  );
-                },
-                child: Container(
-                  decoration: const BoxDecoration(color: kTransparent),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: (!kIsWeb || isPhoneWeb) ? 15 : 25,
-                      vertical: (!kIsWeb || isPhoneWeb) ? 40 : 25,
-                    ),
-                    child: Text(
-                      'Admin',
-                      style: textTheme.titleSmall!.copyWith(
-                        decoration: TextDecoration.underline,
-                        color: kBlack,
-                        fontSize: (!kIsWeb || isPhoneWeb) ? 20 : 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-              )
-            ],
-          ),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Sign In',
-                  style: textTheme.titleSmall!.copyWith(
-                    color: kBlack,
-                    fontSize: (!kIsWeb || isPhoneWeb) ? 30 : 25,
-                    fontWeight: FontWeight.w600,
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: (!kIsWeb || isPhoneWeb) ? 15 : 25,
+                    vertical: (!kIsWeb || isPhoneWeb) ? 40 : 25,
                   ),
-                ),
-                YBox(kSmallPadding),
-                Text(
-                  'Welcome to the E-Library',
-                  style: textTheme.bodySmall!.copyWith(
-                    color: kGry800,
-                    fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                YBox(kMacroPadding),
-                Container(
-                  height: (!kIsWeb || isPhoneWeb) ? 44 : 40,
-                  width: 300,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5),
-                    border: Border.all(
-                      color:
-                          _focusNodeEmail.hasFocus ? kGry450 : emailBorderColor,
-                    ),
-                    color: kTextfieldLoginBackground,
-                  ),
-                  child: TextField(
-                    controller: _email,
-                    focusNode: _focusNodeEmail,
-                    keyboardType: TextInputType.emailAddress,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    style: textTheme.bodySmall!.copyWith(
-                      color: kBlack,
-                      fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 13,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    onChanged: (value) {
-                      if (value.isNotEmpty) {
-                        setState(() {
-                          emailBorderColor = kGry450;
-                        });
-                      }
-                    },
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.only(
-                        left: 10,
-                      ),
-                      hintText: 'Email Address',
-                      hintStyle: textTheme.bodySmall!.copyWith(
-                        color: kgry700,
-                        fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 13,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      border: InputBorder.none,
-                    ),
-                    cursorColor: kBlack,
-                  ),
-                ),
-                (emailBorderColor == kError)
-                    ? const Padding(
-                        padding: EdgeInsets.only(
-                          top: 2,
-                          left: 0,
-                        ),
-                        child: Text(
-                          'Email Address is required.',
-                          style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFFFF0000),
-                              fontSize: 11),
-                        ),
-                      )
-                    : const SizedBox(
-                        height: 6,
-                      ),
-                YBox(kSmallPadding),
-                Container(
-                  height: (!kIsWeb || isPhoneWeb) ? 44 : 40,
-                  width: 300,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5),
-                    border: Border.all(
-                      color: _focusNodePassword.hasFocus
-                          ? kGry450
-                          : passwordBorderColor,
-                    ),
-                    color: kTextfieldLoginBackground,
-                  ),
-                  child: TextField(
-                    controller: _password,
-                    focusNode: _focusNodePassword,
-                    keyboardType: TextInputType.visiblePassword,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    obscureText: !_isPasswordVisible,
-                    style: textTheme.bodySmall!.copyWith(
-                      color: kBlack,
-                      fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 13,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    textAlignVertical: TextAlignVertical.center,
-                    onChanged: (value) {
-                      if (value.length >= 6) {
-                        setState(() {
-                          passwordBorderColor = kGry450;
-                        });
-                      }
-                    },
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.only(
-                        left: 10,
-                      ),
-                      hintText: 'Password',
-                      hintStyle: textTheme.bodySmall!.copyWith(
-                        color: kgry700,
-                        fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 13,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      border: InputBorder.none,
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
-                        style: ButtonStyle(
-                          overlayColor:
-                              WidgetStateProperty.all(Colors.transparent),
-                        ),
-                        icon: _isPasswordVisible
-                            ? const Icon(
-                                Icons.visibility,
-                                size: 20,
-                                color: kgry700,
-                              )
-                            : const Icon(
-                                Icons.visibility_off,
-                                size: 20,
-                                color: kgry700,
-                              ),
-                      ),
-                    ),
-                    cursorColor: kBlack,
-                  ),
-                ),
-                (passwordBorderColor == kError)
-                    ? const Padding(
-                        padding: EdgeInsets.only(
-                          top: 2,
-                          left: 0,
-                        ),
-                        child: Text(
-                          'Password is required.',
-                          style: TextStyle(
-                              fontFamily: 'PlusJakartaSans',
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFFFF0000),
-                              fontSize: 11),
-                        ),
-                      )
-                    : const SizedBox(
-                        height: 6,
-                      ),
-                YBox(kSmallPadding),
-                SizedBox(
-                  width: 300,
                   child: InkWell(
                     onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        forgotPasswordRoute,
-                      );
+                      SystemNavigator.pop();
                     },
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    hoverColor: Colors.transparent,
-                    child: Padding(
+                    child: Container(
                       padding: const EdgeInsets.only(
-                        right: kRegularPadding,
+                        left: 9,
+                        right: 9,
+                        top: 6,
+                        bottom: 6,
                       ),
-                      child: Text(
-                        'Forgot Password?',
-                        style: textTheme.bodySmall!.copyWith(
-                          color: kDarkYellow,
-                          fontSize: (!kIsWeb || isPhoneWeb) ? 13 : 12,
-                          fontWeight: FontWeight.w500,
+                      decoration: BoxDecoration(
+                        color: kGry300,
+                        border: Border.all(
+                          color: kGry450,
                         ),
-                        textAlign: TextAlign.end,
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(8),
+                        ),
+                      ),
+                      child: SizedBox(
+                        width: 9,
+                        height: 15,
+                        child: SvgPicture.asset(
+                          AssetPaths.back,
+                        ),
                       ),
                     ),
                   ),
                 ),
-                YBox(kMacroPadding),
-                SizedBox(
-                  height: (!kIsWeb || isPhoneWeb) ? 45 : 38,
-                  width: 300,
-                  child: Consumer(
-                    builder:
-                        (BuildContext context, WidgetRef ref, Widget? child) {
-                      return TextButton(
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.only(
-                            left: kSmallPadding,
-                            right: kSmallPadding,
-                            bottom: kRegularPadding,
-                            top: kRegularPadding + 4,
-                          ),
-                          backgroundColor: kPrimaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
+                (!kIsWeb || isPhoneWeb)
+                    ? Container()
+                    : InkWell(
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        hoverColor: Colors.transparent,
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            signInAsAdminRoute,
+                          );
+                        },
+                        child: Container(
+                          decoration: const BoxDecoration(color: kTransparent),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: (!kIsWeb || isPhoneWeb) ? 15 : 25,
+                              vertical: (!kIsWeb || isPhoneWeb) ? 40 : 25,
+                            ),
+                            child: Text(
+                              'Admin',
+                              style: textTheme.titleSmall!.copyWith(
+                                decoration: TextDecoration.underline,
+                                color: kBlack,
+                                fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
                         ),
-                        onPressed: () async {
-                          final email = _email.text;
-                          final password = _password.text;
-                          if (email.isEmpty && password.isEmpty) {
+                      )
+              ],
+            ),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Sign In',
+                    style: textTheme.titleSmall!.copyWith(
+                      color: kBlack,
+                      fontSize: (!kIsWeb || isPhoneWeb) ? 30 : 25,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  YBox(kSmallPadding),
+                  Text(
+                    'Welcome to the E-Library',
+                    style: textTheme.bodySmall!.copyWith(
+                      color: kGry800,
+                      fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 12,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  YBox(kMacroPadding),
+                  Container(
+                    height: (!kIsWeb || isPhoneWeb) ? 44 : 40,
+                    width: 300,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(
+                        color: _focusNodeEmail.hasFocus
+                            ? kGry450
+                            : emailBorderColor,
+                      ),
+                      color: kTextfieldLoginBackground,
+                    ),
+                    child: TextField(
+                      controller: _email,
+                      focusNode: _focusNodeEmail,
+                      keyboardType: TextInputType.emailAddress,
+                      enableSuggestions: false,
+                      autocorrect: false,
+                      style: textTheme.bodySmall!.copyWith(
+                        color: kBlack,
+                        fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 13,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      onChanged: (value) {
+                        if (value.isNotEmpty) {
+                          setState(() {
+                            emailBorderColor = kGry450;
+                          });
+                        }
+                      },
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.only(
+                          left: 10,
+                        ),
+                        hintText: 'Email Address',
+                        hintStyle: textTheme.bodySmall!.copyWith(
+                          color: kgry700,
+                          fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 13,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        border: InputBorder.none,
+                      ),
+                      cursorColor: kBlack,
+                    ),
+                  ),
+                  (emailBorderColor == kError)
+                      ? const Padding(
+                          padding: EdgeInsets.only(
+                            top: 2,
+                            left: 0,
+                          ),
+                          child: Text(
+                            'Email Address is required.',
+                            style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFFFF0000),
+                                fontSize: 11),
+                          ),
+                        )
+                      : const SizedBox(
+                          height: 6,
+                        ),
+                  YBox(kSmallPadding),
+                  Container(
+                    height: (!kIsWeb || isPhoneWeb) ? 44 : 40,
+                    width: 300,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(
+                        color: _focusNodePassword.hasFocus
+                            ? kGry450
+                            : passwordBorderColor,
+                      ),
+                      color: kTextfieldLoginBackground,
+                    ),
+                    child: TextField(
+                      controller: _password,
+                      focusNode: _focusNodePassword,
+                      keyboardType: TextInputType.visiblePassword,
+                      enableSuggestions: false,
+                      autocorrect: false,
+                      obscureText: !_isPasswordVisible,
+                      style: textTheme.bodySmall!.copyWith(
+                        color: kBlack,
+                        fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 13,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      textAlignVertical: TextAlignVertical.center,
+                      onChanged: (value) {
+                        if (value.length >= 6) {
+                          setState(() {
+                            passwordBorderColor = kGry450;
+                          });
+                        }
+                      },
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.only(
+                          left: 10,
+                        ),
+                        hintText: 'Password',
+                        hintStyle: textTheme.bodySmall!.copyWith(
+                          color: kgry700,
+                          fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 13,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        border: InputBorder.none,
+                        suffixIcon: IconButton(
+                          onPressed: () {
                             setState(() {
-                              emailBorderColor = kError;
-                              passwordBorderColor = kError;
+                              _isPasswordVisible = !_isPasswordVisible;
                             });
-                            CustomSnackBarForEmptyField.show(
-                              mainContext,
-                              'Field must not be empty',
-                              40,
-                            );
-                          } else if (email.isEmpty) {
-                            setState(() {
-                              emailBorderColor = kError;
-                            });
-                            CustomSnackBarForEmptyField.show(
-                              mainContext,
-                              'Field must not be empty',
-                              40,
-                            );
-                          } else if (password.isEmpty) {
-                            setState(() {
-                              passwordBorderColor = kError;
-                            });
-                            CustomSnackBarForEmptyField.show(
-                              mainContext,
-                              'Field must not be empty',
-                              40,
-                            );
-                          } else {
-                            setState(() {
-                              _isLoading = true;
-                            });
-                            LoadingScreen().show(
-                                context: mainContext, showProgress: false);
-                            try {
-                              final auth = ref.read(
-                                  authenticationAsyncNotifierProvider.notifier);
-                              await auth.logOut();
-                              final user = await auth.logIn(
-                                  email: email, password: password);
-                              final adminChecker = await auth.checkIfAdmin();
+                          },
+                          style: ButtonStyle(
+                            overlayColor:
+                                WidgetStateProperty.all(Colors.transparent),
+                          ),
+                          icon: _isPasswordVisible
+                              ? const Icon(
+                                  Icons.visibility,
+                                  size: 20,
+                                  color: kgry700,
+                                )
+                              : const Icon(
+                                  Icons.visibility_off,
+                                  size: 20,
+                                  color: kgry700,
+                                ),
+                        ),
+                      ),
+                      cursorColor: kBlack,
+                    ),
+                  ),
+                  (passwordBorderColor == kError)
+                      ? const Padding(
+                          padding: EdgeInsets.only(
+                            top: 2,
+                            left: 0,
+                          ),
+                          child: Text(
+                            'Password is required.',
+                            style: TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFFFF0000),
+                                fontSize: 11),
+                          ),
+                        )
+                      : const SizedBox(
+                          height: 6,
+                        ),
+                  YBox(kSmallPadding),
+                  SizedBox(
+                    width: 300,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          forgotPasswordRoute,
+                        );
+                      },
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          right: kRegularPadding,
+                        ),
+                        child: Text(
+                          'Forgot Password?',
+                          style: textTheme.bodySmall!.copyWith(
+                            color: kDarkYellow,
+                            fontSize: (!kIsWeb || isPhoneWeb) ? 13 : 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.end,
+                        ),
+                      ),
+                    ),
+                  ),
+                  YBox(kMacroPadding),
+                  SizedBox(
+                    height: (!kIsWeb || isPhoneWeb) ? 45 : 38,
+                    width: 300,
+                    child: Consumer(
+                      builder:
+                          (BuildContext context, WidgetRef ref, Widget? child) {
+                        return TextButton(
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.only(
+                              left: kSmallPadding,
+                              right: kSmallPadding,
+                              bottom: (!kIsWeb || isPhoneWeb)
+                                  ? kSmallPadding
+                                  : kRegularPadding,
+                              top: (!kIsWeb || isPhoneWeb)
+                                  ? kSmallPadding + 4
+                                  : kRegularPadding + 4,
+                            ),
+                            backgroundColor: kPrimaryColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          onPressed: () async {
+                            final email = _email.text;
+                            final password = _password.text;
+                            if (email.isEmpty && password.isEmpty) {
                               setState(() {
-                                _isLoading = false;
+                                emailBorderColor = kError;
+                                passwordBorderColor = kError;
                               });
-                              if (adminChecker) {
+                              CustomSnackBarForEmptyField.show(
+                                mainContext,
+                                'Field must not be empty',
+                                40,
+                              );
+                            } else if (email.isEmpty) {
+                              setState(() {
+                                emailBorderColor = kError;
+                              });
+                              CustomSnackBarForEmptyField.show(
+                                mainContext,
+                                'Field must not be empty',
+                                40,
+                              );
+                            } else if (password.isEmpty) {
+                              setState(() {
+                                passwordBorderColor = kError;
+                              });
+                              CustomSnackBarForEmptyField.show(
+                                mainContext,
+                                'Field must not be empty',
+                                40,
+                              );
+                            } else {
+                              setState(() {
+                                _isLoading = true;
+                              });
+                              LoadingScreen().show(
+                                  context: mainContext, showProgress: false);
+                              try {
+                                final auth = ref.read(
+                                    authenticationAsyncNotifierProvider
+                                        .notifier);
                                 await auth.logOut();
-                                LoadingScreen().hide();
-                                CustomSnackBarForEmptyField.show(
-                                  mainContext,
-                                  'Access denied. Authorised Users only.',
-                                  40,
-                                );
-                              } else {
-                                LoadingScreen().hide();
-                                log('$user');
-                                Navigator.pushNamedAndRemoveUntil(
-                                  mainContext,
-                                  homeRoute,
-                                  (route) => false,
-                                );
-                              }
-                            } on Exception catch (e) {
-                              if (mounted) {
+                                final user = await auth.logIn(
+                                    email: email, password: password);
+                                final adminChecker = await auth.checkIfAdmin();
                                 setState(() {
                                   _isLoading = false;
                                 });
-                                LoadingScreen().hide();
-                                if (e is UserNotFoundAuthException) {
-                                  showErrorDialog(
-                                    context: mainContext,
-                                    text:
-                                        'There is no account associated with this email address.',
+                                if (adminChecker) {
+                                  await auth.logOut();
+                                  LoadingScreen().hide();
+                                  CustomSnackBarForEmptyField.show(
+                                    mainContext,
+                                    'Access denied. Authorised Users only.',
+                                    40,
                                   );
-                                } else if (e
-                                    is InvalidCredentialAuthException) {
-                                  showErrorDialog(
-                                    context: mainContext,
-                                    text:
-                                        'There is no account associated with this credentials',
+                                } else {
+                                  LoadingScreen().hide();
+                                  log('$user');
+                                  Navigator.pushNamedAndRemoveUntil(
+                                    mainContext,
+                                    homeRoute,
+                                    (route) => false,
                                   );
-                                } else if (e is WrongPasswordAuthException) {
-                                  showIncorrectPasswordErrorDialog(
-                                    context: mainContext,
-                                    text: 'The password entered is incorrect.',
-                                  );
-                                } else if (e is UserDisabledAuthException) {
-                                  showIncorrectPasswordErrorDialog(
-                                    context: mainContext,
-                                    text:
-                                        'Your classs account has been disabled',
-                                  );
-                                } else if (e
-                                    is NetworkRequestFailedAuthException) {
-                                  showInternetDialog(
-                                    context: mainContext,
-                                    text: "There is no internet connection.",
-                                  );
-                                } else if (e is TooManyRequestAuthException) {
-                                  showErrorDialog(
-                                    context: mainContext,
-                                    text:
-                                        'Please attempt it again after some time',
-                                  );
-                                } else if (e is GenericAuthException) {
-                                  showErrorDialog(
-                                    context: mainContext,
-                                    text: 'Authentication Error',
-                                  );
+                                }
+                              } on Exception catch (e) {
+                                if (mounted) {
+                                  setState(() {
+                                    _isLoading = false;
+                                  });
+                                  LoadingScreen().hide();
+                                  if (e is UserNotFoundAuthException) {
+                                    showErrorDialog(
+                                      context: mainContext,
+                                      text:
+                                          'There is no account associated with this email address.',
+                                    );
+                                  } else if (e
+                                      is InvalidCredentialAuthException) {
+                                    showErrorDialog(
+                                      context: mainContext,
+                                      text:
+                                          'There is no account associated with this credentials',
+                                    );
+                                  } else if (e is WrongPasswordAuthException) {
+                                    showIncorrectPasswordErrorDialog(
+                                      context: mainContext,
+                                      text:
+                                          'The password entered is incorrect.',
+                                    );
+                                  } else if (e is UserDisabledAuthException) {
+                                    showIncorrectPasswordErrorDialog(
+                                      context: mainContext,
+                                      text:
+                                          'Your classs account has been disabled',
+                                    );
+                                  } else if (e
+                                      is NetworkRequestFailedAuthException) {
+                                    showInternetDialog(
+                                      context: mainContext,
+                                      text: "There is no internet connection.",
+                                    );
+                                  } else if (e is TooManyRequestAuthException) {
+                                    showErrorDialog(
+                                      context: mainContext,
+                                      text:
+                                          'Please attempt it again after some time',
+                                    );
+                                  } else if (e is GenericAuthException) {
+                                    showErrorDialog(
+                                      context: mainContext,
+                                      text: 'Authentication Error',
+                                    );
+                                  }
                                 }
                               }
                             }
-                          }
-                        },
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: kPrimaryWhite,
+                          },
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: kPrimaryWhite,
+                                  ),
+                                )
+                              : Text(
+                                  enter,
+                                  style: textTheme.titleSmall!.copyWith(
+                                    fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 13,
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                 ),
-                              )
-                            : Text(
-                                enter,
-                                style: textTheme.titleSmall!.copyWith(
-                                  fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 13,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

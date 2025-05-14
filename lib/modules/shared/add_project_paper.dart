@@ -1,12 +1,14 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:systems_app/app/custom_snack_bar/custom_snack_bar_for_empty_field.dart';
 import 'package:systems_app/app/dialogs/error_dialog.dart';
-import 'package:systems_app/app/dialogs/onboarding_success_dialog.dart';
+import 'package:systems_app/app/dialogs/success_dialog.dart';
 import 'package:systems_app/app/function/handle_profile_submit.dart';
 import 'package:systems_app/app/function/image_picker.dart';
+import 'package:systems_app/app/function/reference.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/app/loading/loading_screen.dart';
 import 'package:systems_app/modules/reuseables/profile_drawer.dart';
@@ -16,8 +18,7 @@ import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
 import 'package:systems_app/services/cloud/database/cloud_profile.dart';
 import 'package:systems_app/services/cloud/database/database_actions.dart';
-import 'package:systems_app/services/cloud/function/function_exception.dart';
-import 'package:systems_app/services/cloud/function/functions_actions.dart';
+import 'package:systems_app/services/cloud/storage/cloud_storage_exception.dart';
 import 'package:systems_app/services/cloud/storage/storage.actions.dart';
 import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
@@ -25,26 +26,23 @@ import 'package:systems_app/utils/strings.dart';
 import 'package:systems_app/utils/text_button_comp.dart';
 import 'package:systems_app/utils/text_field_comp.dart';
 
-class AddCourse extends ConsumerStatefulWidget {
-  const AddCourse({
+class AddProjectPaper extends ConsumerStatefulWidget {
+  const AddProjectPaper({
     super.key,
   });
 
   @override
-  ConsumerState<AddCourse> createState() => _AddCourseState();
+  ConsumerState<AddProjectPaper> createState() => _AddProjectPaperState();
 }
 
-class _AddCourseState extends ConsumerState<AddCourse> {
+class _AddProjectPaperState extends ConsumerState<AddProjectPaper> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late final AuthenticationAsyncNotifier _auth;
   late final DatabaseAsyncNotifier _database;
-  late final FunctionsAsyncNotifier _function;
   late final StorageAsyncNotifier _storage;
-  late final TextEditingController _courseName;
-  late final TextEditingController _courseCode;
-  late final TextEditingController _numOfUnit;
-  late final TextEditingController _semester;
-  late final TextEditingController _level;
+  late final TextEditingController _projectTitle;
+  late final TextEditingController _writtenBy;
+  PlatformFile? _paperPicked;
   late final TextEditingController _firstName;
   late final TextEditingController _lastName;
   late final TextEditingController _prefferedAcademicName;
@@ -54,19 +52,17 @@ class _AddCourseState extends ConsumerState<AddCourse> {
   late final TextEditingController _email;
   bool _isLoading = false;
   bool _isProfileEditLoading = false;
+  bool _isPaperUploaded = false;
+  String _paperFilename = '';
   bool _showSignOut = false;
 
   @override
   void initState() {
     _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
     _database = ref.read(databaseAsyncNotifierProvider.notifier);
-    _function = ref.read(functionsAsyncNotifierProvider.notifier);
     _storage = ref.read(storageAsyncNotifierProvider.notifier);
-    _courseName = TextEditingController();
-    _courseCode = TextEditingController();
-    _numOfUnit = TextEditingController();
-    _semester = TextEditingController();
-    _level = TextEditingController();
+    _projectTitle = TextEditingController();
+    _writtenBy = TextEditingController();
     _firstName = TextEditingController();
     _lastName = TextEditingController();
     _prefferedAcademicName = TextEditingController();
@@ -76,6 +72,25 @@ class _AddCourseState extends ConsumerState<AddCourse> {
     _email = TextEditingController();
     setControllerText();
     super.initState();
+  }
+
+  Future<FilePickerResult?> _pickFile({required List<String> type}) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: type,
+      allowCompression: true,
+    );
+    return result;
+  }
+
+  void _undoController() {
+    _projectTitle.clear();
+    _writtenBy.clear();
+    setState(() {
+      _isPaperUploaded = false;
+      _paperFilename = '';
+      _paperPicked = null;
+    });
   }
 
   void openEndDrawer() {
@@ -93,14 +108,6 @@ class _AddCourseState extends ConsumerState<AddCourse> {
     _email.text = SessionManager.getEmail() ?? '';
   }
 
-  void _undoController() {
-    _courseName.clear();
-    _courseCode.clear();
-    _numOfUnit.clear();
-    _semester.clear();
-    _level.clear();
-  }
-
   @override
   Widget build(BuildContext mainContext) {
     return PopScope(
@@ -114,7 +121,6 @@ class _AddCourseState extends ConsumerState<AddCourse> {
       },
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: kGry400,
         endDrawer: ProfileDrawer(
           firstNameController: _firstName,
           lastNameController: _lastName,
@@ -308,9 +314,7 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                         children: [
                           (!kIsWeb || isPhoneWeb)
                               ? YBox(kMacroPadding)
-                              : Container(
-                                  height: kMacroPadding,
-                                ),
+                              : Container(),
                           (!kIsWeb || isPhoneWeb)
                               ? InkWell(
                                   onTap: () {
@@ -361,7 +365,7 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  addACourse,
+                                  addAProjectPaper,
                                   style: textTheme.titleMedium!.copyWith(
                                     fontSize: (!kIsWeb || isPhoneWeb) ? 19 : 16,
                                     fontWeight: FontWeight.w600,
@@ -369,7 +373,7 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                                   ),
                                 ),
                                 Text(
-                                  courses,
+                                  projectPaper,
                                   style: textTheme.titleMedium!.copyWith(
                                     fontSize: (!kIsWeb || isPhoneWeb) ? 11 : 9,
                                     fontWeight: FontWeight.w400,
@@ -396,7 +400,7 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  courseInfo,
+                                  projectInfo,
                                   style: textTheme.titleMedium!.copyWith(
                                     fontSize: (!kIsWeb || isPhoneWeb) ? 19 : 16,
                                     fontWeight: FontWeight.w600,
@@ -417,41 +421,137 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                                 ),
                                 YBox(kMacroPadding),
                                 CustomTextInputField(
-                                  label: courseName,
-                                  hintText: enterCourseName,
-                                  controller: _courseName,
+                                  label: projectTitle,
+                                  hintText: enterProjectTitle,
+                                  controller: _projectTitle,
                                 ),
                                 YBox(kMacroPadding),
                                 CustomTextInputField(
-                                  label: courseCode,
-                                  hintText: enterCourseCode,
-                                  controller: _courseCode,
+                                  label: writtenBy,
+                                  hintText: enterStudentName,
+                                  controller: _writtenBy,
                                 ),
                                 YBox(kMacroPadding),
-                                CustomTextInputField(
-                                  label: courseUnit,
-                                  hintText: enterCourseUnits,
-                                  controller: _numOfUnit,
-                                  keyboardType: TextInputType.number,
+                                Text(
+                                  uploadProjectPaper,
+                                  style: textTheme.titleMedium!.copyWith(
+                                    fontSize: (!kIsWeb || isPhoneWeb) ? 16 : 13,
+                                    fontWeight: FontWeight.w400,
+                                    color: kBlack,
+                                  ),
                                 ),
-                                YBox(kMacroPadding),
-                                CustomDropdownField(
-                                  label: semester,
-                                  hintText: selectSemester,
-                                  items: semesters,
-                                  controller: _semester,
-                                  dropdownColor: kPrimaryWhite,
-                                  dropdownIcon: Icons.keyboard_arrow_down,
+                                YBox(kSmallPadding),
+                                Text(
+                                  uploadOneSupportedPDF,
+                                  style: textTheme.titleMedium!.copyWith(
+                                    fontSize: (!kIsWeb || isPhoneWeb) ? 14 : 11,
+                                    fontWeight: FontWeight.w400,
+                                    color: kGry600,
+                                  ),
                                 ),
-                                YBox(kMacroPadding),
-                                CustomDropdownField(
-                                  label: courseLevel,
-                                  hintText: selectLevel,
-                                  items: levels,
-                                  controller: _level,
-                                  dropdownColor: kPrimaryWhite,
-                                  dropdownIcon: Icons.keyboard_arrow_down,
-                                ),
+                                YBox(kSmallPadding),
+                                _isPaperUploaded
+                                    ? Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: kSmallPadding,
+                                          vertical: kPadding + 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                          border: Border.all(color: kGry450),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Transform.translate(
+                                              offset: const Offset(0, 2),
+                                              child: Text(
+                                                _paperFilename,
+                                                style: textTheme.titleMedium!
+                                                    .copyWith(
+                                                  fontSize:
+                                                      (!kIsWeb || isPhoneWeb)
+                                                          ? 14
+                                                          : 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: kBlack,
+                                                ),
+                                              ),
+                                            ),
+                                            XBox(kPadding),
+                                            InkWell(
+                                              onTap: () {
+                                                setState(() {
+                                                  _isPaperUploaded = false;
+                                                });
+                                              },
+                                              child: const Icon(
+                                                Icons.cancel,
+                                                color: kPrimaryColor,
+                                                size: 20,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : TextButton(
+                                        onPressed: () async {
+                                          final result = await _pickFile(type: [
+                                            'pdf',
+                                          ]);
+                                          if (result != null &&
+                                              result.files.isNotEmpty) {
+                                            setState(() {
+                                              _isPaperUploaded = true;
+                                              _paperFilename =
+                                                  result.files.first.name;
+                                              _paperPicked = result.files.first;
+                                            });
+                                          }
+                                        },
+                                        style: TextButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: kSmallPadding,
+                                            vertical: kPadding + 3,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                            side: const BorderSide(
+                                                color: kGry450),
+                                          ),
+                                          backgroundColor: Colors.transparent,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.file_upload,
+                                              color: kPrimaryColor,
+                                              size: 20,
+                                            ),
+                                            XBox(kPadding),
+                                            Transform.translate(
+                                              offset: const Offset(0, 2),
+                                              child: Text(
+                                                addFile,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: textTheme.titleMedium!
+                                                    .copyWith(
+                                                  fontSize:
+                                                      (!kIsWeb || isPhoneWeb)
+                                                          ? 14
+                                                          : 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: kPrimaryColor,
+                                                ),
+                                              ),
+                                            ),
+                                            XBox(kSmallPadding),
+                                          ],
+                                        ),
+                                      ),
                                 YBox(kMacroPadding),
                                 Row(
                                   children: [
@@ -470,17 +570,12 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                                     CustomTextButton(
                                       text: submit,
                                       onPressed: () async {
-                                        final courseName = _courseName.text;
-                                        final courseCode = _courseCode.text;
-                                        final units = _numOfUnit.text;
-                                        final level = _level.text;
-                                        final semester = _semester.text;
-
-                                        if (courseName.isEmpty ||
-                                            courseCode.isEmpty ||
-                                            units.isEmpty ||
-                                            level.isEmpty ||
-                                            semester.isEmpty) {
+                                        final title = _projectTitle.text;
+                                        final writtenBy = _writtenBy.text;
+                                        final pickedfile = _paperPicked;
+                                        if (title.isEmpty ||
+                                            writtenBy.isEmpty ||
+                                            pickedfile == null) {
                                           CustomSnackBarForEmptyField.show(
                                             mainContext,
                                             'Field must not be empty',
@@ -494,6 +589,14 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                                               context: mainContext,
                                               showProgress: false);
                                           try {
+                                            final url =
+                                                await _storage.addProjectPaper(
+                                              title: title,
+                                              path: pickedfile.path!,
+                                              bytes: pickedfile.bytes!,
+                                              projectSupervisorUid:
+                                                  _auth.currentUser!.uid,
+                                            );
                                             final profile = await _database
                                                 .getUserProfile(
                                                   ownerUserId:
@@ -501,29 +604,26 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                                                   role: lecturerRole,
                                                 )
                                                 .first;
-                                            final currentUser =
-                                                _auth.currentUser;
-
-                                            await _function.addCourse(
-                                              courseName: courseName,
-                                              courseCode: courseCode,
-                                              unit: units,
-                                              level: level,
-                                              semester: semester,
-                                              ownerName:
+                                            await _database.addProjectPaper(
+                                              title: title,
+                                              writtenBy: writtenBy,
+                                              coordinatorName:
                                                   profile.preferredAcademicName,
-                                              ownerUid: currentUser!.uid,
+                                              coordinatorUid:
+                                                  _auth.currentUser!.uid,
+                                              paperUrl: url,
+                                              id: generateReference(),
                                             );
                                             setState(() {
                                               _isLoading = false;
                                             });
                                             LoadingScreen().hide();
                                             _undoController();
-                                            await showOnboardingSuccessDialog(
+                                            await showSuccessDialog(
                                               context: mainContext,
-                                              name: courseCode,
-                                              buttonText: addCourse,
-                                              placeholder: course,
+                                              name: title,
+                                              buttonText: addProjectPaper,
+                                              placeholder: projectPaper,
                                             );
                                           } on Exception catch (e) {
                                             if (mounted) {
@@ -531,54 +631,15 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                                                 _isLoading = false;
                                               });
                                               LoadingScreen().hide();
-                                              if (e
-                                                  is UnAuthenticatedFunctionException) {
+                                              if (e is ErrorUploadingFile) {
                                                 showErrorDialog(
                                                   context: mainContext,
-                                                  text:
-                                                      'User must be signed in.',
+                                                  text: 'Error uploading file',
                                                 );
-                                              } else if (e
-                                                  is PermissionDeniedFunctionException) {
+                                              } else {
                                                 showErrorDialog(
                                                   context: mainContext,
-                                                  text:
-                                                      'You do not have permission to add a course.',
-                                                );
-                                              } else if (e
-                                                  is InvalidArgumentFunctionException) {
-                                                showErrorDialog(
-                                                  context: mainContext,
-                                                  text:
-                                                      'Invalid or missing input fields.',
-                                                );
-                                              } else if (e
-                                                  is AlreadyExistsFunctionException) {
-                                                showErrorDialog(
-                                                  context: mainContext,
-                                                  text:
-                                                      'Course has already been added.',
-                                                );
-                                              } else if (e
-                                                  is DeadlineExceededFunctionException) {
-                                                showErrorDialog(
-                                                  context: mainContext,
-                                                  text:
-                                                      'The request took too long, please try again.',
-                                                );
-                                              } else if (e
-                                                  is ResourceExhaustedFunctionException) {
-                                                showErrorDialog(
-                                                  context: mainContext,
-                                                  text:
-                                                      'Too many requests, please try later.',
-                                                );
-                                              } else if (e
-                                                  is GenericFunctionException) {
-                                                showErrorDialog(
-                                                  context: mainContext,
-                                                  text:
-                                                      'Please try again later.',
+                                                  text: 'Try again later',
                                                 );
                                               }
                                             }

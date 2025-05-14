@@ -6,6 +6,7 @@ import 'package:systems_app/modules/admin/home_dashboard/home_dashboard.dart';
 import 'package:systems_app/modules/admin/lecturers/lecturers.dart';
 import 'package:systems_app/modules/admin/students/students.dart';
 import 'package:systems_app/modules/books/books.dart';
+import 'package:systems_app/modules/projects/projects.dart';
 import 'package:systems_app/routes.dart';
 
 class ViewAreaAdmin extends StatefulWidget {
@@ -60,6 +61,11 @@ class _ViewAreaAdminState extends State<ViewAreaAdmin> {
             break;
           case booksRoute:
             builder = (context) => Books(
+                  navigatorKeyForDesktopWeb: widget.navigatorKey,
+                );
+            break;
+          case projectsRoute:
+            builder = (context) => Projects(
                   navigatorKeyForDesktopWeb: widget.navigatorKey,
                 );
             break;

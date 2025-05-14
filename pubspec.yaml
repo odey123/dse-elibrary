@@ -1,5 +1,5 @@
 name: systems_app
-description: "A new Flutter project."
+description: "This is the Department of Systems Engineering E-Library and Filling System."
 
 publish_to: 'none' 
 
@@ -35,6 +35,7 @@ dependencies:
   universal_html: ^2.2.4
   cached_network_image: ^3.4.1
   shared_preferences: ^2.5.3
+  image_network: ^2.6.0
 
 dev_dependencies:
   flutter_test:

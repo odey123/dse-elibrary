@@ -12,6 +12,7 @@ class CloudProfile {
   final String level;
   final String role;
   final String preferredAcademicName;
+  final String profileImageUrl;
 
   CloudProfile({
     required this.email,
@@ -24,6 +25,7 @@ class CloudProfile {
     required this.level,
     required this.role,
     required this.preferredAcademicName,
+    required this.profileImageUrl,
   });
 
   CloudProfile.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot)
@@ -38,5 +40,6 @@ class CloudProfile {
             snapshot.data()![preferredAcademicNameFieldName] ?? '',
         level = snapshot.data()![levelFieldName] ?? '',
         role = snapshot.data()![roleFieldName] ?? '',
-        userId = snapshot.data()![uidFieldName] ?? '';
+        userId = snapshot.data()![uidFieldName] ?? '',
+        profileImageUrl = snapshot.data()![profileImageUrlFieldName] ?? '';
 }

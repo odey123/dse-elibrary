@@ -10,6 +10,7 @@ import 'package:systems_app/app/dialogs/onboarding_success_dialog.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/app/loading/loading_screen.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
+import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
 import 'package:systems_app/services/cloud/function/function_exception.dart';
@@ -164,8 +165,11 @@ class _AddLecturerSingleState extends ConsumerState<AddLecturerSingle> {
                                       decoration: const BoxDecoration(
                                         shape: BoxShape.circle,
                                       ),
-                                      child: Image.asset(
-                                        AssetPaths.avatar,
+                                      child: ProfileImage(
+                                        imageUrl: SessionManager
+                                                .getProfileImageUrl() ??
+                                            '',
+                                        radius: 14,
                                       ),
                                     ),
                                   ),
@@ -521,13 +525,14 @@ class _AddLecturerSingleState extends ConsumerState<AddLecturerSingle> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          height: 27,
-                          width: 27,
+                          height: 28,
+                          width: 28,
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
                           ),
-                          child: Image.asset(
-                            AssetPaths.avatar,
+                          child: ProfileImage(
+                            imageUrl: SessionManager.getProfileImageUrl() ?? '',
+                            radius: 14,
                           ),
                         ),
                         Padding(

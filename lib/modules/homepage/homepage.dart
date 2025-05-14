@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/app/navigator/navigator.dart';
 import 'package:systems_app/modules/homepage/view_area.dart';
+import 'package:systems_app/modules/reuseables/empty_state_home_widget.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
 import 'package:systems_app/modules/reuseables/tab_item.dart';
 import 'package:systems_app/routes.dart';
@@ -40,7 +41,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kTransparent,
       body: FutureBuilder(
           future: _auth.currentUser!.getIdTokenResult(),
           builder: (context, snapshot) {
@@ -75,6 +75,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 profile.levelCourseAdvisor);
                             SessionManager.setPreferredAcademicName(
                                 profile.preferredAcademicName);
+                            SessionManager.setProfileImageUrl(
+                                profile.profileImageUrl);
                             return Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -303,18 +305,18 @@ class _HomePageState extends ConsumerState<HomePage> {
                               ],
                             );
                           } else {
-                            return Container();
+                            return const EmptyStateHomeWidget();
                           }
                         default:
-                          return Container();
+                          return const EmptyStateHomeWidget();
                       }
                     },
                   );
                 } else {
-                  return Container();
+                  return const EmptyStateHomeWidget();
                 }
               default:
-                return Container();
+                return const EmptyStateHomeWidget();
             }
           }),
     );

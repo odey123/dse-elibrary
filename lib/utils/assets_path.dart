@@ -34,4 +34,5 @@ class AssetPaths {
   static String markIcon = "${iconPath}mark_icon.svg";
   static String logoutIcon = "${iconPath}log_out.svg";
   static String profileIcon = "${iconPath}profile.svg";
+  static String profileEditIcon = "${iconPath}profile_edit.svg";
 }

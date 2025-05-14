@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "dse-elibrary-75930"
-  }
+    "default": "dse-elibrary-75930",
+    "production": "dse-elibrary-75930"
+  },
+  "targets": {},
+  "etags": {}
 }

@@ -3,16 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:systems_app/app/function/handle_profile_submit.dart';
+import 'package:systems_app/app/function/image_picker.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/app/loading/loading_screen.dart';
 import 'package:systems_app/modules/my_courses/add_course.dart';
+import 'package:systems_app/modules/reuseables/profile_drawer.dart';
 import 'package:systems_app/modules/shared/course_details.dart';
 import 'package:systems_app/modules/reuseables/course_card.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
+import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
+import 'package:systems_app/services/cloud/database/cloud_profile.dart';
 import 'package:systems_app/services/cloud/database/database_actions.dart';
 import 'package:systems_app/services/cloud/model/course.dart';
+import 'package:systems_app/services/cloud/storage/storage.actions.dart';
 import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
 import 'package:systems_app/utils/strings.dart';
@@ -30,31 +36,110 @@ class MyCourses extends ConsumerStatefulWidget {
 }
 
 class _MyCoursesState extends ConsumerState<MyCourses> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late final DatabaseAsyncNotifier _database;
   late final AuthenticationAsyncNotifier _auth;
+  late final StorageAsyncNotifier _storage;
   final TextEditingController _searchTextField = TextEditingController();
+  late final TextEditingController _firstName;
+  late final TextEditingController _lastName;
+  late final TextEditingController _prefferedAcademicName;
+  late final TextEditingController _prefix;
+  late final TextEditingController _levelCourseAdvisor;
+  late final TextEditingController _currentLevel;
+  late final TextEditingController _email;
   bool _showSignOut = false;
+  bool _isProfileEditLoading = false;
 
   @override
   void initState() {
     _database = ref.read(databaseAsyncNotifierProvider.notifier);
     _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
+    _storage = ref.read(storageAsyncNotifierProvider.notifier);
+    _firstName = TextEditingController();
+    _lastName = TextEditingController();
+    _prefferedAcademicName = TextEditingController();
+    _prefix = TextEditingController();
+    _levelCourseAdvisor = TextEditingController();
+    _currentLevel = TextEditingController();
+    _email = TextEditingController();
+    setControllerText();
     super.initState();
+  }
+
+  void openEndDrawer() {
+    _scaffoldKey.currentState?.openEndDrawer();
+  }
+
+  void setControllerText() {
+    _firstName.text = SessionManager.getFirstName() ?? '';
+    _lastName.text = SessionManager.getLastName() ?? '';
+    _prefferedAcademicName.text =
+        SessionManager.getPreferredAcademicName() ?? '';
+    _prefix.text = SessionManager.getPrefix() ?? '';
+    _levelCourseAdvisor.text = SessionManager.getLevelCourseAdvisor() ?? '';
+    _currentLevel.text = SessionManager.getLevel() ?? '';
+    _email.text = SessionManager.getEmail() ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!kIsWeb || isPhoneWeb) {
+          if (!didPop) {
+            navigatorKey.currentState?.pop();
+          }
+        }
       },
       child: Scaffold(
+        key: _scaffoldKey,
+        endDrawer: ProfileDrawer(
+          firstNameController: _firstName,
+          lastNameController: _lastName,
+          emailController: _email,
+          levelController: SessionManager.getRole() == lecturerRole
+              ? _levelCourseAdvisor
+              : _currentLevel,
+          prefixController: _prefix,
+          preferredAcademicNameController: _prefferedAcademicName,
+          profileStream: _database.getUserProfile(
+            ownerUserId: _auth.currentUser!.uid,
+            role: SessionManager.getRole() ?? '',
+          ),
+          onSubmit: () async {
+            await handleProfileSubmit(
+              context: context,
+              isLecturer: SessionManager.getRole() == lecturerRole,
+              firstNameController: _firstName,
+              lastNameController: _lastName,
+              preferredAcademicNameController: _prefferedAcademicName,
+              prefixController: _prefix,
+              auth: _auth,
+              database: _database,
+              onLoadingStart: () =>
+                  setState(() => _isProfileEditLoading = true),
+              onLoadingEnd: () => setState(() => _isProfileEditLoading = false),
+              mounted: mounted,
+            );
+          },
+          onImageTap: () => pickImage(
+            context: context,
+            storage: _storage,
+            database: _database,
+            auth: _auth,
+            mounted: mounted,
+          ),
+          isLecturer: SessionManager.getRole() == lecturerRole,
+          isLoading: _isProfileEditLoading,
+        ),
         body: Stack(
           alignment: Alignment.topRight,
           children: [
             Column(
               children: [
-                (isPhoneWeb)
+                (!kIsWeb || isPhoneWeb)
                     ? Container()
                     : Padding(
                         padding: const EdgeInsets.symmetric(
@@ -168,24 +253,59 @@ class _MyCoursesState extends ConsumerState<MyCourses> {
                                     ),
                                   ),
                                   XBox(kRegularPadding),
-                                  InkWell(
-                                    overlayColor: const WidgetStatePropertyAll(
-                                        kTransparent),
-                                    hoverColor: kTransparent,
-                                    onTap: () {
-                                      setState(() {
-                                        _showSignOut = !_showSignOut;
-                                      });
-                                    },
-                                    child: Container(
-                                      height: 28,
-                                      width: 28,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
+                                  Container(
+                                    height: 28,
+                                    width: 28,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: StreamBuilder(
+                                      stream: _database.getUserProfile(
+                                        ownerUserId: _auth.currentUser!.uid,
+                                        role: SessionManager.getRole() ?? '',
                                       ),
-                                      child: Image.asset(
-                                        AssetPaths.avatar,
-                                      ),
+                                      builder: (context, snapshot) {
+                                        switch (snapshot.connectionState) {
+                                          case ConnectionState.waiting:
+                                          case ConnectionState.active:
+                                            if (snapshot.hasData) {
+                                              final profile =
+                                                  snapshot.data as CloudProfile;
+                                              return ProfileImage(
+                                                imageUrl:
+                                                    profile.profileImageUrl,
+                                                radius: 14,
+                                                onTap: () {
+                                                  setState(() {
+                                                    _showSignOut =
+                                                        !_showSignOut;
+                                                  });
+                                                },
+                                              );
+                                            } else {
+                                              return ProfileImage(
+                                                imageUrl: '',
+                                                radius: 14,
+                                                onTap: () {
+                                                  setState(() {
+                                                    _showSignOut =
+                                                        !_showSignOut;
+                                                  });
+                                                },
+                                              );
+                                            }
+                                          default:
+                                            return ProfileImage(
+                                              imageUrl: '',
+                                              radius: 14,
+                                              onTap: () {
+                                                setState(() {
+                                                  _showSignOut = !_showSignOut;
+                                                });
+                                              },
+                                            );
+                                        }
+                                      },
                                     ),
                                   ),
                                 ],
@@ -206,7 +326,7 @@ class _MyCoursesState extends ConsumerState<MyCourses> {
                         (!kIsWeb || isPhoneWeb)
                             ? InkWell(
                                 onTap: () {
-                                  Navigator.pop(context);
+                                  navigatorKey.currentState?.pop();
                                 },
                                 splashColor: Colors.transparent,
                                 highlightColor: Colors.transparent,
@@ -308,20 +428,40 @@ class _MyCoursesState extends ConsumerState<MyCourses> {
                                                     coordinatorName:
                                                         courses[index]
                                                             .ownerName,
-                                                    avatarPath:
-                                                        AssetPaths.avatar,
+                                                    avatarPath: courses[index]
+                                                        .profileImageUrl,
                                                     onTap: () {
-                                                      Navigator.of(context)
-                                                          .push(
+                                                      (!kIsWeb || isPhoneWeb)
+                                                          ? navigatorKey
+                                                              .currentState!
+                                                              .push(
                                                               MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            CourseDetailScreen(
-                                                          course:
-                                                              courses[index],
-                                                          userUid: _auth
-                                                              .currentUser!.uid,
-                                                        ),
-                                                      ));
+                                                                builder:
+                                                                    (context) =>
+                                                                        CourseDetailScreen(
+                                                                  course:
+                                                                      courses[
+                                                                          index],
+                                                                  userUid: _auth
+                                                                      .currentUser!
+                                                                      .uid,
+                                                                ),
+                                                              ),
+                                                            )
+                                                          : widget
+                                                              .navigatorKeyForDesktopWeb!
+                                                              .currentState!
+                                                              .push(
+                                                                  MaterialPageRoute(
+                                                              builder: (context) =>
+                                                                  CourseDetailScreen(
+                                                                course: courses[
+                                                                    index],
+                                                                userUid: _auth
+                                                                    .currentUser!
+                                                                    .uid,
+                                                              ),
+                                                            ));
                                                     },
                                                   );
                                                 },
@@ -470,20 +610,40 @@ class _MyCoursesState extends ConsumerState<MyCourses> {
                                                     coordinatorName:
                                                         courses[index]
                                                             .ownerName,
-                                                    avatarPath:
-                                                        AssetPaths.avatar,
+                                                    avatarPath: courses[index]
+                                                        .profileImageUrl,
                                                     onTap: () {
-                                                      Navigator.of(context)
-                                                          .push(
+                                                      (!kIsWeb || isPhoneWeb)
+                                                          ? navigatorKey
+                                                              .currentState!
+                                                              .push(
                                                               MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            CourseDetailScreen(
-                                                          course:
-                                                              courses[index],
-                                                          userUid: _auth
-                                                              .currentUser!.uid,
-                                                        ),
-                                                      ));
+                                                                builder:
+                                                                    (context) =>
+                                                                        CourseDetailScreen(
+                                                                  course:
+                                                                      courses[
+                                                                          index],
+                                                                  userUid: _auth
+                                                                      .currentUser!
+                                                                      .uid,
+                                                                ),
+                                                              ),
+                                                            )
+                                                          : widget
+                                                              .navigatorKeyForDesktopWeb!
+                                                              .currentState!
+                                                              .push(
+                                                                  MaterialPageRoute(
+                                                              builder: (context) =>
+                                                                  CourseDetailScreen(
+                                                                course: courses[
+                                                                    index],
+                                                                userUid: _auth
+                                                                    .currentUser!
+                                                                    .uid,
+                                                              ),
+                                                            ));
                                                     },
                                                   );
                                                 },
@@ -576,9 +736,16 @@ class _MyCoursesState extends ConsumerState<MyCourses> {
                               text: addNew,
                               icon: Icons.add,
                               onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => const AddCourse(),
-                                ));
+                                (!kIsWeb || isPhoneWeb)
+                                    ? navigatorKey.currentState!
+                                        .push(MaterialPageRoute(
+                                        builder: (context) => const AddCourse(),
+                                      ))
+                                    : widget.navigatorKeyForDesktopWeb!
+                                        .currentState!
+                                        .push(MaterialPageRoute(
+                                        builder: (context) => const AddCourse(),
+                                      ));
                               },
                               isLoading: false,
                               backgroundColor: kDarkYellow.withOpacity(
@@ -636,13 +803,15 @@ class _MyCoursesState extends ConsumerState<MyCourses> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            height: 27,
-                            width: 27,
+                            height: 28,
+                            width: 28,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                             ),
-                            child: Image.asset(
-                              AssetPaths.avatar,
+                            child: ProfileImage(
+                              imageUrl:
+                                  SessionManager.getProfileImageUrl() ?? '',
+                              radius: 14,
                             ),
                           ),
                           Padding(
@@ -707,7 +876,12 @@ class _MyCoursesState extends ConsumerState<MyCourses> {
                             ),
                           ),
                           InkWell(
-                            onTap: () {},
+                            onTap: () {
+                              openEndDrawer();
+                              setState(() {
+                                _showSignOut = !_showSignOut;
+                              });
+                            },
                             child: Padding(
                               padding: const EdgeInsets.only(
                                 top: kSmallPadding,

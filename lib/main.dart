@@ -17,6 +17,7 @@ import 'package:systems_app/modules/authentication/forgot_password.dart';
 import 'package:systems_app/modules/authentication/sign_in.dart';
 import 'package:systems_app/modules/admin/authentication/sign_in_admin.dart';
 import 'package:systems_app/modules/books/books.dart';
+import 'package:systems_app/modules/home_dashboard/home_dashboard.dart';
 import 'package:systems_app/modules/homepage/homepage.dart';
 import 'package:systems_app/modules/my_courses/my_courses.dart';
 import 'package:systems_app/modules/projects/projects.dart';
@@ -58,6 +59,7 @@ class _MyAppState extends State<MyApp> {
         forgotPasswordRoute: (context) => const ForgotPassword(),
         homeRoute: (context) => const HomePage(),
         homeAdminRoute: (context) => const HomePageAdmin(),
+        homeDashboardRoute: (context) => const HomeDashboard(),
         myCoursesRoute: (context) => const MyCourses(),
         allCoursesRoute: (context) => const AllCourses(),
         addNewRoute: (context) => const AddNew(),

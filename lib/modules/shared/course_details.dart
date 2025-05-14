@@ -1,9 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:systems_app/app/dialogs/confirmation_dialog.dart';
+import 'package:systems_app/app/function/handle_profile_submit.dart';
+import 'package:systems_app/app/function/image_picker.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/app/loading/loading_screen.dart';
+import 'package:systems_app/modules/reuseables/profile_drawer.dart';
+import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
+import 'package:systems_app/services/cloud/database/cloud_profile.dart';
+import 'package:systems_app/services/cloud/storage/storage.actions.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -40,18 +46,52 @@ class CourseDetailScreen extends ConsumerStatefulWidget {
 
 class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
     with SingleTickerProviderStateMixin {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late final DatabaseAsyncNotifier _database;
   late final AuthenticationAsyncNotifier _auth;
+  late final StorageAsyncNotifier _storage;
   late final TabController _tabController;
   String tabSelected = weeksTopics;
+  late final TextEditingController _firstName;
+  late final TextEditingController _lastName;
+  late final TextEditingController _prefferedAcademicName;
+  late final TextEditingController _prefix;
+  late final TextEditingController _levelCourseAdvisor;
+  late final TextEditingController _currentLevel;
+  late final TextEditingController _email;
   bool _showSignOut = false;
+  bool _isProfileEditLoading = false;
 
   @override
   void initState() {
     _database = ref.read(databaseAsyncNotifierProvider.notifier);
     _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
+    _storage = ref.read(storageAsyncNotifierProvider.notifier);
     _tabController = TabController(length: 2, vsync: this);
+    _firstName = TextEditingController();
+    _lastName = TextEditingController();
+    _prefferedAcademicName = TextEditingController();
+    _prefix = TextEditingController();
+    _levelCourseAdvisor = TextEditingController();
+    _currentLevel = TextEditingController();
+    _email = TextEditingController();
+    setControllerText();
     super.initState();
+  }
+
+  void openEndDrawer() {
+    _scaffoldKey.currentState?.openEndDrawer();
+  }
+
+  void setControllerText() {
+    _firstName.text = SessionManager.getFirstName() ?? '';
+    _lastName.text = SessionManager.getLastName() ?? '';
+    _prefferedAcademicName.text =
+        SessionManager.getPreferredAcademicName() ?? '';
+    _prefix.text = SessionManager.getPrefix() ?? '';
+    _levelCourseAdvisor.text = SessionManager.getLevelCourseAdvisor() ?? '';
+    _currentLevel.text = SessionManager.getLevel() ?? '';
+    _email.text = SessionManager.getEmail() ?? '';
   }
 
   Future<void> downloadFile(String url, String filename) async {
@@ -85,637 +125,563 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        alignment: Alignment.topRight,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              (isPhoneWeb)
-                  ? Container()
-                  : Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: kLargePadding,
-                        vertical: kPadding,
-                      ),
-                      child: SingleChildScrollView(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                Navigator.pop(context);
-                              },
-                              splashColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              hoverColor: Colors.transparent,
-                              child: Container(
-                                padding: const EdgeInsets.only(
-                                  right: kMediumPadding,
-                                  top: kSmallPadding,
-                                  bottom: kSmallPadding,
-                                ),
-                                decoration: const BoxDecoration(
-                                  color: kTransparent,
-                                ),
-                                child: Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 14,
-                                      height: 15,
-                                      child: SvgPicture.asset(
-                                        AssetPaths.arrowBack,
-                                      ),
-                                    ),
-                                    XBox(kSmallPadding),
-                                    Transform.translate(
-                                      offset: const Offset(0, 1),
-                                      child: Text(
-                                        back,
-                                        style: textTheme.titleMedium!.copyWith(
-                                          fontSize: 13,
-                                          color: kGry800,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!kIsWeb || isPhoneWeb) {
+          if (!didPop) {
+            navigatorKey.currentState?.pop();
+          }
+        }
+      },
+      child: Scaffold(
+        key: _scaffoldKey,
+        endDrawer: ProfileDrawer(
+          firstNameController: _firstName,
+          lastNameController: _lastName,
+          emailController: _email,
+          levelController: SessionManager.getRole() == lecturerRole
+              ? _levelCourseAdvisor
+              : _currentLevel,
+          prefixController: _prefix,
+          preferredAcademicNameController: _prefferedAcademicName,
+          profileStream: _database.getUserProfile(
+            ownerUserId: _auth.currentUser!.uid,
+            role: SessionManager.getRole() ?? '',
+          ),
+          onSubmit: () async {
+            await handleProfileSubmit(
+              context: context,
+              isLecturer: SessionManager.getRole() == lecturerRole,
+              firstNameController: _firstName,
+              lastNameController: _lastName,
+              preferredAcademicNameController: _prefferedAcademicName,
+              prefixController: _prefix,
+              auth: _auth,
+              database: _database,
+              onLoadingStart: () =>
+                  setState(() => _isProfileEditLoading = true),
+              onLoadingEnd: () => setState(() => _isProfileEditLoading = false),
+              mounted: mounted,
+            );
+          },
+          onImageTap: () => pickImage(
+            context: context,
+            storage: _storage,
+            database: _database,
+            auth: _auth,
+            mounted: mounted,
+          ),
+          isLecturer: SessionManager.getRole() == lecturerRole,
+          isLoading: _isProfileEditLoading,
+        ),
+        body: Stack(
+          alignment: Alignment.topRight,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                (!kIsWeb || isPhoneWeb)
+                    ? Container()
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: kLargePadding,
+                          vertical: kPadding,
+                        ),
+                        child: SingleChildScrollView(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                },
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                child: Container(
+                                  padding: const EdgeInsets.only(
+                                    right: kMediumPadding,
+                                    top: kSmallPadding,
+                                    bottom: kSmallPadding,
+                                  ),
+                                  decoration: const BoxDecoration(
+                                    color: kTransparent,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 14,
+                                        height: 15,
+                                        child: SvgPicture.asset(
+                                          AssetPaths.arrowBack,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                      XBox(kSmallPadding),
+                                      Transform.translate(
+                                        offset: const Offset(0, 1),
+                                        child: Text(
+                                          back,
+                                          style:
+                                              textTheme.titleMedium!.copyWith(
+                                            fontSize: 13,
+                                            color: kGry800,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            Row(
-                              children: [
-                                Container(
-                                  height: 24,
-                                  width: 24,
-                                  decoration: const BoxDecoration(),
-                                  child: const Icon(
-                                    Icons.notifications_none,
-                                    weight: 100,
-                                    color: kBlack800,
+                              Row(
+                                children: [
+                                  Container(
+                                    height: 24,
+                                    width: 24,
+                                    decoration: const BoxDecoration(),
+                                    child: const Icon(
+                                      Icons.notifications_none,
+                                      weight: 100,
+                                      color: kBlack800,
+                                    ),
                                   ),
-                                ),
-                                XBox(kRegularPadding),
-                                Container(
-                                  height: 25,
-                                  width: 25,
-                                  decoration: const BoxDecoration(
-                                    color: kOrange500,
-                                    shape: BoxShape.circle,
+                                  XBox(kRegularPadding),
+                                  Container(
+                                    height: 25,
+                                    width: 25,
+                                    decoration: const BoxDecoration(
+                                      color: kOrange500,
+                                      shape: BoxShape.circle,
+                                    ),
                                   ),
-                                ),
-                                XBox(kRegularPadding),
-                                InkWell(
-                                  overlayColor: const WidgetStatePropertyAll(
-                                      kTransparent),
-                                  hoverColor: kTransparent,
-                                  onTap: () {
-                                    setState(() {
-                                      _showSignOut = !_showSignOut;
-                                    });
-                                  },
-                                  child: Container(
+                                  XBox(kRegularPadding),
+                                  Container(
                                     height: 28,
                                     width: 28,
                                     decoration: const BoxDecoration(
                                       shape: BoxShape.circle,
                                     ),
-                                    child: Image.asset(
-                                      AssetPaths.avatar,
+                                    child: StreamBuilder(
+                                      stream: _database.getUserProfile(
+                                        ownerUserId: _auth.currentUser!.uid,
+                                        role: SessionManager.getRole() ?? '',
+                                      ),
+                                      builder: (context, snapshot) {
+                                        switch (snapshot.connectionState) {
+                                          case ConnectionState.waiting:
+                                          case ConnectionState.active:
+                                            if (snapshot.hasData) {
+                                              final profile =
+                                                  snapshot.data as CloudProfile;
+                                              return ProfileImage(
+                                                imageUrl:
+                                                    profile.profileImageUrl,
+                                                radius: 14,
+                                                onTap: () {
+                                                  setState(() {
+                                                    _showSignOut =
+                                                        !_showSignOut;
+                                                  });
+                                                },
+                                              );
+                                            } else {
+                                              return ProfileImage(
+                                                imageUrl: '',
+                                                radius: 14,
+                                                onTap: () {
+                                                  setState(() {
+                                                    _showSignOut =
+                                                        !_showSignOut;
+                                                  });
+                                                },
+                                              );
+                                            }
+                                          default:
+                                            return ProfileImage(
+                                              imageUrl: '',
+                                              radius: 14,
+                                              onTap: () {
+                                                setState(() {
+                                                  _showSignOut = !_showSignOut;
+                                                });
+                                              },
+                                            );
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                YBox(kRegularPadding),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        (!kIsWeb || isPhoneWeb)
+                            ? YBox(kMediumPadding)
+                            : Container(),
+                        (!kIsWeb || isPhoneWeb)
+                            ? InkWell(
+                                onTap: () {
+                                  navigatorKey.currentState?.pop();
+                                },
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: kRegularPadding,
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.only(
+                                      right: kMediumPadding,
+                                      top: kSmallPadding,
+                                      bottom: kSmallPadding,
+                                    ),
+                                    decoration: const BoxDecoration(
+                                      color: kTransparent,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        SizedBox(
+                                          width: 18,
+                                          height: 20,
+                                          child: SvgPicture.asset(
+                                            AssetPaths.arrowBack,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-              YBox(kRegularPadding),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: kRegularPadding,
-                          vertical: kPadding,
-                        ),
-                        child: Text(
-                          '$courseTitle: ${widget.course.courseName}'
-                              .toUpperCase(),
-                          style: textTheme.titleMedium!.copyWith(
-                            fontSize: (!kIsWeb || isPhoneWeb) ? 20 : 17,
-                            color: kBlack,
-                            fontWeight: FontWeight.w600,
+                              )
+                            : Container(),
+                        (!kIsWeb || isPhoneWeb) ? YBox(kPadding) : Container(),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: kRegularPadding,
+                            vertical: kPadding,
+                          ),
+                          child: Text(
+                            '$courseTitle: ${widget.course.courseName}'
+                                .toUpperCase(),
+                            style: textTheme.titleMedium!.copyWith(
+                              fontSize: (!kIsWeb || isPhoneWeb) ? 19 : 17,
+                              color: kBlack,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: kRegularPadding,
-                          vertical: kPadding,
-                        ),
-                        child: Text(
-                          '$courseCODE: ${widget.course.courseCode}'
-                              .toUpperCase(),
-                          style: textTheme.titleMedium!.copyWith(
-                            fontSize: (!kIsWeb || isPhoneWeb) ? 20 : 17,
-                            color: kBlack,
-                            fontWeight: FontWeight.w600,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: kRegularPadding,
+                            vertical: kPadding,
+                          ),
+                          child: Text(
+                            '$courseCODE: ${widget.course.courseCode}'
+                                .toUpperCase(),
+                            style: textTheme.titleMedium!.copyWith(
+                              fontSize: (!kIsWeb || isPhoneWeb) ? 19 : 17,
+                              color: kBlack,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: kRegularPadding,
-                          vertical: kPadding,
-                        ),
-                        child: Text(
-                          '$units: ${widget.course.unit}'.toUpperCase(),
-                          style: textTheme.titleMedium!.copyWith(
-                            fontSize: (!kIsWeb || isPhoneWeb) ? 20 : 17,
-                            color: kBlack,
-                            fontWeight: FontWeight.w600,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: kRegularPadding,
+                            vertical: kPadding,
+                          ),
+                          child: Text(
+                            '$units: ${widget.course.unit}'.toUpperCase(),
+                            style: textTheme.titleMedium!.copyWith(
+                              fontSize: (!kIsWeb || isPhoneWeb) ? 19 : 17,
+                              color: kBlack,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
-                      YBox(kSmallPadding),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: kRegularPadding,
-                          vertical: kPadding,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Course co-ordinator',
-                              style: textTheme.titleSmall!.copyWith(
-                                fontSize: (!kIsWeb || isPhoneWeb) ? 13 : 11,
-                                color: kGry800,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                            const SizedBox(height: kSmallPadding),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  height: (!kIsWeb || isPhoneWeb) ? 20 : 18,
-                                  width: (!kIsWeb || isPhoneWeb) ? 20 : 18,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Image.asset(AssetPaths.avatar),
-                                ),
-                                const SizedBox(width: kPadding),
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 2.0),
-                                  child: Text(
-                                    widget.course.ownerName,
-                                    style: textTheme.titleSmall!.copyWith(
-                                      fontSize:
-                                          (!kIsWeb || isPhoneWeb) ? 15 : 13,
-                                      color: kBlack,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      YBox(kSmallPadding),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: kRegularPadding,
-                          vertical: kPadding,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: (!kIsWeb || isPhoneWeb) ? 15 : 14,
-                              height: (!kIsWeb || isPhoneWeb) ? 17 : 16,
-                              child: SvgPicture.asset(
-                                AssetPaths.paperIcon,
-                              ),
-                            ),
-                            const SizedBox(width: 3),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 3.0),
-                              child: Text(
-                                '${widget.course.unit} Units',
+                        YBox(kSmallPadding),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: kRegularPadding,
+                            vertical: kPadding,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Course co-ordinator',
                                 style: textTheme.titleSmall!.copyWith(
                                   fontSize: (!kIsWeb || isPhoneWeb) ? 13 : 11,
                                   color: kGry800,
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      YBox(kSmallPadding),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: kRegularPadding,
-                          vertical: kPadding,
-                        ),
-                        child: Container(
-                          width: (!kIsWeb || isPhoneWeb) ? 28 : 23,
-                          height: (!kIsWeb || isPhoneWeb) ? 28 : 23,
-                          padding: const EdgeInsets.only(
-                            bottom: kPadding + 2,
-                            top: kPadding - 2,
-                          ),
-                          decoration: const BoxDecoration(
-                            color: kDarkYellow,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Image.asset(
-                            AssetPaths.arrowDownward,
-                          ),
-                        ),
-                      ),
-                      YBox(kRegularPadding),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: kRegularPadding,
-                        ),
-                        child: TabBar(
-                          isScrollable: true,
-                          controller: _tabController,
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          tabAlignment: TabAlignment.start,
-                          indicatorColor: kTransparent,
-                          indicatorWeight: 1.5,
-                          labelPadding: EdgeInsets.zero,
-                          overlayColor: WidgetStateProperty.all(kTransparent),
-                          tabs: [
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: (!kIsWeb || isPhoneWeb)
-                                    ? kMicroPadding
-                                    : kMediumPadding,
-                                vertical: (!kIsWeb || isPhoneWeb)
-                                    ? kRegularPadding
-                                    : kPadding + 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _tabController.index == 0
-                                    ? kDarkYellow
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(
-                                    (!kIsWeb || isPhoneWeb) ? 8 : 6,
+                              const SizedBox(height: kSmallPadding),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    height: (!kIsWeb || isPhoneWeb) ? 20 : 18,
+                                    width: (!kIsWeb || isPhoneWeb) ? 20 : 18,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: ProfileImage(
+                                      imageUrl: widget.course.profileImageUrl,
+                                      radius: (!kIsWeb || isPhoneWeb) ? 10 : 9,
+                                    ),
                                   ),
-                                ),
-                              ),
-                              child: Text(
-                                weeksTopics,
-                                style: textTheme.titleMedium!.copyWith(
-                                  fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 12,
-                                  color: _tabController.index == 0
-                                      ? kPrimaryWhite
-                                      : kBlack,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: (!kIsWeb || isPhoneWeb)
-                                    ? kMicroPadding
-                                    : kMediumPadding,
-                                vertical: (!kIsWeb || isPhoneWeb)
-                                    ? kRegularPadding
-                                    : kPadding + 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _tabController.index == 1
-                                    ? kDarkYellow
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(
-                                    (!kIsWeb || isPhoneWeb) ? 8 : 6,
+                                  const SizedBox(width: kPadding),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 2.0),
+                                    child: Text(
+                                      widget.course.ownerName,
+                                      style: textTheme.titleSmall!.copyWith(
+                                        fontSize:
+                                            (!kIsWeb || isPhoneWeb) ? 15 : 13,
+                                        color: kBlack,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
-                              child: Text(
-                                materials,
-                                style: textTheme.titleMedium!.copyWith(
-                                  fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 12,
-                                  color: _tabController.index == 1
-                                      ? kPrimaryWhite
-                                      : kBlack,
-                                ),
-                              ),
-                            ),
-                          ],
-                          onTap: (index) {
-                            setState(() {});
-                            _tabController.animateTo(index);
-                          },
+                            ],
+                          ),
                         ),
-                      ),
-                      YBox(kRegularPadding),
-                      SingleChildScrollView(
-                        child: SizedBox(
-                          height: 750,
-                          child: TabBarView(
-                            controller: _tabController,
+                        YBox(kSmallPadding),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: kRegularPadding,
+                            vertical: kPadding,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              StreamBuilder(
-                                stream: _database.streamCourseTopics(
-                                    courseId: widget.course.courseId,
-                                    ownerUid: widget.course.ownerUid),
-                                builder: (context, snapshot) {
-                                  switch (snapshot.connectionState) {
-                                    case ConnectionState.waiting:
-                                    case ConnectionState.active:
-                                      if (snapshot.hasData) {
-                                        final topicsFromStream = snapshot.data
-                                            as Map<String, String>;
-                                        if (topicsFromStream.isEmpty) {
-                                          return (widget.course.ownerUid ==
-                                                  widget.userUid)
-                                              ? Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal: kFullPadding,
-                                                    vertical: kSmallPadding,
-                                                  ),
-                                                  child: EmptyStateWidgetTwo(
-                                                    namePlaceholder: topics,
-                                                    actionButton:
-                                                        CustomTextButton(
-                                                      text: addNewTopic,
-                                                      isLoading: false,
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .push(
-                                                                MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              AddTopic(
-                                                            course:
-                                                                widget.course,
-                                                          ),
-                                                        ));
-                                                      },
-                                                      backgroundColor:
-                                                          kDarkYellow,
-                                                      textColor: kPrimaryWhite,
-                                                      borderColor: kTransparent,
-                                                      icon: Icons.add,
-                                                    ),
-                                                  ),
-                                                )
-                                              : Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    vertical: kFullPadding,
-                                                    horizontal: kFullPadding,
-                                                  ),
-                                                  child: Text(
-                                                    'No topic have been added yet',
-                                                    style: textTheme.bodyMedium!
-                                                        .copyWith(
-                                                      color: kBlack,
-                                                      fontSize: 17,
-                                                    ),
-                                                  ),
-                                                );
-                                        }
-                                        return Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: kRegularPadding,
-                                            vertical: kSmallPadding,
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              (widget.course.ownerUid ==
-                                                      widget.userUid)
-                                                  ? InkWell(
-                                                      onTap: () {
-                                                        Navigator.of(context)
-                                                            .push(
-                                                                MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              AddTopic(
-                                                            course:
-                                                                widget.course,
-                                                          ),
-                                                        ));
-                                                      },
-                                                      child: Container(
-                                                        padding: EdgeInsets
-                                                            .symmetric(
-                                                          horizontal: (!kIsWeb ||
-                                                                  isPhoneWeb)
-                                                              ? kMicroPadding
-                                                              : kMediumPadding,
-                                                          vertical: (!kIsWeb ||
-                                                                  isPhoneWeb)
-                                                              ? kRegularPadding
-                                                              : kPadding + 2,
-                                                        ),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: kPrimaryColor,
-                                                          borderRadius:
-                                                              BorderRadius.all(
-                                                            Radius.circular(
-                                                              (!kIsWeb ||
-                                                                      isPhoneWeb)
-                                                                  ? 8
-                                                                  : 6,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        child: Row(
-                                                          mainAxisSize:
-                                                              MainAxisSize.min,
-                                                          children: [
-                                                            const Icon(
-                                                              Icons.add,
-                                                              color:
-                                                                  kPrimaryWhite,
-                                                              size: 15,
-                                                            ),
-                                                            XBox(kPadding),
-                                                            Transform.translate(
-                                                              offset:
-                                                                  const Offset(
-                                                                      0, 2),
-                                                              child: Text(
-                                                                addNewTopic,
-                                                                style: textTheme
-                                                                    .titleMedium!
-                                                                    .copyWith(
-                                                                  fontSize:
-                                                                      (!kIsWeb ||
-                                                                              isPhoneWeb)
-                                                                          ? 15
-                                                                          : 12,
-                                                                  color:
-                                                                      kPrimaryWhite,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    )
-                                                  : Container(),
-                                              YBox(kMacroPadding),
-                                              WeekTopicListView(
-                                                weekAndTopics:
-                                                    widget.course.weekTopics,
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      } else {
-                                        return Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: List.generate(
-                                            7,
-                                            (index) {
-                                              return Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  vertical: kSmallPadding,
-                                                  horizontal: kRegularPadding,
-                                                ),
-                                                child: Shimmer.fromColors(
-                                                  baseColor: Colors.grey[200]!,
-                                                  highlightColor:
-                                                      Colors.grey[50]!,
-                                                  child: Container(
-                                                    height: 30,
-                                                    width: 500,
-                                                    decoration:
-                                                        const BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                        Radius.circular(8),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        );
-                                      }
-                                    default:
-                                      return Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: List.generate(
-                                          7,
-                                          (index) {
-                                            return Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                vertical: kSmallPadding,
-                                                horizontal: kRegularPadding,
-                                              ),
-                                              child: Shimmer.fromColors(
-                                                baseColor: Colors.grey[200]!,
-                                                highlightColor:
-                                                    Colors.grey[50]!,
-                                                child: Container(
-                                                  height: 30,
-                                                  width: 500,
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                    color: Colors.white,
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                      Radius.circular(8),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      );
-                                  }
-                                },
+                              SizedBox(
+                                width: (!kIsWeb || isPhoneWeb) ? 15 : 14,
+                                height: (!kIsWeb || isPhoneWeb) ? 17 : 16,
+                                child: SvgPicture.asset(
+                                  AssetPaths.paperIcon,
+                                ),
                               ),
-                              StreamBuilder(
-                                stream: _database.streamCourseMaterials(
-                                    courseId: widget.course.courseId,
-                                    ownerUid: widget.course.ownerUid),
-                                builder: (context, snapshot) {
-                                  switch (snapshot.connectionState) {
-                                    case ConnectionState.waiting:
-                                    case ConnectionState.active:
-                                      if (snapshot.hasData) {
-                                        final materialsFromStream = snapshot
-                                            .data as Map<String, String>;
-                                        if (materialsFromStream.isEmpty) {
-                                          return (widget.course.ownerUid ==
-                                                  widget.userUid)
-                                              ? Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal: kFullPadding,
-                                                    vertical: kSmallPadding,
-                                                  ),
-                                                  child: EmptyStateWidgetTwo(
-                                                    namePlaceholder: material,
-                                                    actionButton:
-                                                        CustomTextButton(
-                                                      text: addCourseMaterial,
-                                                      isLoading: false,
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .push(
-                                                                MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              UploadFile(
-                                                            course:
-                                                                widget.course,
-                                                          ),
-                                                        ));
-                                                      },
-                                                      backgroundColor:
-                                                          kDarkYellow,
-                                                      textColor: kPrimaryWhite,
-                                                      borderColor: kTransparent,
-                                                      icon: Icons.add,
+                              const SizedBox(width: 3),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 3.0),
+                                child: Text(
+                                  '${widget.course.unit} Units',
+                                  style: textTheme.titleSmall!.copyWith(
+                                    fontSize: (!kIsWeb || isPhoneWeb) ? 13 : 11,
+                                    color: kGry800,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        YBox(kSmallPadding),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: kRegularPadding,
+                            vertical: kPadding,
+                          ),
+                          child: Container(
+                            width: (!kIsWeb || isPhoneWeb) ? 26 : 23,
+                            height: (!kIsWeb || isPhoneWeb) ? 26 : 23,
+                            padding: const EdgeInsets.only(
+                              bottom: kPadding + 2,
+                              top: kPadding - 2,
+                            ),
+                            decoration: const BoxDecoration(
+                              color: kDarkYellow,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Image.asset(
+                              AssetPaths.arrowDownward,
+                            ),
+                          ),
+                        ),
+                        YBox(kRegularPadding),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: kRegularPadding,
+                          ),
+                          child: TabBar(
+                            isScrollable: true,
+                            controller: _tabController,
+                            indicatorSize: TabBarIndicatorSize.tab,
+                            tabAlignment: TabAlignment.start,
+                            indicatorColor: kTransparent,
+                            indicatorWeight: 1.5,
+                            labelPadding: EdgeInsets.zero,
+                            overlayColor: WidgetStateProperty.all(kTransparent),
+                            tabs: [
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: (!kIsWeb || isPhoneWeb)
+                                      ? kMicroPadding
+                                      : kMediumPadding,
+                                  vertical: (!kIsWeb || isPhoneWeb)
+                                      ? kSmallPadding
+                                      : kPadding + 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _tabController.index == 0
+                                      ? kDarkYellow
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(
+                                      (!kIsWeb || isPhoneWeb) ? 8 : 6,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  weeksTopics,
+                                  style: textTheme.titleMedium!.copyWith(
+                                    fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 12,
+                                    color: _tabController.index == 0
+                                        ? kPrimaryWhite
+                                        : kBlack,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: (!kIsWeb || isPhoneWeb)
+                                      ? kMicroPadding
+                                      : kMediumPadding,
+                                  vertical: (!kIsWeb || isPhoneWeb)
+                                      ? kSmallPadding
+                                      : kPadding + 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _tabController.index == 1
+                                      ? kDarkYellow
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(
+                                      (!kIsWeb || isPhoneWeb) ? 8 : 6,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  materials,
+                                  style: textTheme.titleMedium!.copyWith(
+                                    fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 12,
+                                    color: _tabController.index == 1
+                                        ? kPrimaryWhite
+                                        : kBlack,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            onTap: (index) {
+                              setState(() {});
+                              _tabController.animateTo(index);
+                            },
+                          ),
+                        ),
+                        YBox(kRegularPadding),
+                        SingleChildScrollView(
+                          child: SizedBox(
+                            height: 750,
+                            child: TabBarView(
+                              controller: _tabController,
+                              children: [
+                                StreamBuilder(
+                                  stream: _database.streamCourseTopics(
+                                      courseId: widget.course.courseId,
+                                      courseCode: widget.course.courseCode),
+                                  builder: (context, snapshot) {
+                                    switch (snapshot.connectionState) {
+                                      case ConnectionState.waiting:
+                                      case ConnectionState.active:
+                                        if (snapshot.hasData) {
+                                          final topicsFromStream = snapshot.data
+                                              as Map<String, String>;
+                                          if (topicsFromStream.isEmpty) {
+                                            return (widget.course.ownerUid.any(
+                                                    (uid) =>
+                                                        uid == widget.userUid))
+                                                ? Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      horizontal: kFullPadding,
+                                                      vertical: kSmallPadding,
                                                     ),
-                                                  ),
-                                                )
-                                              : Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    vertical: kFullPadding,
-                                                    horizontal: kFullPadding,
-                                                  ),
-                                                  child: Text(
-                                                    'No materials have been added yet',
-                                                    style: textTheme.bodyMedium!
-                                                        .copyWith(
-                                                      color: kBlack,
-                                                      fontSize: 17,
+                                                    child: EmptyStateWidgetTwo(
+                                                      namePlaceholder: topics,
+                                                      actionButton:
+                                                          CustomTextButton(
+                                                        text: addNewTopic,
+                                                        isLoading: false,
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .push(
+                                                                  MaterialPageRoute(
+                                                            builder:
+                                                                (context) =>
+                                                                    AddTopic(
+                                                              course:
+                                                                  widget.course,
+                                                            ),
+                                                          ));
+                                                        },
+                                                        backgroundColor:
+                                                            kDarkYellow,
+                                                        textColor:
+                                                            kPrimaryWhite,
+                                                        borderColor:
+                                                            kTransparent,
+                                                        icon: Icons.add,
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                          left: kMediumPadding -
+                                                              3,
+                                                          right: kMediumPadding,
+                                                          top: (!kIsWeb ||
+                                                                  isPhoneWeb)
+                                                              ? kSmallPadding +
+                                                                  4
+                                                              : kRegularPadding +
+                                                                  4,
+                                                          bottom: (!kIsWeb ||
+                                                                  isPhoneWeb)
+                                                              ? kSmallPadding +
+                                                                  1
+                                                              : kRegularPadding +
+                                                                  1,
+                                                        ),
+                                                      ),
                                                     ),
-                                                  ),
-                                                );
-                                        }
-                                        return SingleChildScrollView(
-                                          child: Padding(
+                                                  )
+                                                : Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      vertical: kFullPadding,
+                                                      horizontal: kFullPadding,
+                                                    ),
+                                                    child: Text(
+                                                      'No topic have been added yet',
+                                                      style: textTheme
+                                                          .bodyMedium!
+                                                          .copyWith(
+                                                        color: kBlack,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                  );
+                                          }
+                                          return Padding(
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: kRegularPadding,
                                               vertical: kSmallPadding,
@@ -724,21 +690,38 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                (widget.course.ownerUid ==
-                                                        widget.userUid)
+                                                (widget.course.ownerUid.any(
+                                                        (uid) =>
+                                                            uid ==
+                                                            widget.userUid))
                                                     ? InkWell(
                                                         onTap: () {
-                                                          Navigator.of(context)
-                                                              .push(
-                                                            MaterialPageRoute(
-                                                              builder:
-                                                                  (context) =>
-                                                                      UploadFile(
-                                                                course: widget
-                                                                    .course,
-                                                              ),
-                                                            ),
-                                                          );
+                                                          (!kIsWeb ||
+                                                                  isPhoneWeb)
+                                                              ? navigatorKey
+                                                                  .currentState!
+                                                                  .push(
+                                                                  MaterialPageRoute(
+                                                                    builder:
+                                                                        (context) =>
+                                                                            AddTopic(
+                                                                      course: widget
+                                                                          .course,
+                                                                    ),
+                                                                  ),
+                                                                )
+                                                              : Navigator.of(
+                                                                      context)
+                                                                  .push(
+                                                                  MaterialPageRoute(
+                                                                    builder:
+                                                                        (context) =>
+                                                                            AddTopic(
+                                                                      course: widget
+                                                                          .course,
+                                                                    ),
+                                                                  ),
+                                                                );
                                                         },
                                                         child: Container(
                                                           padding: EdgeInsets
@@ -749,7 +732,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                                                                 : kMediumPadding,
                                                             vertical: (!kIsWeb ||
                                                                     isPhoneWeb)
-                                                                ? kRegularPadding
+                                                                ? kSmallPadding
                                                                 : kPadding + 2,
                                                           ),
                                                           decoration:
@@ -785,7 +768,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                                                                     const Offset(
                                                                         0, 2),
                                                                 child: Text(
-                                                                  addNewMaterial,
+                                                                  addNewTopic,
                                                                   style: textTheme
                                                                       .titleMedium!
                                                                       .copyWith(
@@ -805,43 +788,50 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                                                       )
                                                     : Container(),
                                                 YBox(kMacroPadding),
-                                                ...materialsFromStream.entries
-                                                    .map(
-                                                  (entry) {
-                                                    final materialName =
-                                                        entry.key.replaceAll(
-                                                            '_dot_', '.');
-                                                    final url = entry.value;
-                                                    return MaterialCard(
-                                                      title: materialName,
-                                                      url: url,
-                                                      coordinatorName: widget
-                                                          .course.ownerName,
-                                                      avatarPath:
-                                                          AssetPaths.avatar,
-                                                      onTap: () async {
-                                                        final checker =
-                                                            await confirmationDialog(
-                                                          context: context,
-                                                          mounted: mounted,
-                                                          body:
-                                                              'Are you sure you want to download this material',
-                                                        );
-                                                        if (checker) {
-                                                          await downloadFile(
-                                                            url,
-                                                            materialName,
-                                                          );
-                                                        }
-                                                      },
-                                                    );
-                                                  },
+                                                WeekTopicListView(
+                                                  weekAndTopics:
+                                                      widget.course.weekTopics,
                                                 ),
                                               ],
                                             ),
-                                          ),
-                                        );
-                                      } else {
+                                          );
+                                        } else {
+                                          return Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: List.generate(
+                                              7,
+                                              (index) {
+                                                return Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    vertical: kSmallPadding,
+                                                    horizontal: kRegularPadding,
+                                                  ),
+                                                  child: Shimmer.fromColors(
+                                                    baseColor:
+                                                        Colors.grey[200]!,
+                                                    highlightColor:
+                                                        Colors.grey[50]!,
+                                                    child: Container(
+                                                      height: 30,
+                                                      width: 500,
+                                                      decoration:
+                                                          const BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                          Radius.circular(8),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          );
+                                        }
+                                      default:
                                         return Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
@@ -875,167 +865,312 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                                             },
                                           ),
                                         );
-                                      }
-                                    default:
-                                      return Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: List.generate(
-                                          7,
-                                          (index) {
-                                            return Padding(
+                                    }
+                                  },
+                                ),
+                                StreamBuilder(
+                                  stream: _database.streamCourseMaterials(
+                                      courseId: widget.course.courseId,
+                                      courseCode: widget.course.courseCode),
+                                  builder: (context, snapshot) {
+                                    switch (snapshot.connectionState) {
+                                      case ConnectionState.waiting:
+                                      case ConnectionState.active:
+                                        if (snapshot.hasData) {
+                                          final materialsFromStream = snapshot
+                                              .data as Map<String, String>;
+                                          if (materialsFromStream.isEmpty) {
+                                            return (widget.course.ownerUid.any(
+                                                    (uid) =>
+                                                        uid == widget.userUid))
+                                                ? Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      horizontal: kFullPadding,
+                                                      vertical: kSmallPadding,
+                                                    ),
+                                                    child: EmptyStateWidgetTwo(
+                                                      namePlaceholder: material,
+                                                      actionButton:
+                                                          CustomTextButton(
+                                                        text: addCourseMaterial,
+                                                        isLoading: false,
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .push(
+                                                                  MaterialPageRoute(
+                                                            builder:
+                                                                (context) =>
+                                                                    UploadFile(
+                                                              course:
+                                                                  widget.course,
+                                                            ),
+                                                          ));
+                                                        },
+                                                        backgroundColor:
+                                                            kDarkYellow,
+                                                        textColor:
+                                                            kPrimaryWhite,
+                                                        borderColor:
+                                                            kTransparent,
+                                                        icon: Icons.add,
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                          left: kMediumPadding -
+                                                              3,
+                                                          right: kMediumPadding,
+                                                          top: (!kIsWeb ||
+                                                                  isPhoneWeb)
+                                                              ? kSmallPadding +
+                                                                  4
+                                                              : kRegularPadding +
+                                                                  4,
+                                                          bottom: (!kIsWeb ||
+                                                                  isPhoneWeb)
+                                                              ? kSmallPadding +
+                                                                  1
+                                                              : kRegularPadding +
+                                                                  1,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                : Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      vertical: kFullPadding,
+                                                      horizontal: kFullPadding,
+                                                    ),
+                                                    child: Text(
+                                                      'No materials have been added yet',
+                                                      style: textTheme
+                                                          .bodyMedium!
+                                                          .copyWith(
+                                                        color: kBlack,
+                                                        fontSize: 17,
+                                                      ),
+                                                    ),
+                                                  );
+                                          }
+                                          return SingleChildScrollView(
+                                            child: Padding(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                vertical: kSmallPadding,
                                                 horizontal: kRegularPadding,
+                                                vertical: kSmallPadding,
                                               ),
-                                              child: Shimmer.fromColors(
-                                                baseColor: Colors.grey[200]!,
-                                                highlightColor:
-                                                    Colors.grey[50]!,
-                                                child: Container(
-                                                  height: 30,
-                                                  width: 500,
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                    color: Colors.white,
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                      Radius.circular(8),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  (widget.course.ownerUid.any(
+                                                          (uid) =>
+                                                              uid ==
+                                                              widget.userUid))
+                                                      ? InkWell(
+                                                          onTap: () {
+                                                            (!kIsWeb ||
+                                                                    isPhoneWeb)
+                                                                ? navigatorKey
+                                                                    .currentState!
+                                                                    .push(
+                                                                    MaterialPageRoute(
+                                                                      builder:
+                                                                          (context) =>
+                                                                              UploadFile(
+                                                                        course:
+                                                                            widget.course,
+                                                                      ),
+                                                                    ),
+                                                                  )
+                                                                : Navigator.of(
+                                                                        context)
+                                                                    .push(
+                                                                    MaterialPageRoute(
+                                                                      builder:
+                                                                          (context) =>
+                                                                              UploadFile(
+                                                                        course:
+                                                                            widget.course,
+                                                                      ),
+                                                                    ),
+                                                                  );
+                                                          },
+                                                          child: Container(
+                                                            padding: EdgeInsets
+                                                                .symmetric(
+                                                              horizontal: (!kIsWeb ||
+                                                                      isPhoneWeb)
+                                                                  ? kMicroPadding
+                                                                  : kMediumPadding,
+                                                              vertical: (!kIsWeb ||
+                                                                      isPhoneWeb)
+                                                                  ? kSmallPadding
+                                                                  : kPadding +
+                                                                      2,
+                                                            ),
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color:
+                                                                  kPrimaryColor,
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .all(
+                                                                Radius.circular(
+                                                                  (!kIsWeb ||
+                                                                          isPhoneWeb)
+                                                                      ? 8
+                                                                      : 6,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            child: Row(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: [
+                                                                const Icon(
+                                                                  Icons.add,
+                                                                  color:
+                                                                      kPrimaryWhite,
+                                                                  size: 15,
+                                                                ),
+                                                                XBox(kPadding),
+                                                                Transform
+                                                                    .translate(
+                                                                  offset:
+                                                                      const Offset(
+                                                                          0, 2),
+                                                                  child: Text(
+                                                                    addNewMaterial,
+                                                                    style: textTheme
+                                                                        .titleMedium!
+                                                                        .copyWith(
+                                                                      fontSize: (!kIsWeb ||
+                                                                              isPhoneWeb)
+                                                                          ? 15
+                                                                          : 12,
+                                                                      color:
+                                                                          kPrimaryWhite,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        )
+                                                      : Container(),
+                                                  YBox(kMacroPadding),
+                                                  ...materialsFromStream.entries
+                                                      .map(
+                                                    (entry) {
+                                                      final materialName =
+                                                          entry.key.replaceAll(
+                                                              '_dot_', '.');
+                                                      final url = entry.value;
+                                                      return MaterialCard(
+                                                        title: materialName,
+                                                        url: url,
+                                                        coordinatorName: widget
+                                                            .course.ownerName,
+                                                        avatarPath: widget
+                                                            .course
+                                                            .profileImageUrl,
+                                                        onTap: () async {
+                                                          final checker =
+                                                              await confirmationDialog(
+                                                            context: context,
+                                                            mounted: mounted,
+                                                            body:
+                                                                'Are you sure you want to download this material',
+                                                          );
+                                                          if (checker) {
+                                                            await downloadFile(
+                                                              url,
+                                                              materialName,
+                                                            );
+                                                          }
+                                                        },
+                                                      );
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          return Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: List.generate(
+                                              7,
+                                              (index) {
+                                                return Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    vertical: kSmallPadding,
+                                                    horizontal: kRegularPadding,
+                                                  ),
+                                                  child: Shimmer.fromColors(
+                                                    baseColor:
+                                                        Colors.grey[200]!,
+                                                    highlightColor:
+                                                        Colors.grey[50]!,
+                                                    child: Container(
+                                                      height: 30,
+                                                      width: 500,
+                                                      decoration:
+                                                          const BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                          Radius.circular(8),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          );
+                                        }
+                                      default:
+                                        return Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: List.generate(
+                                            7,
+                                            (index) {
+                                              return Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  vertical: kSmallPadding,
+                                                  horizontal: kRegularPadding,
+                                                ),
+                                                child: Shimmer.fromColors(
+                                                  baseColor: Colors.grey[200]!,
+                                                  highlightColor:
+                                                      Colors.grey[50]!,
+                                                  child: Container(
+                                                    height: 30,
+                                                    width: 500,
+                                                    decoration:
+                                                        const BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius:
+                                                          BorderRadius.all(
+                                                        Radius.circular(8),
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      );
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          _showSignOut
-              ? Padding(
-                  padding: const EdgeInsets.only(
-                    top: kFullPadding,
-                    right: kRegularPadding,
-                  ),
-                  child: Container(
-                    width: 200,
-                    decoration: BoxDecoration(
-                        color: kPrimaryWhite,
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(4),
-                        ),
-                        border: Border.all(
-                          color: kGry500,
-                          width: 0.5,
-                        )),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: kSmallPadding,
-                      horizontal: kSmallPadding,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          height: 27,
-                          width: 27,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                          ),
-                          child: Image.asset(
-                            AssetPaths.avatar,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: kMediumPadding),
-                          child: Text(
-                            '${SessionManager.getLastName()} ${SessionManager.getFirstName()}',
-                            style: textTheme.titleMedium!.copyWith(
-                              fontSize: 13,
-                              color: kBlack,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              top: kSmallPadding, bottom: kPadding),
-                          child: Text(
-                            SessionManager.getEmail() ?? '',
-                            style: textTheme.titleMedium!.copyWith(
-                              fontSize: 13,
-                              color: kBlack,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              top: kSmallPadding, bottom: kPadding),
-                          child: Container(
-                            height: 1,
-                            decoration: const BoxDecoration(
-                              color: kGry600,
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () async {
-                            LoadingScreen()
-                                .show(context: context, showProgress: true);
-                            await _auth.logOut();
-                            LoadingScreen().hide();
-                            Navigator.of(context, rootNavigator: true)
-                                .pushNamedAndRemoveUntil(
-                              signInRoute,
-                              (route) => false,
-                            );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                                top: kSmallPadding, bottom: kPadding),
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(AssetPaths.logoutIcon),
-                                XBox(kPadding),
-                                Text(
-                                  logout,
-                                  style: textTheme.titleMedium!.copyWith(
-                                    fontSize: 13,
-                                    color: kBlack,
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () {},
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              top: kSmallPadding,
-                            ),
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(AssetPaths.profileIcon),
-                                XBox(kPadding),
-                                Text(
-                                  pROfile,
-                                  style: textTheme.titleMedium!.copyWith(
-                                    fontSize: 13,
-                                    color: kBlack,
-                                  ),
-                                )
+                                              );
+                                            },
+                                          ),
+                                        );
+                                    }
+                                  },
+                                ),
                               ],
                             ),
                           ),
@@ -1043,9 +1178,140 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                       ],
                     ),
                   ),
-                )
-              : Container()
-        ],
+                ),
+              ],
+            ),
+            _showSignOut
+                ? Padding(
+                    padding: const EdgeInsets.only(
+                      top: kFullPadding,
+                      right: kRegularPadding,
+                    ),
+                    child: Container(
+                      width: 200,
+                      decoration: BoxDecoration(
+                          color: kPrimaryWhite,
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(4),
+                          ),
+                          border: Border.all(
+                            color: kGry500,
+                            width: 0.5,
+                          )),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: kSmallPadding,
+                        horizontal: kSmallPadding,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            height: 28,
+                            width: 28,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                            ),
+                            child: ProfileImage(
+                              imageUrl:
+                                  SessionManager.getProfileImageUrl() ?? '',
+                              radius: 14,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: kMediumPadding),
+                            child: Text(
+                              '${SessionManager.getLastName()} ${SessionManager.getFirstName()}',
+                              style: textTheme.titleMedium!.copyWith(
+                                fontSize: 13,
+                                color: kBlack,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                top: kSmallPadding, bottom: kPadding),
+                            child: Text(
+                              SessionManager.getEmail() ?? '',
+                              style: textTheme.titleMedium!.copyWith(
+                                fontSize: 13,
+                                color: kBlack,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                top: kSmallPadding, bottom: kPadding),
+                            child: Container(
+                              height: 1,
+                              decoration: const BoxDecoration(
+                                color: kGry600,
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () async {
+                              LoadingScreen()
+                                  .show(context: context, showProgress: true);
+                              await _auth.logOut();
+                              LoadingScreen().hide();
+                              Navigator.of(context, rootNavigator: true)
+                                  .pushNamedAndRemoveUntil(
+                                signInRoute,
+                                (route) => false,
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  top: kSmallPadding, bottom: kPadding),
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset(AssetPaths.logoutIcon),
+                                  XBox(kPadding),
+                                  Text(
+                                    logout,
+                                    style: textTheme.titleMedium!.copyWith(
+                                      fontSize: 13,
+                                      color: kBlack,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              openEndDrawer();
+                              setState(() {
+                                _showSignOut = !_showSignOut;
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: kSmallPadding,
+                              ),
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset(AssetPaths.profileIcon),
+                                  XBox(kPadding),
+                                  Text(
+                                    pROfile,
+                                    style: textTheme.titleMedium!.copyWith(
+                                      fontSize: 13,
+                                      color: kBlack,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : Container()
+          ],
+        ),
       ),
     );
   }

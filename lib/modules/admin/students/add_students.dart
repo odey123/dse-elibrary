@@ -6,6 +6,7 @@ import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/app/loading/loading_screen.dart';
 import 'package:systems_app/modules/admin/students/add_student_single.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
+import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
 import 'package:systems_app/utils/assets_path.dart';
@@ -134,8 +135,11 @@ class _AddStudentsState extends ConsumerState<AddStudents> {
                                       decoration: const BoxDecoration(
                                         shape: BoxShape.circle,
                                       ),
-                                      child: Image.asset(
-                                        AssetPaths.avatar,
+                                      child: ProfileImage(
+                                        imageUrl: SessionManager
+                                                .getProfileImageUrl() ??
+                                            '',
+                                        radius: 14,
                                       ),
                                     ),
                                   ),
@@ -252,13 +256,14 @@ class _AddStudentsState extends ConsumerState<AddStudents> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          height: 27,
-                          width: 27,
+                          height: 28,
+                          width: 28,
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
                           ),
-                          child: Image.asset(
-                            AssetPaths.avatar,
+                          child: ProfileImage(
+                            imageUrl: SessionManager.getProfileImageUrl() ?? '',
+                            radius: 14,
                           ),
                         ),
                         Padding(

@@ -3,21 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:systems_app/app/custom_snack_bar/custom_snack_bar_for_empty_field.dart';
+import 'package:systems_app/app/dialogs/error_dialog.dart';
+import 'package:systems_app/app/function/image_picker.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/app/loading/loading_screen.dart';
 import 'package:systems_app/modules/my_courses/add_course.dart';
 import 'package:systems_app/modules/reuseables/course_card.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
 import 'package:systems_app/modules/shared/course_details.dart';
+import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
 import 'package:systems_app/services/cloud/database/cloud_profile.dart';
 import 'package:systems_app/services/cloud/database/database_actions.dart';
 import 'package:systems_app/services/cloud/model/course.dart';
+import 'package:systems_app/services/cloud/storage/storage.actions.dart';
 import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
 import 'package:systems_app/utils/strings.dart';
 import 'package:systems_app/utils/text_button_comp.dart';
+import 'package:systems_app/utils/text_field_comp.dart';
 
 class Courses extends ConsumerStatefulWidget {
   final GlobalKey<NavigatorState>? navigatorKeyForDesktopWeb;
@@ -31,16 +37,50 @@ class Courses extends ConsumerStatefulWidget {
 }
 
 class _CoursesState extends ConsumerState<Courses> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late final DatabaseAsyncNotifier _database;
   late final AuthenticationAsyncNotifier _auth;
+  late final StorageAsyncNotifier _storage;
   final TextEditingController _searchTextField = TextEditingController();
+  late final TextEditingController _firstName;
+  late final TextEditingController _lastName;
+  late final TextEditingController _prefferedAcademicName;
+  late final TextEditingController _prefix;
+  late final TextEditingController _levelCourseAdvisor;
+  late final TextEditingController _currentLevel;
+  late final TextEditingController _email;
+  bool _isProfileEditLoading = false;
   bool _showSignOut = false;
 
   @override
   void initState() {
     _database = ref.read(databaseAsyncNotifierProvider.notifier);
     _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
+    _storage = ref.read(storageAsyncNotifierProvider.notifier);
+    _firstName = TextEditingController();
+    _lastName = TextEditingController();
+    _prefferedAcademicName = TextEditingController();
+    _prefix = TextEditingController();
+    _levelCourseAdvisor = TextEditingController();
+    _currentLevel = TextEditingController();
+    _email = TextEditingController();
+    setControllerText();
     super.initState();
+  }
+
+  void openEndDrawer() {
+    _scaffoldKey.currentState?.openEndDrawer();
+  }
+
+  void setControllerText() {
+    _firstName.text = SessionManager.getFirstName() ?? '';
+    _lastName.text = SessionManager.getLastName() ?? '';
+    _prefferedAcademicName.text =
+        SessionManager.getPreferredAcademicName() ?? '';
+    _prefix.text = SessionManager.getPrefix() ?? '';
+    _levelCourseAdvisor.text = SessionManager.getLevelCourseAdvisor() ?? '';
+    _currentLevel.text = SessionManager.getLevel() ?? '';
+    _email.text = SessionManager.getEmail() ?? '';
   }
 
   @override
@@ -51,6 +91,247 @@ class _CoursesState extends ConsumerState<Courses> {
         return false;
       },
       child: Scaffold(
+        key: _scaffoldKey,
+        endDrawer: Drawer(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: kRegularPadding,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InkWell(
+                    hoverColor: kTransparent,
+                    onTap: () {
+                      pickImage(
+                        context: context,
+                        storage: _storage,
+                        database: _database,
+                        auth: _auth,
+                        mounted: mounted,
+                      );
+                      setState(() {});
+                    },
+                    child: Stack(
+                      children: [
+                        Align(
+                          alignment: Alignment.center,
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.only(top: kRegularPadding),
+                            child: Container(
+                              width: 93,
+                              height: 93,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                              ),
+                              child: ProfileImage(
+                                imageUrl:
+                                    SessionManager.getProfileImageUrl() ?? '',
+                                radius: 46.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: kRegularPadding + 64,
+                                left: 50,
+                              ),
+                              child: SvgPicture.asset(
+                                AssetPaths.profileEditIcon,
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  YBox(kSmallPadding),
+                  CustomTextInputField(
+                    label: firstName,
+                    hintText: enterFirstName,
+                    controller: _firstName,
+                  ),
+                  YBox(kSmallPadding),
+                  CustomTextInputField(
+                    label: lastName,
+                    hintText: enterLastName,
+                    controller: _lastName,
+                  ),
+                  YBox(kSmallPadding),
+                  SessionManager.getRole() == lecturerRole
+                      ? CustomTextInputField(
+                          label: preferredAcademicName,
+                          hintText: enterPreferredAcademicName,
+                          controller: _prefferedAcademicName,
+                        )
+                      : Container(),
+                  YBox(kSmallPadding),
+                  CustomTextInputField(
+                    label: SessionManager.getRole() == lecturerRole
+                        ? lecturerEmailAddress
+                        : studentEmailAddress,
+                    hintText: SessionManager.getRole() == lecturerRole
+                        ? enterLecturerEmailAddress
+                        : enterStudentEmailAddress,
+                    controller: _email,
+                    isReadOnly: true,
+                    textColor: kGry600,
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  YBox(kSmallPadding),
+                  SessionManager.getRole() == lecturerRole
+                      ? CustomDropdownField(
+                          label: levelCourseAdvisor,
+                          hintText: selectLevel,
+                          items: levels,
+                          controller: _levelCourseAdvisor,
+                          isReadOnly: true,
+                          textColor: kGry600,
+                          iconColor: kGry600,
+                          dropdownColor: kPrimaryWhite,
+                          dropdownIcon: Icons.keyboard_arrow_down,
+                        )
+                      : CustomDropdownField(
+                          label: currentLevel,
+                          hintText: selectLevel,
+                          items: levels,
+                          controller: _currentLevel,
+                          isReadOnly: true,
+                          textColor: kGry600,
+                          iconColor: kGry600,
+                          dropdownColor: kPrimaryWhite,
+                          dropdownIcon: Icons.keyboard_arrow_down,
+                        ),
+                  YBox(kSmallPadding),
+                  SessionManager.getRole() == lecturerRole
+                      ? CustomDropdownField(
+                          label: prefix,
+                          hintText: selectPrefix,
+                          items: prefixs,
+                          controller: _prefix,
+                          dropdownColor: kPrimaryWhite,
+                          dropdownIcon: Icons.keyboard_arrow_down,
+                        )
+                      : Container(),
+                  YBox(kSmallPadding),
+                  CustomTextButton(
+                    text: submit,
+                    onPressed: () async {
+                      if (SessionManager.getRole() == lecturerRole) {
+                        final firstName = _firstName.text;
+                        final lastName = _lastName.text;
+                        final preferredAcademicName =
+                            _prefferedAcademicName.text;
+                        final prefix = _prefix.text;
+                        if (firstName.isEmpty ||
+                            lastName.isEmpty ||
+                            preferredAcademicName.isEmpty ||
+                            prefix.isEmpty) {
+                          CustomSnackBarForEmptyField.show(
+                            context,
+                            'Field must not be empty',
+                            40,
+                          );
+                        } else {
+                          setState(() {
+                            _isProfileEditLoading = true;
+                          });
+                          LoadingScreen()
+                              .show(context: context, showProgress: false);
+                          try {
+                            await _database.editLecturerProfile(
+                              userId: _auth.currentUser!.uid,
+                              firstName: firstName,
+                              lastName: lastName,
+                              preferredAcademicName: preferredAcademicName,
+                              prefix: prefix,
+                            );
+                            SessionManager.setFirstName(firstName);
+                            SessionManager.setLastName(lastName);
+                            SessionManager.setPreferredAcademicName(
+                                preferredAcademicName);
+                            SessionManager.setPrefix(prefix);
+                            setState(() {
+                              _isProfileEditLoading = false;
+                            });
+                            LoadingScreen().hide();
+                          } on Exception {
+                            setState(() {
+                              _isProfileEditLoading = false;
+                            });
+                            LoadingScreen().hide();
+                            if (mounted) {
+                              await showErrorDialog(
+                                context: context,
+                                text: 'Please try again later.',
+                              );
+                            }
+                          }
+                        }
+                      } else {
+                        final firstName = _firstName.text;
+                        final lastName = _lastName.text;
+                        if (firstName.isEmpty || lastName.isEmpty) {
+                          CustomSnackBarForEmptyField.show(
+                            context,
+                            'Field must not be empty',
+                            40,
+                          );
+                        } else {
+                          setState(() {
+                            _isProfileEditLoading = true;
+                          });
+                          LoadingScreen()
+                              .show(context: context, showProgress: false);
+                          try {
+                            await _database.editStudentProfile(
+                              userId: _auth.currentUser!.uid,
+                              firstName: firstName,
+                              lastName: lastName,
+                            );
+                            SessionManager.setFirstName(firstName);
+                            SessionManager.setLastName(lastName);
+                            setState(() {
+                              _isProfileEditLoading = false;
+                            });
+                            LoadingScreen().hide();
+                          } on Exception {
+                            setState(() {
+                              _isProfileEditLoading = false;
+                            });
+                            LoadingScreen().hide();
+                            if (mounted) {
+                              await showErrorDialog(
+                                context: context,
+                                text: 'Please try again later.',
+                              );
+                            }
+                          }
+                        }
+                      }
+                    },
+                    isLoading: _isProfileEditLoading,
+                    backgroundColor: kDarkYellow,
+                    textColor: kPrimaryWhite,
+                    borderColor: kTransparent,
+                    padding: const EdgeInsets.only(
+                      left: kMacroPadding - 3,
+                      right: kMacroPadding,
+                      top: kRegularPadding + 4,
+                      bottom: kRegularPadding + 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
         body: Stack(
           alignment: Alignment.topRight,
           children: [
@@ -185,8 +466,11 @@ class _CoursesState extends ConsumerState<Courses> {
                                       decoration: const BoxDecoration(
                                         shape: BoxShape.circle,
                                       ),
-                                      child: Image.asset(
-                                        AssetPaths.avatar,
+                                      child: ProfileImage(
+                                        imageUrl: SessionManager
+                                                .getProfileImageUrl() ??
+                                            '',
+                                        radius: 14,
                                       ),
                                     ),
                                   ),
@@ -310,8 +594,8 @@ class _CoursesState extends ConsumerState<Courses> {
                                                     coordinatorName:
                                                         courses[index]
                                                             .ownerName,
-                                                    avatarPath:
-                                                        AssetPaths.avatar,
+                                                    avatarPath: courses[index]
+                                                        .profileImageUrl,
                                                     onTap: () {
                                                       Navigator.of(context)
                                                           .push(
@@ -472,8 +756,8 @@ class _CoursesState extends ConsumerState<Courses> {
                                                     coordinatorName:
                                                         courses[index]
                                                             .ownerName,
-                                                    avatarPath:
-                                                        AssetPaths.avatar,
+                                                    avatarPath: courses[index]
+                                                        .profileImageUrl,
                                                     onTap: () {
                                                       Navigator.of(context)
                                                           .push(
@@ -638,13 +922,15 @@ class _CoursesState extends ConsumerState<Courses> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            height: 27,
-                            width: 27,
+                            height: 28,
+                            width: 28,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                             ),
-                            child: Image.asset(
-                              AssetPaths.avatar,
+                            child: ProfileImage(
+                              imageUrl:
+                                  SessionManager.getProfileImageUrl() ?? '',
+                              radius: 14,
                             ),
                           ),
                           Padding(
@@ -709,7 +995,12 @@ class _CoursesState extends ConsumerState<Courses> {
                             ),
                           ),
                           InkWell(
-                            onTap: () {},
+                            onTap: () {
+                              openEndDrawer();
+                              setState(() {
+                                _showSignOut = !_showSignOut;
+                              });
+                            },
                             child: Padding(
                               padding: const EdgeInsets.only(
                                 top: kSmallPadding,

@@ -39,6 +39,49 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
     }
   }
 
+  Future<void> editLecturerProfile({
+    required String userId,
+    required String firstName,
+    required String lastName,
+    required String preferredAcademicName,
+    required String prefix,
+  }) async {
+    final profile =
+        await initialize().collection(lecturersCollection).doc(userId).get();
+    await profile.reference.update({
+      firstNameFieldName: firstName,
+      lastNameFieldName: lastName,
+      preferredAcademicNameFieldName: preferredAcademicName,
+      prefixFieldName: prefix,
+    });
+
+    final courseCollection = await initialize()
+        .collection(coursesCollection)
+        .where(ownerUidFieldName, isEqualTo: userId)
+        .get();
+
+    final batch = initialize().batch();
+    for (var doc in courseCollection.docs) {
+      batch.update(doc.reference, {
+        ownerNameFieldName: preferredAcademicName,
+      });
+    }
+    await batch.commit();
+  }
+
+  Future<void> editStudentProfile({
+    required String userId,
+    required String firstName,
+    required String lastName,
+  }) async {
+    final profile =
+        await initialize().collection(studentsCollection).doc(userId).get();
+    await profile.reference.update({
+      firstNameFieldName: firstName,
+      lastNameFieldName: lastName,
+    });
+  }
+
   Stream<List<Student>> getAllStudents() {
     final collection = initialize().collection(studentsCollection).snapshots();
     return collection.map((event) {
@@ -119,14 +162,14 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
 
   Future<void> addTopicToCourse({
     required String courseId,
-    required String ownerUid,
+    required String courseCode,
     required String topicName,
     required String topicWeek,
   }) async {
     final courseCollection = await initialize()
         .collection(coursesCollection)
-        .where(ownerUidFieldName, isEqualTo: ownerUid)
         .where(courseIdFieldName, isEqualTo: courseId)
+        .where(courseCodeFieldName, isEqualTo: courseCode)
         .get();
 
     final courseDoc = courseCollection.docs.first;
@@ -143,14 +186,14 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
 
   Future<void> addMaterialToCourse({
     required String courseId,
-    required String ownerUid,
+    required String courseCode,
     required String materialName,
     required String materialUrl,
   }) async {
     final courseCollection = await initialize()
         .collection(coursesCollection)
-        .where(ownerUidFieldName, isEqualTo: ownerUid)
         .where(courseIdFieldName, isEqualTo: courseId)
+        .where(courseCodeFieldName, isEqualTo: courseCode)
         .get();
 
     final courseDoc = courseCollection.docs.first;
@@ -163,6 +206,7 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
     required String title,
     required String writtenBy,
     required String coordinatorName,
+    required String coordinatorUid,
     required String paperUrl,
     required String id,
   }) async {
@@ -170,7 +214,8 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
     await collection.add({
       titleFieldName: title,
       writtenByFieldName: writtenBy,
-      coordinatorFieldName: coordinatorName,
+      coordinatorNameFieldName: coordinatorName,
+      coordinatorUidFieldName: coordinatorUid,
       paperUrlFieldName: paperUrl,
       idFieldName: id,
     });
@@ -220,12 +265,12 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
 
   Stream<Map<String, String>> streamCourseTopics({
     required String courseId,
-    required String ownerUid,
+    required String courseCode,
   }) {
     final query = initialize()
         .collection(coursesCollection)
-        .where(ownerUidFieldName, isEqualTo: ownerUid)
         .where(courseIdFieldName, isEqualTo: courseId)
+        .where(courseCodeFieldName, isEqualTo: courseCode)
         .snapshots();
 
     return query.map((querySnapshot) {
@@ -243,12 +288,12 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
 
   Stream<Map<String, String>> streamCourseMaterials({
     required String courseId,
-    required String ownerUid,
+    required String courseCode,
   }) {
     final query = initialize()
         .collection(coursesCollection)
-        .where(ownerUidFieldName, isEqualTo: ownerUid)
         .where(courseIdFieldName, isEqualTo: courseId)
+        .where(courseCodeFieldName, isEqualTo: courseCode)
         .snapshots();
 
     return query.map((querySnapshot) {
@@ -271,8 +316,8 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
     if (semester != null) {
       final collection = initialize()
           .collection(coursesCollection)
-          .where(ownerUidFieldName, isEqualTo: ownerUid)
           .where(semesterFieldName, isEqualTo: semester)
+          .where(ownerUidFieldName, arrayContains: ownerUid)
           .snapshots();
       return collection.map((event) {
         if (event.docs.isNotEmpty) {
@@ -284,7 +329,7 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
     } else {
       final collection = initialize()
           .collection(coursesCollection)
-          .where(ownerUidFieldName, isEqualTo: ownerUid)
+          .where(ownerUidFieldName, arrayContains: ownerUid)
           .snapshots();
       return collection.map((event) {
         if (event.docs.isNotEmpty) {
@@ -294,5 +339,37 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
         }
       });
     }
+  }
+
+  Future<void> addImageUrlToUserProfile({
+    required String userId,
+    required String profileImageUrl,
+    required String role,
+  }) async {
+    if (role == lecturerRole) {
+      final profile =
+          await initialize().collection(lecturersCollection).doc(userId).get();
+      await profile.reference.update({
+        profileImageUrlFieldName: profileImageUrl,
+      });
+    } else {
+      final profile =
+          await initialize().collection(studentsCollection).doc(userId).get();
+      await profile.reference.update({
+        profileImageUrlFieldName: profileImageUrl,
+      });
+    }
+    final courseCollection = await initialize()
+        .collection(coursesCollection)
+        .where(ownerUidFieldName, isEqualTo: userId)
+        .get();
+
+    final batch = initialize().batch();
+    for (var doc in courseCollection.docs) {
+      batch.update(doc.reference, {
+        profileImageUrlFieldName: profileImageUrl,
+      });
+    }
+    await batch.commit();
   }
 }

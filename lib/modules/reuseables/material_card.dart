@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
 import 'package:systems_app/utils/strings.dart';
@@ -107,8 +108,9 @@ class MaterialCard extends StatelessWidget {
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                             ),
-                            child: Image.asset(
-                              avatarPath,
+                            child: ProfileImage(
+                              imageUrl: avatarPath,
+                              radius: 10,
                             ),
                           ),
                           const SizedBox(width: kPadding),

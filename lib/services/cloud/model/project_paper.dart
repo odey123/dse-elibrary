@@ -7,6 +7,7 @@ class ProjectPaper {
   final String writtenBy;
   final String paperUrl;
   final String coordinatorName;
+  final String coordinatorUid;
 
   ProjectPaper({
     required this.id,
@@ -14,6 +15,7 @@ class ProjectPaper {
     required this.writtenBy,
     required this.paperUrl,
     required this.coordinatorName,
+    required this.coordinatorUid,
   });
 
   ProjectPaper.fromSnapshot(
@@ -22,5 +24,6 @@ class ProjectPaper {
         title = snapshot.data()[titleFieldName] ?? '',
         writtenBy = snapshot.data()[writtenByFieldName] ?? '',
         paperUrl = snapshot.data()[paperUrlFieldName] ?? '',
-        coordinatorName = snapshot.data()[coordinatorFieldName] ?? '';
+        coordinatorName = snapshot.data()[coordinatorNameFieldName] ?? '',
+        coordinatorUid = snapshot.data()[coordinatorUidFieldName] ?? '';
 }

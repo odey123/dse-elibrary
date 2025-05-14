@@ -7,7 +7,8 @@ class Course {
   final String courseCode;
   final String courseId;
   final String ownerName;
-  final String ownerUid;
+  final List<String> ownerUid;
+  final String profileImageUrl;
   final Map<String, String> weekTopics;
   final Map<String, String> materials;
 
@@ -17,6 +18,7 @@ class Course {
     required this.courseId,
     required this.ownerName,
     required this.ownerUid,
+    required this.profileImageUrl,
     required this.unit,
     required this.weekTopics,
     required this.materials,
@@ -28,7 +30,10 @@ class Course {
         courseId = snapshot.data()[courseIdFieldName] ?? '',
         unit = snapshot.data()[unitFieldName] ?? '',
         ownerName = snapshot.data()[ownerNameFieldName] ?? '',
-        ownerUid = snapshot.data()[ownerUidFieldName] ?? '',
+        ownerUid = (snapshot.data()[ownerUidFieldName] as List<dynamic>?)
+                ?.cast<String>() ??
+            [],
+        profileImageUrl = snapshot.data()[profileImageUrlFieldName] ?? '',
         weekTopics =
             (snapshot.data()[weekTopicFieldName] as Map<String, dynamic>?)
                     ?.cast<String, String>() ??

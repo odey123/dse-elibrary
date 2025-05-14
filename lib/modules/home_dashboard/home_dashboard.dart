@@ -3,28 +3,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:systems_app/app/function/handle_profile_submit.dart';
+import 'package:systems_app/app/function/image_picker.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/app/loading/loading_screen.dart';
 import 'package:systems_app/app/navigator/navigator.dart';
+import 'package:systems_app/modules/reuseables/profile_drawer.dart';
 import 'package:systems_app/modules/shared/course_details.dart';
 import 'package:systems_app/modules/reuseables/course_card.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
 import 'package:systems_app/modules/reuseables/tab_item.dart';
+import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
+import 'package:systems_app/services/cloud/database/cloud_profile.dart';
 import 'package:systems_app/services/cloud/database/database_actions.dart';
 import 'package:systems_app/services/cloud/model/course.dart';
+import 'package:systems_app/services/cloud/storage/storage.actions.dart';
 import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
 import 'package:systems_app/utils/strings.dart';
 
 class HomeDashboard extends ConsumerStatefulWidget {
-  final GlobalKey<NavigatorState> navigatorKeyForDesktopWeb;
-  final String role;
+  final GlobalKey<NavigatorState>? navigatorKeyForDesktopWeb;
   const HomeDashboard({
     super.key,
-    required this.navigatorKeyForDesktopWeb,
-    required this.role,
+    this.navigatorKeyForDesktopWeb,
   });
 
   @override
@@ -32,22 +36,57 @@ class HomeDashboard extends ConsumerStatefulWidget {
 }
 
 class _HomeDashboardState extends ConsumerState<HomeDashboard> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final TextEditingController _searchTextField = TextEditingController();
   late final DatabaseAsyncNotifier _database;
   late final AuthenticationAsyncNotifier _auth;
-  final TextEditingController _searchTextField = TextEditingController();
+  late final StorageAsyncNotifier _storage;
+  late final TextEditingController _firstName;
+  late final TextEditingController _lastName;
+  late final TextEditingController _prefferedAcademicName;
+  late final TextEditingController _prefix;
+  late final TextEditingController _levelCourseAdvisor;
+  late final TextEditingController _currentLevel;
+  late final TextEditingController _email;
   String tabSelected = dashboard;
+  bool _isLoading = false;
   bool _showSignOut = false;
 
   @override
   void initState() {
     _database = ref.read(databaseAsyncNotifierProvider.notifier);
     _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
+    _storage = ref.read(storageAsyncNotifierProvider.notifier);
+    _firstName = TextEditingController();
+    _lastName = TextEditingController();
+    _prefferedAcademicName = TextEditingController();
+    _prefix = TextEditingController();
+    _levelCourseAdvisor = TextEditingController();
+    _currentLevel = TextEditingController();
+    _email = TextEditingController();
+    setControllerText();
     super.initState();
   }
 
+  void openEndDrawer() {
+    _scaffoldKey.currentState?.openEndDrawer();
+  }
+
+  void setControllerText() {
+    _firstName.text = SessionManager.getFirstName() ?? '';
+    _lastName.text = SessionManager.getLastName() ?? '';
+    _prefferedAcademicName.text =
+        SessionManager.getPreferredAcademicName() ?? '';
+    _prefix.text = SessionManager.getPrefix() ?? '';
+    _levelCourseAdvisor.text = SessionManager.getLevelCourseAdvisor() ?? '';
+    _currentLevel.text = SessionManager.getLevel() ?? '';
+    _email.text = SessionManager.getEmail() ?? '';
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext mainContext) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: (!kIsWeb || isPhoneWeb)
           ? AppBar(
               leading: Builder(
@@ -57,41 +96,39 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                 ),
               ),
               actions: [
-                Padding(
-                  padding: const EdgeInsets.all(5.0),
-                  child: SvgPicture.asset(
-                    AssetPaths.searchIcon,
-                    fit: BoxFit.scaleDown,
-                    color: kBlack,
-                  ),
-                ),
-                XBox(kSmallPadding),
-                Padding(
-                  padding: const EdgeInsets.only(top: 5.0),
-                  child: Center(
-                    child: Text(
-                      'Ayo.O',
-                      style: textTheme.titleSmall!.copyWith(
-                        fontSize: 16,
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(5.0),
+                      child: SvgPicture.asset(
+                        AssetPaths.searchIcon,
+                        fit: BoxFit.scaleDown,
                         color: kBlack,
-                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: kSmallPadding),
-                  child: Container(
-                    height: 25,
-                    width: 25,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
+                    XBox(kSmallPadding),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 5.0),
+                      child: Center(
+                        child: Text(
+                          '${SessionManager.getFirstName()}.${SessionManager.getLastName()![0]}',
+                          style: textTheme.titleSmall!.copyWith(
+                            fontSize: 16,
+                            color: kBlack,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
-                    child: Image.asset(
-                      AssetPaths.avatar,
+                    Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: kSmallPadding),
+                      child: ProfileImage(
+                        imageUrl: SessionManager.getProfileImageUrl() ?? '',
+                        radius: 13,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             )
@@ -260,11 +297,132 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                         );
                       },
                     ),
+                    Expanded(child: Container()),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          top: kSmallPadding, bottom: kPadding),
+                      child: Container(
+                        height: 1,
+                        decoration: const BoxDecoration(
+                          color: kPrimaryWhite,
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        openEndDrawer();
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: kRegularPadding,
+                          top: kSmallPadding,
+                          bottom: kRegularPadding,
+                        ),
+                        child: Row(
+                          children: [
+                            SvgPicture.asset(
+                              AssetPaths.profileIcon,
+                              color: kPrimaryWhite,
+                              width: 17,
+                            ),
+                            XBox(kRegularPadding),
+                            Text(
+                              pROfile,
+                              style: textTheme.titleMedium!.copyWith(
+                                fontSize: 16,
+                                color: kPrimaryWhite,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () async {
+                        LoadingScreen()
+                            .show(context: context, showProgress: true);
+                        await _auth.logOut();
+                        LoadingScreen().hide();
+                        (!kIsWeb || isPhoneWeb)
+                            ? navigatorKey.currentState!
+                                .pushNamedAndRemoveUntil(
+                                signInRoute,
+                                (route) => false,
+                              )
+                            : widget.navigatorKeyForDesktopWeb!.currentState!
+                                .pushNamedAndRemoveUntil(
+                                signInRoute,
+                                (route) => false,
+                              );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: kRegularPadding,
+                          top: kSmallPadding,
+                          bottom: kSmallPadding,
+                        ),
+                        child: Row(
+                          children: [
+                            SvgPicture.asset(
+                              AssetPaths.logoutIcon,
+                              color: kPrimaryWhite,
+                              width: 15,
+                            ),
+                            XBox(kRegularPadding),
+                            Text(
+                              logout,
+                              style: textTheme.titleMedium!.copyWith(
+                                fontSize: 16,
+                                color: kPrimaryWhite,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             )
           : null,
+      endDrawer: ProfileDrawer(
+        firstNameController: _firstName,
+        lastNameController: _lastName,
+        emailController: _email,
+        levelController: SessionManager.getRole() == lecturerRole
+            ? _levelCourseAdvisor
+            : _currentLevel,
+        prefixController: _prefix,
+        preferredAcademicNameController: _prefferedAcademicName,
+        profileStream: _database.getUserProfile(
+          ownerUserId: _auth.currentUser!.uid,
+          role: SessionManager.getRole() ?? '',
+        ),
+        onSubmit: () async {
+          await handleProfileSubmit(
+            context: context,
+            isLecturer: SessionManager.getRole() == lecturerRole,
+            firstNameController: _firstName,
+            lastNameController: _lastName,
+            preferredAcademicNameController: _prefferedAcademicName,
+            prefixController: _prefix,
+            auth: _auth,
+            database: _database,
+            onLoadingStart: () => setState(() => _isLoading = true),
+            onLoadingEnd: () => setState(() => _isLoading = false),
+            mounted: mounted,
+          );
+        },
+        onImageTap: () => pickImage(
+          context: context,
+          storage: _storage,
+          database: _database,
+          auth: _auth,
+          mounted: mounted,
+        ),
+        isLecturer: SessionManager.getRole() == lecturerRole,
+        isLoading: _isLoading,
+      ),
       body: Stack(
         alignment: Alignment.topRight,
         children: [
@@ -350,26 +508,60 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                                   ),
                                 ),
                                 XBox(kRegularPadding),
-                                InkWell(
-                                  overlayColor: const WidgetStatePropertyAll(
-                                      kTransparent),
-                                  hoverColor: kTransparent,
-                                  onTap: () {
-                                    setState(() {
-                                      _showSignOut = !_showSignOut;
-                                    });
-                                  },
-                                  child: Container(
+                                Container(
                                     height: 28,
                                     width: 28,
                                     decoration: const BoxDecoration(
                                       shape: BoxShape.circle,
                                     ),
-                                    child: Image.asset(
-                                      AssetPaths.avatar,
-                                    ),
-                                  ),
-                                ),
+                                    child: StreamBuilder(
+                                        stream: _database.getUserProfile(
+                                          ownerUserId: _auth.currentUser!.uid,
+                                          role: SessionManager.getRole() ?? '',
+                                        ),
+                                        builder: (context, snapshot) {
+                                          switch (snapshot.connectionState) {
+                                            case ConnectionState.waiting:
+                                            case ConnectionState.active:
+                                              if (snapshot.hasData) {
+                                                final profile = snapshot.data
+                                                    as CloudProfile;
+                                                return ProfileImage(
+                                                  imageUrl:
+                                                      profile.profileImageUrl,
+                                                  radius: 14,
+                                                  onTap: () {
+                                                    setState(() {
+                                                      _showSignOut =
+                                                          !_showSignOut;
+                                                    });
+                                                  },
+                                                );
+                                              } else {
+                                                return ProfileImage(
+                                                  imageUrl: '',
+                                                  radius: 14,
+                                                  onTap: () {
+                                                    setState(() {
+                                                      _showSignOut =
+                                                          !_showSignOut;
+                                                    });
+                                                  },
+                                                );
+                                              }
+                                            default:
+                                              return ProfileImage(
+                                                imageUrl: '',
+                                                radius: 14,
+                                                onTap: () {
+                                                  setState(() {
+                                                    _showSignOut =
+                                                        !_showSignOut;
+                                                  });
+                                                },
+                                              );
+                                          }
+                                        })),
                               ],
                             )
                           ],
@@ -412,15 +604,17 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                                   children: [
                                     YBox(kSmallPadding),
                                     Text(
-                                      '$welcomeBack ${(widget.role == lecturerRole) ? SessionManager.getPreferredAcademicName() : SessionManager.getFirstName()}',
+                                      '$welcomeBack ${(SessionManager.getRole() == lecturerRole) ? SessionManager.getPreferredAcademicName() : SessionManager.getFirstName()}',
                                       style: textTheme.titleMedium!.copyWith(
-                                        fontSize: 24,
+                                        fontSize:
+                                            (!kIsWeb || isPhoneWeb) ? 21 : 24,
                                       ),
                                     ),
                                     YBox(kMicroPadding),
                                     Text(
                                       '$dashboardSubHeaderOne ${(!kIsWeb || isPhoneWeb) ? dashboardSubHeaderTwo : ''}',
                                       style: textTheme.titleMedium!.copyWith(
+                                        height: 1.2,
                                         fontSize:
                                             (!kIsWeb || isPhoneWeb) ? 15 : 13,
                                       ),
@@ -453,7 +647,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                         child: Text(
                           myCourses,
                           style: textTheme.titleMedium!.copyWith(
-                            fontSize: (!kIsWeb || isPhoneWeb) ? 19 : 16,
+                            fontSize: (!kIsWeb || isPhoneWeb) ? 18 : 16,
                             color: kBlack,
                             fontWeight: FontWeight.w600,
                           ),
@@ -471,13 +665,14 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                             child: Row(
                               children: [
                                 StreamBuilder(
-                                  stream: (widget.role == lecturerRole)
-                                      ? _database.getLecturerCourses(
-                                          ownerUid: _auth.currentUser!.uid,
-                                        )
-                                      : _database.getAllCourses(
-                                          level: SessionManager.getLevel(),
-                                        ),
+                                  stream:
+                                      (SessionManager.getRole() == lecturerRole)
+                                          ? _database.getLecturerCourses(
+                                              ownerUid: _auth.currentUser!.uid,
+                                            )
+                                          : _database.getAllCourses(
+                                              level: SessionManager.getLevel(),
+                                            ),
                                   builder: (context, snapshot) {
                                     switch (snapshot.connectionState) {
                                       case ConnectionState.waiting:
@@ -513,17 +708,37 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                                                   units: courses[index].unit,
                                                   coordinatorName:
                                                       courses[index].ownerName,
-                                                  avatarPath: AssetPaths.avatar,
+                                                  avatarPath: courses[index]
+                                                      .profileImageUrl,
                                                   onTap: () {
-                                                    Navigator.of(context)
-                                                        .push(MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          CourseDetailScreen(
-                                                        course: courses[index],
-                                                        userUid: _auth
-                                                            .currentUser!.uid,
-                                                      ),
-                                                    ));
+                                                    (!kIsWeb || isPhoneWeb)
+                                                        ? navigatorKey
+                                                            .currentState!
+                                                            .push(
+                                                                MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                CourseDetailScreen(
+                                                              course: courses[
+                                                                  index],
+                                                              userUid: _auth
+                                                                  .currentUser!
+                                                                  .uid,
+                                                            ),
+                                                          ))
+                                                        : widget
+                                                            .navigatorKeyForDesktopWeb!
+                                                            .currentState!
+                                                            .push(
+                                                                MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                CourseDetailScreen(
+                                                              course: courses[
+                                                                  index],
+                                                              userUid: _auth
+                                                                  .currentUser!
+                                                                  .uid,
+                                                            ),
+                                                          ));
                                                   },
                                                 );
                                               },
@@ -602,7 +817,11 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                           ),
                         ),
                       ),
-                      YBox(kMicroPadding),
+                      YBox(
+                        (!kIsWeb || isPhoneWeb)
+                            ? kRegularPadding
+                            : kMicroPadding,
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: kRegularPadding,
@@ -611,7 +830,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                         child: Text(
                           recentlyViewedCourses,
                           style: textTheme.titleMedium!.copyWith(
-                            fontSize: (!kIsWeb || isPhoneWeb) ? 19 : 15,
+                            fontSize: (!kIsWeb || isPhoneWeb) ? 18 : 15,
                             color: kBlack,
                             fontWeight: FontWeight.w600,
                           ),
@@ -631,7 +850,8 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                                 child: Row(
                                   children: [
                                     StreamBuilder(
-                                      stream: (widget.role == lecturerRole)
+                                      stream: (SessionManager.getRole() ==
+                                              lecturerRole)
                                           ? _database.getLecturerCourses(
                                               ownerUid: _auth.currentUser!.uid,
                                             )
@@ -675,21 +895,43 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                                                       coordinatorName:
                                                           courses[index]
                                                               .ownerName,
-                                                      avatarPath:
-                                                          AssetPaths.avatar,
+                                                      avatarPath: courses[index]
+                                                          .profileImageUrl,
                                                       onTap: () {
-                                                        Navigator.of(context)
-                                                            .push(
+                                                        (!kIsWeb || isPhoneWeb)
+                                                            ? navigatorKey
+                                                                .currentState!
+                                                                .push(
                                                                 MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              CourseDetailScreen(
-                                                            course:
-                                                                courses[index],
-                                                            userUid: _auth
-                                                                .currentUser!
-                                                                .uid,
-                                                          ),
-                                                        ));
+                                                                  builder:
+                                                                      (context) =>
+                                                                          CourseDetailScreen(
+                                                                    course:
+                                                                        courses[
+                                                                            index],
+                                                                    userUid: _auth
+                                                                        .currentUser!
+                                                                        .uid,
+                                                                  ),
+                                                                ),
+                                                              )
+                                                            : widget
+                                                                .navigatorKeyForDesktopWeb!
+                                                                .currentState!
+                                                                .push(
+                                                                MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          CourseDetailScreen(
+                                                                    course:
+                                                                        courses[
+                                                                            index],
+                                                                    userUid: _auth
+                                                                        .currentUser!
+                                                                        .uid,
+                                                                  ),
+                                                                ),
+                                                              );
                                                       },
                                                     );
                                                   },
@@ -797,10 +1039,15 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      navigateTo(
-                                        allCoursesRoute,
-                                        widget.navigatorKeyForDesktopWeb,
-                                      );
+                                      (!kIsWeb || isPhoneWeb)
+                                          ? navigateTo(
+                                              allCoursesRoute,
+                                              navigatorKey,
+                                            )
+                                          : navigateTo(
+                                              allCoursesRoute,
+                                              widget.navigatorKeyForDesktopWeb!,
+                                            );
                                     },
                                     child: Text(
                                       viewAll,
@@ -849,13 +1096,14 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          height: 27,
-                          width: 27,
+                          height: 28,
+                          width: 28,
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
                           ),
-                          child: Image.asset(
-                            AssetPaths.avatar,
+                          child: ProfileImage(
+                            imageUrl: SessionManager.getProfileImageUrl() ?? '',
+                            radius: 14,
                           ),
                         ),
                         Padding(
@@ -920,7 +1168,12 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                           ),
                         ),
                         InkWell(
-                          onTap: () {},
+                          onTap: () {
+                            openEndDrawer();
+                            setState(() {
+                              _showSignOut = !_showSignOut;
+                            });
+                          },
                           child: Padding(
                             padding: const EdgeInsets.only(
                               top: kSmallPadding,

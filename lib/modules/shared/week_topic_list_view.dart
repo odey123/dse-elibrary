@@ -39,7 +39,7 @@ class _WeekTopicListViewState extends State<WeekTopicListView> {
             child: Text(
               workPlan,
               style: textTheme.titleMedium!.copyWith(
-                fontSize: (!kIsWeb || isPhoneWeb) ? 18 : 15,
+                fontSize: (!kIsWeb || isPhoneWeb) ? 16 : 15,
                 fontWeight: FontWeight.w500,
                 color: kBlack,
               ),
@@ -48,7 +48,7 @@ class _WeekTopicListViewState extends State<WeekTopicListView> {
           Row(
             children: [
               Container(
-                width: 60,
+                width: (!kIsWeb || isPhoneWeb) ? 50 : 60,
                 alignment: Alignment.centerLeft,
                 padding: const EdgeInsets.only(
                   bottom: kSmallPadding,
@@ -64,7 +64,7 @@ class _WeekTopicListViewState extends State<WeekTopicListView> {
                 child: Text(
                   wEEK,
                   style: textTheme.titleMedium!.copyWith(
-                    fontSize: (!kIsWeb || isPhoneWeb) ? 17 : 14,
+                    fontSize: (!kIsWeb || isPhoneWeb) ? 14 : 14,
                     fontWeight: FontWeight.w500,
                     color: kBlack,
                   ),
@@ -81,7 +81,7 @@ class _WeekTopicListViewState extends State<WeekTopicListView> {
                   child: Text(
                     tOPIC,
                     style: textTheme.titleMedium!.copyWith(
-                      fontSize: (!kIsWeb || isPhoneWeb) ? 17 : 14,
+                      fontSize: (!kIsWeb || isPhoneWeb) ? 14 : 14,
                       fontWeight: FontWeight.w500,
                       color: kBlack,
                     ),
@@ -97,11 +97,12 @@ class _WeekTopicListViewState extends State<WeekTopicListView> {
                 final topic = entry.value;
                 return Row(
                   children: [
-                    const SizedBox(
-                      width: 40,
+                    SizedBox(
+                      width: (!kIsWeb || isPhoneWeb) ? 30 : 40,
                     ),
                     Container(
                       width: 20,
+                      height: (!kIsWeb || isPhoneWeb) ? 50 : null,
                       alignment: Alignment.centerLeft,
                       padding: const EdgeInsets.only(
                         top: kSmallPadding,
@@ -122,7 +123,7 @@ class _WeekTopicListViewState extends State<WeekTopicListView> {
                       child: Text(
                         week,
                         style: textTheme.titleMedium!.copyWith(
-                          fontSize: (!kIsWeb || isPhoneWeb) ? 17 : 14,
+                          fontSize: (!kIsWeb || isPhoneWeb) ? 14 : 14,
                           fontWeight: FontWeight.w500,
                           color: kBlack,
                         ),
@@ -131,6 +132,8 @@ class _WeekTopicListViewState extends State<WeekTopicListView> {
                     Flexible(
                       child: Container(
                         width: screenSize.width,
+                        height: (!kIsWeb || isPhoneWeb) ? 50 : null,
+                        alignment: Alignment.centerLeft,
                         padding: const EdgeInsets.symmetric(
                           vertical: kSmallPadding,
                           horizontal: kSmallPadding,
@@ -146,9 +149,9 @@ class _WeekTopicListViewState extends State<WeekTopicListView> {
                         child: Text(
                           topic,
                           overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
+                          maxLines: (!kIsWeb || isPhoneWeb) ? 3 : 1,
                           style: textTheme.titleMedium!.copyWith(
-                            fontSize: (!kIsWeb || isPhoneWeb) ? 17 : 14,
+                            fontSize: (!kIsWeb || isPhoneWeb) ? 14 : 14,
                             fontWeight: FontWeight.w500,
                             color: kBlack,
                           ),

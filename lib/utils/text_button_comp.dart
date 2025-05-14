@@ -69,7 +69,7 @@ class CustomTextButton extends StatelessWidget {
                 : Text(
                     text,
                     style: textTheme.titleMedium!.copyWith(
-                      fontSize: (!kIsWeb || isPhoneWeb) ? 17 : 12,
+                      fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 12,
                       fontWeight: FontWeight.w500,
                       color: textColor,
                     ),

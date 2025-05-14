@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:systems_app/app/helpers/session_manager.dart';
+import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/services/cloud/database/cloud_profile.dart';
 import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
@@ -71,11 +73,9 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget> {
                     const CircleAvatar(
                         backgroundColor: kOrange500, radius: 12.5),
                     const SizedBox(width: kRegularPadding),
-                    CircleAvatar(
+                    ProfileImage(
+                      imageUrl: SessionManager.getProfileImageUrl() ?? '',
                       radius: 12.5,
-                      backgroundImage: AssetImage(
-                        AssetPaths.avatar,
-                      ),
                     ),
                   ],
                 ),

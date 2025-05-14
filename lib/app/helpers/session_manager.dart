@@ -17,6 +17,7 @@ class SessionManager {
   static String level = "level";
   static String levelCourseAdvisor = "level_course_advisor";
   static String preferredAcademicName = "preferred_academic_name";
+  static String profileImageUrl = "profile_image_url";
 
   /// SETTERS
   static void setUserId(String value) {
@@ -59,6 +60,10 @@ class SessionManager {
     SessionManager.prefs.setString(preferredAcademicName, value);
   }
 
+  static void setProfileImageUrl(String value) {
+    SessionManager.prefs.setString(profileImageUrl, value);
+  }
+
   /// GETTERS
   static String? getUserId() {
     return SessionManager.prefs.getString(userId);
@@ -98,5 +103,9 @@ class SessionManager {
 
   static String? getPreferredAcademicName() {
     return SessionManager.prefs.getString(preferredAcademicName);
+  }
+
+  static String? getProfileImageUrl() {
+    return SessionManager.prefs.getString(profileImageUrl);
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_network/image_network.dart';
 import 'package:systems_app/utils/constant.dart';
 
 class BookCard extends StatelessWidget {
@@ -38,53 +38,40 @@ class BookCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-                height: 170,
-                decoration: const BoxDecoration(),
-                child: Image.network(
-                  coverImagePath,
-                  fit: BoxFit.cover,
-                )
-                //   child: CachedNetworkImage(
-                //     imageUrl: coverImagePath,
-                //     fit: BoxFit.cover,
-                //     width: double.infinity,
-                //     placeholder: (context, url) => const Center(
-                //       child: CircularProgressIndicator(
-                //         strokeWidth: 1.5,
-                //         color: kPrimaryColor,
-                //       ),
-                //     ),
-                //     errorWidget: (context, url, error) => const Icon(
-                //       Icons.error,
-                //       color: Colors.red,
-                //     ),
-                //   ),
-                ),
-            const SizedBox(height: kMacroPadding),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: kRegularPadding),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: kPrimaryColor.withOpacity(0.2),
-                  borderRadius: const BorderRadius.all(Radius.circular(20)),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: kSmallPadding,
-                  vertical: kSmallPadding,
-                ),
-                child: Text(
-                  tag,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.titleSmall!.copyWith(
-                    fontSize: 13,
-                    color: kBlack,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
+            ImageNetwork(
+              key: ValueKey(coverImagePath),
+              image: coverImagePath,
+              height: 190,
+              width: 190,
+              duration: 500,
+              onPointer: true,
+              debugPrint: false,
+              backgroundColor: kPrimaryColor.withOpacity(0.3),
+              fitAndroidIos: BoxFit.cover,
+              fitWeb: BoxFitWeb.fill,
+              onError: const Icon(Icons.error),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
               ),
+              onTap: () {},
             ),
+            //   child: CachedNetworkImage(
+            //     imageUrl: coverImagePath,
+            //     fit: BoxFit.cover,
+            //     width: double.infinity,
+            //     placeholder: (context, url) => const Center(
+            //       child: CircularProgressIndicator(
+            //         strokeWidth: 1.5,
+            //         color: kPrimaryColor,
+            //       ),
+            //     ),
+            //     errorWidget: (context, url, error) => const Icon(
+            //       Icons.error,
+            //       color: Colors.red,
+            //     ),
+            //   ),
+            const SizedBox(height: kMacroPadding),
             const SizedBox(height: kRegularPadding),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: kRegularPadding),
@@ -97,7 +84,7 @@ class BookCard extends StatelessWidget {
                   style: textTheme.titleSmall!.copyWith(
                     fontSize: 13,
                     color: kBlack,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -112,7 +99,7 @@ class BookCard extends StatelessWidget {
               child: Text(
                 author,
                 style: textTheme.titleSmall!.copyWith(
-                  fontSize: 15,
+                  fontSize: 11,
                   color: kBlack,
                   fontWeight: FontWeight.w500,
                 ),

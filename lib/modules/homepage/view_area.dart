@@ -33,7 +33,6 @@ class _ViewAreaState extends State<ViewArea> {
           case homeDashboardRoute:
             builder = (context) => HomeDashboard(
                   navigatorKeyForDesktopWeb: widget.navigatorKey,
-                  role: widget.role,
                 );
             break;
           case myCoursesRoute:
@@ -69,7 +68,6 @@ class _ViewAreaState extends State<ViewArea> {
           default:
             builder = (context) => HomeDashboard(
                   navigatorKeyForDesktopWeb: widget.navigatorKey,
-                  role: widget.role,
                 );
         }
         return MaterialPageRoute(

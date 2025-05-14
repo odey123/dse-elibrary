@@ -9,7 +9,7 @@ String books = 'Books';
 String projects = 'Projects';
 String welcomeBack = 'Welcome back,';
 String dashboardSubHeaderOne =
-    'Here you have your courses for the semester past question past';
+    'Here you have your courses for the semester, past question, past';
 String dashboardSubHeaderTwo = 'projects as well as answers to those questions';
 String firstSemester = '1st semester';
 String secondSemester = '2nd semester';
