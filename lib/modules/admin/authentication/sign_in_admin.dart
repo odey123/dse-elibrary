@@ -17,16 +17,17 @@ import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
 import 'package:systems_app/utils/strings.dart';
 
-class SignInAsAdmin extends StatefulWidget {
+class SignInAsAdmin extends ConsumerStatefulWidget {
   const SignInAsAdmin({super.key});
 
   @override
-  State<SignInAsAdmin> createState() => _SignInAsAdminState();
+  ConsumerState<SignInAsAdmin> createState() => _SignInAsAdminState();
 }
 
-class _SignInAsAdminState extends State<SignInAsAdmin> {
+class _SignInAsAdminState extends ConsumerState<SignInAsAdmin> {
   late final TextEditingController _email;
   late final TextEditingController _password;
+  late final AuthenticationAsyncNotifier _auth;
   bool _isPasswordVisible = false;
   final FocusNode _focusNodeEmail = FocusNode();
   final FocusNode _focusNodePassword = FocusNode();
@@ -36,9 +37,116 @@ class _SignInAsAdminState extends State<SignInAsAdmin> {
 
   @override
   void initState() {
+    _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
     _email = TextEditingController();
     _password = TextEditingController();
     super.initState();
+  }
+
+  Future<void> handleSubmit(
+      {required BuildContext context,
+      required AuthenticationAsyncNotifier auth}) async {
+    final email = _email.text;
+    final password = _password.text;
+    if (email.isEmpty && password.isEmpty) {
+      setState(() {
+        emailBorderColor = kError;
+        passwordBorderColor = kError;
+      });
+      CustomSnackBarForEmptyField.show(
+        context,
+        'Field must not be empty',
+        40,
+      );
+    } else if (email.isEmpty) {
+      setState(() {
+        emailBorderColor = kError;
+      });
+      CustomSnackBarForEmptyField.show(
+        context,
+        'Field must not be empty',
+        40,
+      );
+    } else if (password.isEmpty) {
+      setState(() {
+        passwordBorderColor = kError;
+      });
+      CustomSnackBarForEmptyField.show(
+        context,
+        'Field must not be empty',
+        40,
+      );
+    } else {
+      setState(() {
+        _isLoading = true;
+      });
+      LoadingScreen().show(context: context, showProgress: false);
+      try {
+        await auth.logOut();
+        final user = await auth.logIn(email: email, password: password);
+        final adminChecker = await auth.checkIfAdmin();
+        setState(() {
+          _isLoading = false;
+        });
+        if (adminChecker) {
+          LoadingScreen().hide();
+          log('$user');
+          Navigator.pushNamedAndRemoveUntil(
+              context, homeAdminRoute, (route) => false);
+        } else {
+          await auth.logOut();
+          LoadingScreen().hide();
+          CustomSnackBarForEmptyField.show(
+            context,
+            'Access denied. Admins only.',
+            40,
+          );
+        }
+      } on Exception catch (e) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          LoadingScreen().hide();
+          if (e is UserNotFoundAuthException) {
+            showErrorDialog(
+              context: context,
+              text: 'There is no account associated with this email address.',
+            );
+          } else if (e is InvalidCredentialAuthException) {
+            showErrorDialog(
+              context: context,
+              text: 'There is no account associated with this credentials',
+            );
+          } else if (e is WrongPasswordAuthException) {
+            showIncorrectPasswordErrorDialog(
+              context: context,
+              text: 'The password entered is incorrect.',
+            );
+          } else if (e is UserDisabledAuthException) {
+            showIncorrectPasswordErrorDialog(
+              context: context,
+              text: 'Your classs account has been disabled',
+            );
+          } else if (e is NetworkRequestFailedAuthException) {
+            showInternetDialog(
+              context: context,
+              text: "There is no internet connection.",
+            );
+          } else if (e is TooManyRequestAuthException) {
+            showErrorDialog(
+              context: context,
+              text: 'Please attempt it again after some time',
+            );
+          } else if (e is GenericAuthException) {
+            showErrorDialog(
+              context: context,
+              text: 'Authentication Error',
+            );
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -148,6 +256,12 @@ class _SignInAsAdminState extends State<SignInAsAdmin> {
                       });
                     }
                   },
+                  onSubmitted: (value) async {
+                    await handleSubmit(
+                      context: context,
+                      auth: _auth,
+                    );
+                  },
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.only(
                       left: 10,
@@ -214,6 +328,12 @@ class _SignInAsAdminState extends State<SignInAsAdmin> {
                         passwordBorderColor = kGry450;
                       });
                     }
+                  },
+                  onSubmitted: (value) async {
+                    await handleSubmit(
+                      context: context,
+                      auth: _auth,
+                    );
                   },
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.only(
@@ -320,115 +440,10 @@ class _SignInAsAdminState extends State<SignInAsAdmin> {
                         ),
                       ),
                       onPressed: () async {
-                        final email = _email.text;
-                        final password = _password.text;
-                        if (email.isEmpty && password.isEmpty) {
-                          setState(() {
-                            emailBorderColor = kError;
-                            passwordBorderColor = kError;
-                          });
-                          CustomSnackBarForEmptyField.show(
-                            mainContext,
-                            'Field must not be empty',
-                            40,
-                          );
-                        } else if (email.isEmpty) {
-                          setState(() {
-                            emailBorderColor = kError;
-                          });
-                          CustomSnackBarForEmptyField.show(
-                            mainContext,
-                            'Field must not be empty',
-                            40,
-                          );
-                        } else if (password.isEmpty) {
-                          setState(() {
-                            passwordBorderColor = kError;
-                          });
-                          CustomSnackBarForEmptyField.show(
-                            mainContext,
-                            'Field must not be empty',
-                            40,
-                          );
-                        } else {
-                          setState(() {
-                            _isLoading = true;
-                          });
-                          LoadingScreen()
-                              .show(context: mainContext, showProgress: false);
-                          try {
-                            final auth = ref.read(
-                                authenticationAsyncNotifierProvider.notifier);
-                            await auth.logOut();
-                            final user = await auth.logIn(
-                                email: email, password: password);
-                            final adminChecker = await auth.checkIfAdmin();
-                            setState(() {
-                              _isLoading = false;
-                            });
-                            if (adminChecker) {
-                              LoadingScreen().hide();
-                              log('$user');
-                              Navigator.pushNamedAndRemoveUntil(mainContext,
-                                  homeAdminRoute, (route) => false);
-                            } else {
-                              await auth.logOut();
-                              LoadingScreen().hide();
-                              CustomSnackBarForEmptyField.show(
-                                mainContext,
-                                'Access denied. Admins only.',
-                                40,
-                              );
-                            }
-                          } on Exception catch (e) {
-                            if (mounted) {
-                              setState(() {
-                                _isLoading = false;
-                              });
-                              LoadingScreen().hide();
-                              if (e is UserNotFoundAuthException) {
-                                showErrorDialog(
-                                  context: mainContext,
-                                  text:
-                                      'There is no account associated with this email address.',
-                                );
-                              } else if (e is InvalidCredentialAuthException) {
-                                showErrorDialog(
-                                  context: mainContext,
-                                  text:
-                                      'There is no account associated with this credentials',
-                                );
-                              } else if (e is WrongPasswordAuthException) {
-                                showIncorrectPasswordErrorDialog(
-                                  context: mainContext,
-                                  text: 'The password entered is incorrect.',
-                                );
-                              } else if (e is UserDisabledAuthException) {
-                                showIncorrectPasswordErrorDialog(
-                                  context: mainContext,
-                                  text: 'Your classs account has been disabled',
-                                );
-                              } else if (e
-                                  is NetworkRequestFailedAuthException) {
-                                showInternetDialog(
-                                  context: mainContext,
-                                  text: "There is no internet connection.",
-                                );
-                              } else if (e is TooManyRequestAuthException) {
-                                showErrorDialog(
-                                  context: mainContext,
-                                  text:
-                                      'Please attempt it again after some time',
-                                );
-                              } else if (e is GenericAuthException) {
-                                showErrorDialog(
-                                  context: mainContext,
-                                  text: 'Authentication Error',
-                                );
-                              }
-                            }
-                          }
-                        }
+                        await handleSubmit(
+                          context: context,
+                          auth: _auth,
+                        );
                       },
                       child: _isLoading
                           ? const SizedBox(
