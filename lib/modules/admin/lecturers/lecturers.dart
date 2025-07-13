@@ -63,11 +63,9 @@ class _LecturersState extends ConsumerState<Lecturers> {
                             (isPhoneWeb)
                                 ? Container()
                                 : Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: kLargePadding,
-                                      right: kLargePadding,
-                                      top: kPadding,
-                                      bottom: kRegularPadding,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: kMediumPadding,
+                                      vertical: kPadding,
                                     ),
                                     child: SingleChildScrollView(
                                       child: Row(
@@ -92,23 +90,21 @@ class _LecturersState extends ConsumerState<Lecturers> {
                                               ),
                                               child: Row(
                                                 children: [
-                                                  SizedBox(
-                                                    width: 14,
-                                                    height: 15,
-                                                    child: SvgPicture.asset(
-                                                      AssetPaths.arrowBack,
-                                                    ),
+                                                  const Icon(
+                                                    Icons.arrow_back_ios,
+                                                    color: kBlack,
+                                                    size: 16,
                                                   ),
-                                                  XBox(kSmallPadding),
+                                                  XBox(kPadding),
                                                   Transform.translate(
                                                     offset: const Offset(0, 1),
                                                     child: Text(
-                                                      back,
+                                                      'Lecturers',
                                                       style: textTheme
                                                           .titleMedium!
                                                           .copyWith(
                                                         fontSize: 13,
-                                                        color: kGry800,
+                                                        color: kBlack,
                                                       ),
                                                     ),
                                                   ),
@@ -119,24 +115,25 @@ class _LecturersState extends ConsumerState<Lecturers> {
                                           Row(
                                             children: [
                                               Container(
-                                                height: 24,
-                                                width: 24,
-                                                decoration:
-                                                    const BoxDecoration(),
-                                                child: const Icon(
-                                                  Icons.notifications_none,
-                                                  weight: 100,
-                                                  color: kBlack800,
+                                                height: 25,
+                                                width: 25,
+                                                padding:
+                                                    const EdgeInsets.all(6),
+                                                decoration: const BoxDecoration(
+                                                  color: kLightSkyeBlue,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: SvgPicture.asset(
+                                                  AssetPaths.notificationIcon,
+                                                  fit: BoxFit.scaleDown,
                                                 ),
                                               ),
                                               XBox(kRegularPadding),
                                               Container(
                                                 height: 25,
-                                                width: 25,
+                                                width: 1,
                                                 decoration: const BoxDecoration(
-                                                  color: kOrange500,
-                                                  shape: BoxShape.circle,
-                                                ),
+                                                    color: kLightAsh),
                                               ),
                                               XBox(kRegularPadding),
                                               InkWell(
@@ -151,8 +148,8 @@ class _LecturersState extends ConsumerState<Lecturers> {
                                                   });
                                                 },
                                                 child: Container(
-                                                  height: 28,
-                                                  width: 28,
+                                                  height: 26,
+                                                  width: 26,
                                                   decoration:
                                                       const BoxDecoration(
                                                     shape: BoxShape.circle,
@@ -246,14 +243,15 @@ class _LecturersState extends ConsumerState<Lecturers> {
                                               ),
                                               XBox(kPadding),
                                               Container(
-                                                width: screenSize.width * 0.3,
-                                                height: 34,
+                                                width: screenSize.width * 0.37,
+                                                height: 35,
                                                 decoration: BoxDecoration(
                                                   borderRadius:
-                                                      BorderRadius.circular(12),
+                                                      BorderRadius.circular(11),
                                                   color: kPrimaryWhite,
                                                   border: Border.all(
-                                                    color: kGry500,
+                                                    color:
+                                                        const Color(0xffEBE6F0),
                                                   ),
                                                 ),
                                                 child: TextField(
@@ -266,57 +264,31 @@ class _LecturersState extends ConsumerState<Lecturers> {
                                                       TextAlignVertical.center,
                                                   style: textTheme.titleMedium!
                                                       .copyWith(
-                                                    fontSize: 12.5,
-                                                    color: kBlack,
+                                                    fontSize: 12,
+                                                    color: kGry800,
                                                   ),
                                                   decoration: InputDecoration(
-                                                    filled: true,
-                                                    fillColor: kSearchBack
-                                                        .withOpacity(0.05),
-                                                    hintText:
-                                                        'Search for a lecturer.....',
+                                                    hintText: 'Search',
                                                     hintStyle: textTheme
                                                         .titleMedium!
                                                         .copyWith(
-                                                      fontSize: 13,
+                                                      fontSize: 12,
                                                       color: kGry800,
                                                     ),
-                                                    focusedBorder:
-                                                        OutlineInputBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        12),
-                                                            borderSide:
-                                                                const BorderSide(
-                                                                    color:
-                                                                        kTransparent)),
-                                                    enabledBorder:
-                                                        OutlineInputBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        12),
-                                                            borderSide:
-                                                                const BorderSide(
-                                                                    color:
-                                                                        kTransparent)),
-                                                    disabledBorder:
-                                                        OutlineInputBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        12),
-                                                            borderSide:
-                                                                const BorderSide(
-                                                                    color:
-                                                                        kTransparent)),
                                                     contentPadding:
-                                                        const EdgeInsets.only(),
-                                                    prefixIcon:
-                                                        SvgPicture.asset(
-                                                      AssetPaths.searchIcon,
-                                                      fit: BoxFit.scaleDown,
+                                                        const EdgeInsets.only(
+                                                      bottom: kPadding * 2.7,
+                                                    ),
+                                                    prefixIcon: Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                        top: 5.0,
+                                                        bottom: 5.0,
+                                                      ),
+                                                      child: SvgPicture.asset(
+                                                        AssetPaths.searchIcon,
+                                                        fit: BoxFit.scaleDown,
+                                                      ),
                                                     ),
                                                     border: InputBorder.none,
                                                   ),
@@ -389,20 +361,7 @@ class _LecturersState extends ConsumerState<Lecturers> {
                                         padding: const EdgeInsets.only(
                                             top: kMediumPadding),
                                         child: Text(
-                                          '${SessionManager.getLastName()} ${SessionManager.getFirstName()}',
-                                          style:
-                                              textTheme.titleMedium!.copyWith(
-                                            fontSize: 13,
-                                            color: kBlack,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: kSmallPadding,
-                                            bottom: kPadding),
-                                        child: Text(
-                                          SessionManager.getEmail() ?? '',
+                                          'Admin',
                                           style:
                                               textTheme.titleMedium!.copyWith(
                                             fontSize: 13,
@@ -456,29 +415,27 @@ class _LecturersState extends ConsumerState<Lecturers> {
                                           ),
                                         ),
                                       ),
-                                      InkWell(
-                                        onTap: () {},
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: kSmallPadding,
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              SvgPicture.asset(
-                                                  AssetPaths.profileIcon),
-                                              XBox(kPadding),
-                                              Text(
-                                                pROfile,
-                                                style: textTheme.titleMedium!
-                                                    .copyWith(
-                                                  fontSize: 13,
-                                                  color: kBlack,
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ),
+                                      //   InkWell(
+                                      //     onTap: () {},
+                                      //     child: Padding(
+                                      //       padding: const EdgeInsets.only(
+                                      //         top: kSmallPadding,
+                                      //       ),
+                                      //       child: Row(
+                                      //         children: [
+                                      //           SvgPicture.asset(AssetPaths.profileIcon),
+                                      //           XBox(kPadding),
+                                      //           Text(
+                                      //             pROfile,
+                                      //             style: textTheme.titleMedium!.copyWith(
+                                      //               fontSize: 13,
+                                      //               color: kBlack,
+                                      //             ),
+                                      //           )
+                                      //         ],
+                                      //       ),
+                                      //     ),
+                                      //   ),
                                     ],
                                   ),
                                 ),

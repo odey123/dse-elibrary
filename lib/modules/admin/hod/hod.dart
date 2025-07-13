@@ -60,11 +60,9 @@ class _HodState extends ConsumerState<Hod> {
                             (isPhoneWeb)
                                 ? Container()
                                 : Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: kLargePadding,
-                                      right: kLargePadding,
-                                      top: kPadding,
-                                      bottom: kRegularPadding,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: kMediumPadding,
+                                      vertical: kPadding,
                                     ),
                                     child: SingleChildScrollView(
                                       child: Row(
@@ -89,23 +87,21 @@ class _HodState extends ConsumerState<Hod> {
                                               ),
                                               child: Row(
                                                 children: [
-                                                  SizedBox(
-                                                    width: 14,
-                                                    height: 15,
-                                                    child: SvgPicture.asset(
-                                                      AssetPaths.arrowBack,
-                                                    ),
+                                                  const Icon(
+                                                    Icons.arrow_back_ios,
+                                                    color: kBlack,
+                                                    size: 16,
                                                   ),
-                                                  XBox(kSmallPadding),
+                                                  XBox(kPadding),
                                                   Transform.translate(
                                                     offset: const Offset(0, 1),
                                                     child: Text(
-                                                      back,
+                                                      'Students',
                                                       style: textTheme
                                                           .titleMedium!
                                                           .copyWith(
                                                         fontSize: 13,
-                                                        color: kGry800,
+                                                        color: kBlack,
                                                       ),
                                                     ),
                                                   ),
@@ -116,24 +112,25 @@ class _HodState extends ConsumerState<Hod> {
                                           Row(
                                             children: [
                                               Container(
-                                                height: 24,
-                                                width: 24,
-                                                decoration:
-                                                    const BoxDecoration(),
-                                                child: const Icon(
-                                                  Icons.notifications_none,
-                                                  weight: 100,
-                                                  color: kBlack800,
+                                                height: 25,
+                                                width: 25,
+                                                padding:
+                                                    const EdgeInsets.all(6),
+                                                decoration: const BoxDecoration(
+                                                  color: kLightSkyeBlue,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: SvgPicture.asset(
+                                                  AssetPaths.notificationIcon,
+                                                  fit: BoxFit.scaleDown,
                                                 ),
                                               ),
                                               XBox(kRegularPadding),
                                               Container(
                                                 height: 25,
-                                                width: 25,
+                                                width: 1,
                                                 decoration: const BoxDecoration(
-                                                  color: kOrange500,
-                                                  shape: BoxShape.circle,
-                                                ),
+                                                    color: kLightAsh),
                                               ),
                                               XBox(kRegularPadding),
                                               InkWell(
@@ -148,8 +145,8 @@ class _HodState extends ConsumerState<Hod> {
                                                   });
                                                 },
                                                 child: Container(
-                                                  height: 28,
-                                                  width: 28,
+                                                  height: 26,
+                                                  width: 26,
                                                   decoration:
                                                       const BoxDecoration(
                                                     shape: BoxShape.circle,
@@ -240,20 +237,7 @@ class _HodState extends ConsumerState<Hod> {
                                         padding: const EdgeInsets.only(
                                             top: kMediumPadding),
                                         child: Text(
-                                          '${SessionManager.getLastName()} ${SessionManager.getFirstName()}',
-                                          style:
-                                              textTheme.titleMedium!.copyWith(
-                                            fontSize: 13,
-                                            color: kBlack,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: kSmallPadding,
-                                            bottom: kPadding),
-                                        child: Text(
-                                          SessionManager.getEmail() ?? '',
+                                          'Admin',
                                           style:
                                               textTheme.titleMedium!.copyWith(
                                             fontSize: 13,
@@ -307,29 +291,27 @@ class _HodState extends ConsumerState<Hod> {
                                           ),
                                         ),
                                       ),
-                                      InkWell(
-                                        onTap: () {},
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: kSmallPadding,
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              SvgPicture.asset(
-                                                  AssetPaths.profileIcon),
-                                              XBox(kPadding),
-                                              Text(
-                                                pROfile,
-                                                style: textTheme.titleMedium!
-                                                    .copyWith(
-                                                  fontSize: 13,
-                                                  color: kBlack,
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ),
+                                      //   InkWell(
+                                      //     onTap: () {},
+                                      //     child: Padding(
+                                      //       padding: const EdgeInsets.only(
+                                      //         top: kSmallPadding,
+                                      //       ),
+                                      //       child: Row(
+                                      //         children: [
+                                      //           SvgPicture.asset(AssetPaths.profileIcon),
+                                      //           XBox(kPadding),
+                                      //           Text(
+                                      //             pROfile,
+                                      //             style: textTheme.titleMedium!.copyWith(
+                                      //               fontSize: 13,
+                                      //               color: kBlack,
+                                      //             ),
+                                      //           )
+                                      //         ],
+                                      //       ),
+                                      //     ),
+                                      //   ),
                                     ],
                                   ),
                                 ),

@@ -16,7 +16,6 @@ import 'package:systems_app/modules/reuseables/size_boxes.dart';
 import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
-import 'package:systems_app/services/cloud/database/cloud_profile.dart';
 import 'package:systems_app/services/cloud/database/database_actions.dart';
 import 'package:systems_app/services/cloud/storage/cloud_storage_exception.dart';
 import 'package:systems_app/services/cloud/storage/storage.actions.dart';
@@ -175,7 +174,7 @@ class _AddBookState extends ConsumerState<AddBook> {
                         color: kPrimaryWhite,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: kLargePadding,
+                            horizontal: kMediumPadding,
                             vertical: kPadding,
                           ),
                           child: SingleChildScrollView(
@@ -200,22 +199,20 @@ class _AddBookState extends ConsumerState<AddBook> {
                                     ),
                                     child: Row(
                                       children: [
-                                        SizedBox(
-                                          width: 14,
-                                          height: 15,
-                                          child: SvgPicture.asset(
-                                            AssetPaths.arrowBack,
-                                          ),
+                                        const Icon(
+                                          Icons.arrow_back_ios,
+                                          color: kBlack,
+                                          size: 16,
                                         ),
-                                        XBox(kSmallPadding),
+                                        XBox(kPadding),
                                         Transform.translate(
                                           offset: const Offset(0, 1),
                                           child: Text(
-                                            back,
+                                            addNew,
                                             style:
                                                 textTheme.titleMedium!.copyWith(
                                               fontSize: 13,
-                                              color: kGry800,
+                                              color: kBlack,
                                             ),
                                           ),
                                         ),
@@ -226,79 +223,48 @@ class _AddBookState extends ConsumerState<AddBook> {
                                 Row(
                                   children: [
                                     Container(
-                                      height: 24,
-                                      width: 24,
-                                      decoration: const BoxDecoration(),
-                                      child: const Icon(
-                                        Icons.notifications_none,
-                                        weight: 100,
-                                        color: kBlack800,
+                                      height: 25,
+                                      width: 25,
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: const BoxDecoration(
+                                        color: kLightSkyeBlue,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: SvgPicture.asset(
+                                        AssetPaths.notificationIcon,
+                                        fit: BoxFit.scaleDown,
                                       ),
                                     ),
                                     XBox(kRegularPadding),
                                     Container(
                                       height: 25,
-                                      width: 25,
-                                      decoration: const BoxDecoration(
-                                        color: kOrange500,
-                                        shape: BoxShape.circle,
-                                      ),
+                                      width: 1,
+                                      decoration:
+                                          const BoxDecoration(color: kLightAsh),
                                     ),
                                     XBox(kRegularPadding),
-                                    Container(
-                                      height: 28,
-                                      width: 28,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: StreamBuilder(
-                                        stream: _database.getUserProfile(
-                                          ownerUserId: _auth.currentUser!.uid,
-                                          role: SessionManager.getRole() ?? '',
+                                    InkWell(
+                                      overlayColor:
+                                          const WidgetStatePropertyAll(
+                                              kTransparent),
+                                      hoverColor: kTransparent,
+                                      onTap: () {
+                                        setState(() {
+                                          _showSignOut = !_showSignOut;
+                                        });
+                                      },
+                                      child: Container(
+                                        height: 26,
+                                        width: 26,
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
                                         ),
-                                        builder: (context, snapshot) {
-                                          switch (snapshot.connectionState) {
-                                            case ConnectionState.waiting:
-                                            case ConnectionState.active:
-                                              if (snapshot.hasData) {
-                                                final profile = snapshot.data
-                                                    as CloudProfile;
-                                                return ProfileImage(
-                                                  imageUrl:
-                                                      profile.profileImageUrl,
-                                                  radius: 14,
-                                                  onTap: () {
-                                                    setState(() {
-                                                      _showSignOut =
-                                                          !_showSignOut;
-                                                    });
-                                                  },
-                                                );
-                                              } else {
-                                                return ProfileImage(
-                                                  imageUrl: '',
-                                                  radius: 14,
-                                                  onTap: () {
-                                                    setState(() {
-                                                      _showSignOut =
-                                                          !_showSignOut;
-                                                    });
-                                                  },
-                                                );
-                                              }
-                                            default:
-                                              return ProfileImage(
-                                                imageUrl: '',
-                                                radius: 14,
-                                                onTap: () {
-                                                  setState(() {
-                                                    _showSignOut =
-                                                        !_showSignOut;
-                                                  });
-                                                },
-                                              );
-                                          }
-                                        },
+                                        child: ProfileImage(
+                                          imageUrl: SessionManager
+                                                  .getProfileImageUrl() ??
+                                              '',
+                                          radius: 14,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -868,18 +834,7 @@ class _AddBookState extends ConsumerState<AddBook> {
                           Padding(
                             padding: const EdgeInsets.only(top: kMediumPadding),
                             child: Text(
-                              '${SessionManager.getLastName()} ${SessionManager.getFirstName()}',
-                              style: textTheme.titleMedium!.copyWith(
-                                fontSize: 13,
-                                color: kBlack,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                top: kSmallPadding, bottom: kPadding),
-                            child: Text(
-                              SessionManager.getEmail() ?? '',
+                              'Admin',
                               style: textTheme.titleMedium!.copyWith(
                                 fontSize: 13,
                                 color: kBlack,
@@ -926,32 +881,27 @@ class _AddBookState extends ConsumerState<AddBook> {
                               ),
                             ),
                           ),
-                          InkWell(
-                            onTap: () {
-                              openEndDrawer();
-                              setState(() {
-                                _showSignOut = !_showSignOut;
-                              });
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                top: kSmallPadding,
-                              ),
-                              child: Row(
-                                children: [
-                                  SvgPicture.asset(AssetPaths.profileIcon),
-                                  XBox(kPadding),
-                                  Text(
-                                    pROfile,
-                                    style: textTheme.titleMedium!.copyWith(
-                                      fontSize: 13,
-                                      color: kBlack,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
+                          //   InkWell(
+                          //     onTap: () {},
+                          //     child: Padding(
+                          //       padding: const EdgeInsets.only(
+                          //         top: kSmallPadding,
+                          //       ),
+                          //       child: Row(
+                          //         children: [
+                          //           SvgPicture.asset(AssetPaths.profileIcon),
+                          //           XBox(kPadding),
+                          //           Text(
+                          //             pROfile,
+                          //             style: textTheme.titleMedium!.copyWith(
+                          //               fontSize: 13,
+                          //               color: kBlack,
+                          //             ),
+                          //           )
+                          //         ],
+                          //       ),
+                          //     ),
+                          //   ),
                         ],
                       ),
                     ),

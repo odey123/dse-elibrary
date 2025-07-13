@@ -392,6 +392,12 @@ class _SignInAsAdminState extends State<SignInAsAdmin> {
                                   text:
                                       'There is no account associated with this email address.',
                                 );
+                              } else if (e is InvalidCredentialAuthException) {
+                                showErrorDialog(
+                                  context: mainContext,
+                                  text:
+                                      'There is no account associated with this credentials',
+                                );
                               } else if (e is WrongPasswordAuthException) {
                                 showIncorrectPasswordErrorDialog(
                                   context: mainContext,

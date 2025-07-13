@@ -14,7 +14,6 @@ import 'package:systems_app/modules/reuseables/size_boxes.dart';
 import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
-import 'package:systems_app/services/cloud/database/cloud_profile.dart';
 import 'package:systems_app/services/cloud/database/database_actions.dart';
 import 'package:systems_app/services/cloud/function/function_exception.dart';
 import 'package:systems_app/services/cloud/function/functions_actions.dart';
@@ -165,7 +164,7 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                         color: kPrimaryWhite,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: kLargePadding,
+                            horizontal: kMediumPadding,
                             vertical: kPadding,
                           ),
                           child: SingleChildScrollView(
@@ -190,22 +189,20 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                                     ),
                                     child: Row(
                                       children: [
-                                        SizedBox(
-                                          width: 14,
-                                          height: 15,
-                                          child: SvgPicture.asset(
-                                            AssetPaths.arrowBack,
-                                          ),
+                                        const Icon(
+                                          Icons.arrow_back_ios,
+                                          color: kBlack,
+                                          size: 16,
                                         ),
-                                        XBox(kSmallPadding),
+                                        XBox(kPadding),
                                         Transform.translate(
                                           offset: const Offset(0, 1),
                                           child: Text(
-                                            back,
+                                            'Back',
                                             style:
                                                 textTheme.titleMedium!.copyWith(
                                               fontSize: 13,
-                                              color: kGry800,
+                                              color: kBlack,
                                             ),
                                           ),
                                         ),
@@ -216,79 +213,48 @@ class _AddCourseState extends ConsumerState<AddCourse> {
                                 Row(
                                   children: [
                                     Container(
-                                      height: 24,
-                                      width: 24,
-                                      decoration: const BoxDecoration(),
-                                      child: const Icon(
-                                        Icons.notifications_none,
-                                        weight: 100,
-                                        color: kBlack800,
+                                      height: 25,
+                                      width: 25,
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: const BoxDecoration(
+                                        color: kLightSkyeBlue,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: SvgPicture.asset(
+                                        AssetPaths.notificationIcon,
+                                        fit: BoxFit.scaleDown,
                                       ),
                                     ),
                                     XBox(kRegularPadding),
                                     Container(
                                       height: 25,
-                                      width: 25,
-                                      decoration: const BoxDecoration(
-                                        color: kOrange500,
-                                        shape: BoxShape.circle,
-                                      ),
+                                      width: 1,
+                                      decoration:
+                                          const BoxDecoration(color: kLightAsh),
                                     ),
                                     XBox(kRegularPadding),
-                                    Container(
-                                      height: 28,
-                                      width: 28,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: StreamBuilder(
-                                        stream: _database.getUserProfile(
-                                          ownerUserId: _auth.currentUser!.uid,
-                                          role: SessionManager.getRole() ?? '',
+                                    InkWell(
+                                      overlayColor:
+                                          const WidgetStatePropertyAll(
+                                              kTransparent),
+                                      hoverColor: kTransparent,
+                                      onTap: () {
+                                        setState(() {
+                                          _showSignOut = !_showSignOut;
+                                        });
+                                      },
+                                      child: Container(
+                                        height: 26,
+                                        width: 26,
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
                                         ),
-                                        builder: (context, snapshot) {
-                                          switch (snapshot.connectionState) {
-                                            case ConnectionState.waiting:
-                                            case ConnectionState.active:
-                                              if (snapshot.hasData) {
-                                                final profile = snapshot.data
-                                                    as CloudProfile;
-                                                return ProfileImage(
-                                                  imageUrl:
-                                                      profile.profileImageUrl,
-                                                  radius: 14,
-                                                  onTap: () {
-                                                    setState(() {
-                                                      _showSignOut =
-                                                          !_showSignOut;
-                                                    });
-                                                  },
-                                                );
-                                              } else {
-                                                return ProfileImage(
-                                                  imageUrl: '',
-                                                  radius: 14,
-                                                  onTap: () {
-                                                    setState(() {
-                                                      _showSignOut =
-                                                          !_showSignOut;
-                                                    });
-                                                  },
-                                                );
-                                              }
-                                            default:
-                                              return ProfileImage(
-                                                imageUrl: '',
-                                                radius: 14,
-                                                onTap: () {
-                                                  setState(() {
-                                                    _showSignOut =
-                                                        !_showSignOut;
-                                                  });
-                                                },
-                                              );
-                                          }
-                                        },
+                                        child: ProfileImage(
+                                          imageUrl: SessionManager
+                                                  .getProfileImageUrl() ??
+                                              '',
+                                          radius: 14,
+                                        ),
                                       ),
                                     ),
                                   ],

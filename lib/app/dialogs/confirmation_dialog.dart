@@ -6,8 +6,6 @@ Future<bool> confirmationDialog({
   required bool mounted,
   required String body,
 }) async {
-  final width = MediaQuery.of(context).size.width;
-  final height = MediaQuery.of(context).size.height;
   return showDialog(
     context: context,
     builder: (context) {

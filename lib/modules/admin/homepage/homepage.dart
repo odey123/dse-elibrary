@@ -34,14 +34,14 @@ class _HomePageAdminState extends State<HomePageAdmin> {
               : Container(
                   width: 200,
                   decoration: const BoxDecoration(
-                    color: kPrimaryColor,
-                  ),
+                      color: kLighterAsh,
+                      border: Border(right: BorderSide(color: kLightAsh))),
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        YBox(kMacroPadding),
+                        YBox(kSmallPadding),
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: kRegularPadding,
@@ -49,8 +49,8 @@ class _HomePageAdminState extends State<HomePageAdmin> {
                           child: Row(
                             children: [
                               Container(
-                                height: (!kIsWeb || isPhoneWeb) ? 50 : 40,
-                                width: (!kIsWeb || isPhoneWeb) ? 50 : 40,
+                                height: (!kIsWeb || isPhoneWeb) ? 40 : 30,
+                                width: (!kIsWeb || isPhoneWeb) ? 40 : 30,
                                 decoration: const BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: kPrimaryWhite,
@@ -69,16 +69,11 @@ class _HomePageAdminState extends State<HomePageAdmin> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Systems',
+                                      'Systems E.',
                                       style: textTheme.headlineMedium!.copyWith(
                                         fontSize: 18,
-                                      ),
-                                    ),
-                                    YBox(kPadding),
-                                    Text(
-                                      'Engineering',
-                                      style: textTheme.headlineMedium!.copyWith(
-                                        fontSize: 18,
+                                        color: kBlack,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ],
@@ -87,11 +82,11 @@ class _HomePageAdminState extends State<HomePageAdmin> {
                             ],
                           ),
                         ),
-                        YBox(kRegularPadding),
+                        YBox(kSmallPadding),
                         Container(
                           height: 1,
                           width: 200,
-                          decoration: const BoxDecoration(color: kPrimaryWhite),
+                          decoration: const BoxDecoration(color: kLightAsh),
                         ),
                         YBox(kRegularPadding),
                         TabItem(
@@ -166,22 +161,6 @@ class _HomePageAdminState extends State<HomePageAdmin> {
                             );
                           },
                         ),
-                        // TabItem(
-                        //   label: courses,
-                        //   iconPath: AssetPaths.homeIcon,
-                        //   selectedTab: tabSelected,
-                        //   currentTab: courses,
-                        //   unselectedtextColor: kPrimaryWhite,
-                        //   onTap: (tab) {
-                        //     adminNavigateTo(
-                        //         coursesRoute, navigatorKeyForDesktopWeb);
-                        //     setState(
-                        //       () {
-                        //         tabSelected = tab;
-                        //       },
-                        //     );
-                        //   },
-                        // ),
                         TabItem(
                           label: books,
                           iconPath: AssetPaths.bookOpenIcon,
@@ -200,13 +179,31 @@ class _HomePageAdminState extends State<HomePageAdmin> {
                         ),
                         TabItem(
                           label: projects,
-                          iconPath: AssetPaths.projectIcon,
+                          iconPath: AssetPaths.accreditationIcon,
                           selectedTab: tabSelected,
                           currentTab: projects,
                           unselectedtextColor: kPrimaryWhite,
                           onTap: (tab) {
                             adminNavigateTo(
                               projectsRoute,
+                              navigatorKeyForDesktopWeb,
+                            );
+                            setState(
+                              () {
+                                tabSelected = tab;
+                              },
+                            );
+                          },
+                        ),
+                        TabItem(
+                          label: accreditation,
+                          iconPath: AssetPaths.accreditationIcon,
+                          selectedTab: tabSelected,
+                          currentTab: accreditation,
+                          unselectedtextColor: kPrimaryWhite,
+                          onTap: (tab) {
+                            adminNavigateTo(
+                              accreditationRoute,
                               navigatorKeyForDesktopWeb,
                             );
                             setState(

@@ -29,7 +29,7 @@ class TabItem extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: (!kIsWeb || isPhoneWeb) ? kMicroPadding : kMediumPadding,
-        vertical: kSmallPadding + 3,
+        vertical: kSmallPadding,
       ),
       child: InkWell(
         onTap: () {
@@ -47,7 +47,7 @@ class TabItem extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color:
-                (selectedTab == currentTab) ? kDarkYellow : Colors.transparent,
+                (selectedTab == currentTab) ? kLightYellow : Colors.transparent,
             borderRadius: BorderRadius.all(
               Radius.circular((!kIsWeb || isPhoneWeb) ? 8 : 6),
             ),
@@ -61,6 +61,7 @@ class TabItem extends StatelessWidget {
                 decoration: const BoxDecoration(),
                 child: SvgPicture.asset(
                   iconPath,
+                  color: (selectedTab == currentTab) ? kDarkYellow : kBlack900,
                 ),
               ),
               XBox(kSmallPadding),
@@ -70,23 +71,13 @@ class TabItem extends StatelessWidget {
                   label,
                   style: textTheme.titleMedium!.copyWith(
                     fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 12,
-                    color: (selectedTab == currentTab)
-                        ? kPrimaryWhite
-                        : unselectedtextColor,
+                    fontWeight: FontWeight.w500,
+                    color:
+                        (selectedTab == currentTab) ? kDarkYellow : kBlack900,
                   ),
                 ),
               ),
               XBox(kPadding),
-              (selectedTab == currentTab)
-                  ? Transform.translate(
-                      offset: const Offset(0, 1),
-                      child: Icon(
-                        Icons.keyboard_arrow_right,
-                        color: kPrimaryWhite,
-                        size: (!kIsWeb || isPhoneWeb) ? 19 : 16,
-                      ),
-                    )
-                  : Container(),
             ],
           ),
         ),

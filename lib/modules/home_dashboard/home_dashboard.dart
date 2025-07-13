@@ -174,16 +174,11 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Systems',
+                                  'Systems E.',
                                   style: textTheme.headlineMedium!.copyWith(
-                                    fontSize: (!kIsWeb || isPhoneWeb) ? 20 : 18,
-                                  ),
-                                ),
-                                YBox(kPadding),
-                                Text(
-                                  'Engineering',
-                                  style: textTheme.headlineMedium!.copyWith(
-                                    fontSize: (!kIsWeb || isPhoneWeb) ? 20 : 18,
+                                    fontSize: 18,
+                                    color: kBlack,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ],
@@ -430,143 +425,156 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
             children: [
               (!kIsWeb || isPhoneWeb)
                   ? Container()
-                  : Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: kLargePadding + kSmallPadding,
-                        vertical: kSmallPadding,
-                      ),
-                      child: SingleChildScrollView(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Home/Dashboard',
-                              style: textTheme.titleMedium!.copyWith(
-                                fontSize: 13,
-                                color: kGry800,
-                              ),
-                            ),
-                            XBox(kPadding),
-                            Container(
-                              width: screenSize.width * 0.37,
-                              height: 34,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(90),
-                                color: kPrimaryWhite,
-                                border: Border.all(
-                                  color: kGry800,
-                                ),
-                              ),
-                              child: TextField(
-                                controller: _searchTextField,
-                                keyboardType: TextInputType.text,
-                                enableSuggestions: false,
-                                autocorrect: false,
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: InputDecoration(
-                                  hintText:
-                                      'Search books articles and more.....',
-                                  hintStyle: textTheme.titleMedium!.copyWith(
-                                    fontSize: 13,
-                                    color: kGry800,
-                                  ),
-                                  contentPadding: const EdgeInsets.only(
-                                    bottom: kPadding * 2.5,
-                                  ),
-                                  prefixIcon: Padding(
-                                    padding: const EdgeInsets.all(5.0),
-                                    child: SvgPicture.asset(
-                                      AssetPaths.searchIcon,
-                                      fit: BoxFit.scaleDown,
-                                    ),
-                                  ),
-                                  border: InputBorder.none,
-                                ),
-                                cursorColor: kBlack,
-                              ),
-                            ),
-                            XBox(kPadding),
-                            Row(
+                  : Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: kLargePadding,
+                            vertical: kSmallPadding - 3,
+                          ),
+                          child: SingleChildScrollView(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Container(
-                                  height: 24,
-                                  width: 24,
-                                  decoration: const BoxDecoration(),
-                                  child: const Icon(
-                                    Icons.notifications_none,
-                                    weight: 100,
-                                    color: kBlack800,
-                                  ),
-                                ),
-                                XBox(kRegularPadding),
-                                Container(
-                                  height: 25,
-                                  width: 25,
-                                  decoration: const BoxDecoration(
-                                    color: kOrange500,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                XBox(kRegularPadding),
-                                Container(
-                                    height: 28,
-                                    width: 28,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
+                                  width: screenSize.width * 0.37,
+                                  height: 35,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(11),
+                                    color: kPrimaryWhite,
+                                    border: Border.all(
+                                      color: const Color(0xffEBE6F0),
                                     ),
-                                    child: StreamBuilder(
-                                        stream: _database.getUserProfile(
-                                          ownerUserId: _auth.currentUser!.uid,
-                                          role: SessionManager.getRole() ?? '',
+                                  ),
+                                  child: TextField(
+                                    controller: _searchTextField,
+                                    keyboardType: TextInputType.text,
+                                    enableSuggestions: false,
+                                    autocorrect: false,
+                                    textAlignVertical: TextAlignVertical.center,
+                                    style: textTheme.titleMedium!.copyWith(
+                                      fontSize: 12,
+                                      color: kGry800,
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText: 'Search',
+                                      hintStyle:
+                                          textTheme.titleMedium!.copyWith(
+                                        fontSize: 12,
+                                        color: kGry800,
+                                      ),
+                                      contentPadding: const EdgeInsets.only(
+                                        bottom: kPadding * 2.7,
+                                      ),
+                                      prefixIcon: Padding(
+                                        padding: const EdgeInsets.only(
+                                          top: 5.0,
+                                          bottom: 5.0,
                                         ),
-                                        builder: (context, snapshot) {
-                                          switch (snapshot.connectionState) {
-                                            case ConnectionState.waiting:
-                                            case ConnectionState.active:
-                                              if (snapshot.hasData) {
-                                                final profile = snapshot.data
-                                                    as CloudProfile;
-                                                return ProfileImage(
-                                                  imageUrl:
-                                                      profile.profileImageUrl,
-                                                  radius: 14,
-                                                  onTap: () {
-                                                    setState(() {
-                                                      _showSignOut =
-                                                          !_showSignOut;
-                                                    });
-                                                  },
-                                                );
-                                              } else {
-                                                return ProfileImage(
-                                                  imageUrl: '',
-                                                  radius: 14,
-                                                  onTap: () {
-                                                    setState(() {
-                                                      _showSignOut =
-                                                          !_showSignOut;
-                                                    });
-                                                  },
-                                                );
+                                        child: SvgPicture.asset(
+                                          AssetPaths.searchIcon,
+                                          fit: BoxFit.scaleDown,
+                                        ),
+                                      ),
+                                      border: InputBorder.none,
+                                    ),
+                                    cursorColor: kBlack,
+                                  ),
+                                ),
+                                XBox(kPadding),
+                                Row(
+                                  children: [
+                                    Container(
+                                      height: 25,
+                                      width: 25,
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xffE1F0FA),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: SvgPicture.asset(
+                                        AssetPaths.notificationIcon,
+                                        fit: BoxFit.scaleDown,
+                                      ),
+                                    ),
+                                    XBox(kRegularPadding),
+                                    Container(
+                                      height: 25,
+                                      width: 1,
+                                      decoration:
+                                          const BoxDecoration(color: kLightAsh),
+                                    ),
+                                    XBox(kRegularPadding),
+                                    Container(
+                                        height: 26,
+                                        width: 26,
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: StreamBuilder(
+                                            stream: _database.getUserProfile(
+                                              ownerUserId:
+                                                  _auth.currentUser!.uid,
+                                              role: SessionManager.getRole() ??
+                                                  '',
+                                            ),
+                                            builder: (context, snapshot) {
+                                              switch (
+                                                  snapshot.connectionState) {
+                                                case ConnectionState.waiting:
+                                                case ConnectionState.active:
+                                                  if (snapshot.hasData) {
+                                                    final profile = snapshot
+                                                        .data as CloudProfile;
+                                                    return ProfileImage(
+                                                      imageUrl: profile
+                                                          .profileImageUrl,
+                                                      radius: 14,
+                                                      onTap: () {
+                                                        setState(() {
+                                                          _showSignOut =
+                                                              !_showSignOut;
+                                                        });
+                                                      },
+                                                    );
+                                                  } else {
+                                                    return ProfileImage(
+                                                      imageUrl: '',
+                                                      radius: 14,
+                                                      onTap: () {
+                                                        setState(() {
+                                                          _showSignOut =
+                                                              !_showSignOut;
+                                                        });
+                                                      },
+                                                    );
+                                                  }
+                                                default:
+                                                  return ProfileImage(
+                                                    imageUrl: '',
+                                                    radius: 14,
+                                                    onTap: () {
+                                                      setState(() {
+                                                        _showSignOut =
+                                                            !_showSignOut;
+                                                      });
+                                                    },
+                                                  );
                                               }
-                                            default:
-                                              return ProfileImage(
-                                                imageUrl: '',
-                                                radius: 14,
-                                                onTap: () {
-                                                  setState(() {
-                                                    _showSignOut =
-                                                        !_showSignOut;
-                                                  });
-                                                },
-                                              );
-                                          }
-                                        })),
+                                            })),
+                                  ],
+                                )
                               ],
-                            )
-                          ],
+                            ),
+                          ),
                         ),
-                      ),
+                        YBox(1),
+                        Container(
+                          height: 1,
+                          width: double.infinity,
+                          decoration: const BoxDecoration(color: kLightAsh),
+                        ),
+                      ],
                     ),
               Flexible(
                 child: SingleChildScrollView(

@@ -142,18 +142,11 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Systems',
+                                    'Systems E.',
                                     style: textTheme.headlineMedium!.copyWith(
-                                      fontSize:
-                                          (!kIsWeb || isPhoneWeb) ? 20 : 18,
-                                    ),
-                                  ),
-                                  YBox(kPadding),
-                                  Text(
-                                    'Engineering',
-                                    style: textTheme.headlineMedium!.copyWith(
-                                      fontSize:
-                                          (!kIsWeb || isPhoneWeb) ? 20 : 18,
+                                      fontSize: 18,
+                                      color: kBlack,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ],
@@ -268,112 +261,125 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
               children: [
                 (isPhoneWeb)
                     ? Container()
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: kLargePadding + kSmallPadding,
-                          vertical: kSmallPadding,
-                        ),
-                        child: SingleChildScrollView(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Home/Dashboard',
-                                style: textTheme.titleMedium!.copyWith(
-                                  fontSize: 13,
-                                  color: kGry800,
-                                ),
-                              ),
-                              XBox(kPadding),
-                              Container(
-                                width: screenSize.width * 0.37,
-                                height: 34,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(90),
-                                  color: kPrimaryWhite,
-                                  border: Border.all(
-                                    color: kGry800,
-                                  ),
-                                ),
-                                child: TextField(
-                                  controller: _searchTextField,
-                                  keyboardType: TextInputType.text,
-                                  enableSuggestions: false,
-                                  autocorrect: false,
-                                  textAlignVertical: TextAlignVertical.center,
-                                  decoration: InputDecoration(
-                                    hintText:
-                                        'Search books articles and more.....',
-                                    hintStyle: textTheme.titleMedium!.copyWith(
-                                      fontSize: 13,
-                                      color: kGry800,
-                                    ),
-                                    contentPadding: const EdgeInsets.only(
-                                      bottom: kPadding * 2.5,
-                                    ),
-                                    prefixIcon: Padding(
-                                      padding: const EdgeInsets.all(5.0),
-                                      child: SvgPicture.asset(
-                                        AssetPaths.searchIcon,
-                                        fit: BoxFit.scaleDown,
-                                      ),
-                                    ),
-                                    border: InputBorder.none,
-                                  ),
-                                  cursorColor: kBlack,
-                                ),
-                              ),
-                              XBox(kPadding),
-                              Row(
+                    : Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: kLargePadding,
+                              vertical: kSmallPadding - 3,
+                            ),
+                            child: SingleChildScrollView(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Container(
-                                    height: 24,
-                                    width: 24,
-                                    decoration: const BoxDecoration(),
-                                    child: const Icon(
-                                      Icons.notifications_none,
-                                      weight: 100,
-                                      color: kBlack800,
-                                    ),
-                                  ),
-                                  XBox(kRegularPadding),
-                                  Container(
-                                    height: 25,
-                                    width: 25,
-                                    decoration: const BoxDecoration(
-                                      color: kOrange500,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  XBox(kRegularPadding),
-                                  InkWell(
-                                    overlayColor: const WidgetStatePropertyAll(
-                                        kTransparent),
-                                    hoverColor: kTransparent,
-                                    onTap: () {
-                                      setState(() {
-                                        _showSignOut = !_showSignOut;
-                                      });
-                                    },
-                                    child: Container(
-                                      height: 28,
-                                      width: 28,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: ProfileImage(
-                                        imageUrl: SessionManager
-                                                .getProfileImageUrl() ??
-                                            '',
-                                        radius: 14,
+                                    width: screenSize.width * 0.37,
+                                    height: 35,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(11),
+                                      color: kPrimaryWhite,
+                                      border: Border.all(
+                                        color: const Color(0xffEBE6F0),
                                       ),
                                     ),
+                                    child: TextField(
+                                      controller: _searchTextField,
+                                      keyboardType: TextInputType.text,
+                                      enableSuggestions: false,
+                                      autocorrect: false,
+                                      textAlignVertical:
+                                          TextAlignVertical.center,
+                                      style: textTheme.titleMedium!.copyWith(
+                                        fontSize: 12,
+                                        color: kGry800,
+                                      ),
+                                      decoration: InputDecoration(
+                                        hintText: 'Search',
+                                        hintStyle:
+                                            textTheme.titleMedium!.copyWith(
+                                          fontSize: 12,
+                                          color: kGry800,
+                                        ),
+                                        contentPadding: const EdgeInsets.only(
+                                          bottom: kPadding * 2.7,
+                                        ),
+                                        prefixIcon: Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 5.0,
+                                            bottom: 5.0,
+                                          ),
+                                          child: SvgPicture.asset(
+                                            AssetPaths.searchIcon,
+                                            fit: BoxFit.scaleDown,
+                                          ),
+                                        ),
+                                        border: InputBorder.none,
+                                      ),
+                                      cursorColor: kBlack,
+                                    ),
                                   ),
+                                  XBox(kPadding),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        height: 25,
+                                        width: 25,
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: const BoxDecoration(
+                                          color: kLightSkyeBlue,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: SvgPicture.asset(
+                                          AssetPaths.notificationIcon,
+                                          fit: BoxFit.scaleDown,
+                                        ),
+                                      ),
+                                      XBox(kRegularPadding),
+                                      Container(
+                                        height: 25,
+                                        width: 1,
+                                        decoration: const BoxDecoration(
+                                            color: kLightAsh),
+                                      ),
+                                      XBox(kRegularPadding),
+                                      InkWell(
+                                        overlayColor:
+                                            const WidgetStatePropertyAll(
+                                                kTransparent),
+                                        hoverColor: kTransparent,
+                                        onTap: () {
+                                          setState(() {
+                                            _showSignOut = !_showSignOut;
+                                          });
+                                        },
+                                        child: Container(
+                                          height: 26,
+                                          width: 26,
+                                          decoration: const BoxDecoration(
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: ProfileImage(
+                                            imageUrl: SessionManager
+                                                    .getProfileImageUrl() ??
+                                                '',
+                                            radius: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  )
                                 ],
-                              )
-                            ],
+                              ),
+                            ),
                           ),
-                        ),
+                          YBox(1),
+                          Container(
+                            height: 1,
+                            width: double.infinity,
+                            decoration: const BoxDecoration(color: kLightAsh),
+                          ),
+                        ],
                       ),
                 Flexible(
                   child: SingleChildScrollView(
@@ -382,8 +388,8 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: kSmallPadding,
-                            vertical: kPadding,
+                            horizontal: kRegularPadding,
+                            vertical: kRegularPadding,
                           ),
                           child: Container(
                             decoration: const BoxDecoration(
@@ -448,7 +454,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                         YBox(kSmallPadding),
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: kSmallPadding,
+                            horizontal: kRegularPadding,
                           ),
                           child: Row(
                             children: [
@@ -492,11 +498,12 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                                         const EdgeInsets.all(7),
                                                     decoration:
                                                         const BoxDecoration(
-                                                      color: kPrimaryColor,
+                                                      color: kLightSkyeBlue,
                                                       shape: BoxShape.circle,
                                                     ),
                                                     child: SvgPicture.asset(
                                                       AssetPaths.students,
+                                                      color: kPrimaryColor,
                                                     ),
                                                   ),
                                                   XBox(kSmallPadding),
@@ -626,11 +633,12 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                                         const EdgeInsets.all(7),
                                                     decoration:
                                                         const BoxDecoration(
-                                                      color: kPrimaryColor,
+                                                      color: kLightSkyeBlue,
                                                       shape: BoxShape.circle,
                                                     ),
                                                     child: SvgPicture.asset(
                                                       AssetPaths.projectIcon,
+                                                      color: kPrimaryColor,
                                                     ),
                                                   ),
                                                   XBox(kSmallPadding),
@@ -760,11 +768,12 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                                         const EdgeInsets.all(7),
                                                     decoration:
                                                         const BoxDecoration(
-                                                      color: kPrimaryColor,
+                                                      color: kLightSkyeBlue,
                                                       shape: BoxShape.circle,
                                                     ),
                                                     child: SvgPicture.asset(
                                                       AssetPaths.courses,
+                                                      color: kPrimaryColor,
                                                     ),
                                                   ),
                                                   XBox(kSmallPadding),
@@ -894,11 +903,12 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                                         const EdgeInsets.all(7),
                                                     decoration:
                                                         const BoxDecoration(
-                                                      color: kPrimaryColor,
+                                                      color: kLightSkyeBlue,
                                                       shape: BoxShape.circle,
                                                     ),
                                                     child: SvgPicture.asset(
                                                       AssetPaths.projectPapers,
+                                                      color: kPrimaryColor,
                                                     ),
                                                   ),
                                                   XBox(kSmallPadding),
@@ -1021,7 +1031,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                     children: [
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
-                                          level: hundredLevel,
+                                          level: hundred,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
@@ -1233,7 +1243,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                     children: [
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
-                                          level: twoHundedLevel,
+                                          level: twoHundred,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
@@ -1445,7 +1455,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                     children: [
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
-                                          level: threeHundredLevel,
+                                          level: threeHundred,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
@@ -1657,7 +1667,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                     children: [
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
-                                          level: fourHundredLevel,
+                                          level: fourHundred,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
@@ -1869,7 +1879,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                     children: [
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
-                                          level: fiveHundredLevel,
+                                          level: fiveHundred,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
@@ -2097,18 +2107,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                           Padding(
                             padding: const EdgeInsets.only(top: kMediumPadding),
                             child: Text(
-                              '${SessionManager.getLastName()} ${SessionManager.getFirstName()}',
-                              style: textTheme.titleMedium!.copyWith(
-                                fontSize: 13,
-                                color: kBlack,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                top: kSmallPadding, bottom: kPadding),
-                            child: Text(
-                              SessionManager.getEmail() ?? '',
+                              'Admin',
                               style: textTheme.titleMedium!.copyWith(
                                 fontSize: 13,
                                 color: kBlack,
@@ -2155,27 +2154,27 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                               ),
                             ),
                           ),
-                          InkWell(
-                            onTap: () {},
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                top: kSmallPadding,
-                              ),
-                              child: Row(
-                                children: [
-                                  SvgPicture.asset(AssetPaths.profileIcon),
-                                  XBox(kPadding),
-                                  Text(
-                                    pROfile,
-                                    style: textTheme.titleMedium!.copyWith(
-                                      fontSize: 13,
-                                      color: kBlack,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
+                          //   InkWell(
+                          //     onTap: () {},
+                          //     child: Padding(
+                          //       padding: const EdgeInsets.only(
+                          //         top: kSmallPadding,
+                          //       ),
+                          //       child: Row(
+                          //         children: [
+                          //           SvgPicture.asset(AssetPaths.profileIcon),
+                          //           XBox(kPadding),
+                          //           Text(
+                          //             pROfile,
+                          //             style: textTheme.titleMedium!.copyWith(
+                          //               fontSize: 13,
+                          //               color: kBlack,
+                          //             ),
+                          //           )
+                          //         ],
+                          //       ),
+                          //     ),
+                          //   ),
                         ],
                       ),
                     ),

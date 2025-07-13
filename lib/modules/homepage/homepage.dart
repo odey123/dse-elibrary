@@ -85,15 +85,17 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     : Container(
                                         width: 200,
                                         decoration: const BoxDecoration(
-                                          color: kPrimaryColor,
-                                        ),
+                                            color: kLighterAsh,
+                                            border: Border(
+                                                right: BorderSide(
+                                                    color: kLightAsh))),
                                         child: SingleChildScrollView(
                                           scrollDirection: Axis.horizontal,
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              YBox(kMacroPadding),
+                                              YBox(kSmallPadding),
                                               Padding(
                                                 padding:
                                                     const EdgeInsets.symmetric(
@@ -104,12 +106,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                     Container(
                                                       height: (!kIsWeb ||
                                                               isPhoneWeb)
-                                                          ? 50
-                                                          : 40,
+                                                          ? 40
+                                                          : 30,
                                                       width: (!kIsWeb ||
                                                               isPhoneWeb)
-                                                          ? 50
-                                                          : 40,
+                                                          ? 40
+                                                          : 30,
                                                       decoration:
                                                           const BoxDecoration(
                                                         shape: BoxShape.circle,
@@ -133,20 +135,15 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                                 .start,
                                                         children: [
                                                           Text(
-                                                            'Systems',
+                                                            'Systems E.',
                                                             style: textTheme
                                                                 .headlineMedium!
                                                                 .copyWith(
                                                               fontSize: 18,
-                                                            ),
-                                                          ),
-                                                          YBox(kPadding),
-                                                          Text(
-                                                            'Engineering',
-                                                            style: textTheme
-                                                                .headlineMedium!
-                                                                .copyWith(
-                                                              fontSize: 18,
+                                                              color: kBlack,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
                                                             ),
                                                           ),
                                                         ],
@@ -155,12 +152,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                   ],
                                                 ),
                                               ),
-                                              YBox(kRegularPadding),
+                                              YBox(kSmallPadding),
                                               Container(
                                                 height: 1,
                                                 width: 200,
                                                 decoration: const BoxDecoration(
-                                                    color: kPrimaryWhite),
+                                                    color: kLightAsh),
                                               ),
                                               YBox(kRegularPadding),
                                               TabItem(
@@ -184,7 +181,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                   ? TabItem(
                                                       label: myCourses,
                                                       iconPath:
-                                                          AssetPaths.homeIcon,
+                                                          AssetPaths.courses,
                                                       selectedTab: tabSelected,
                                                       currentTab: myCourses,
                                                       unselectedtextColor:
@@ -202,7 +199,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                   : TabItem(
                                                       label: courses,
                                                       iconPath:
-                                                          AssetPaths.homeIcon,
+                                                          AssetPaths.courses,
                                                       selectedTab: tabSelected,
                                                       currentTab: courses,
                                                       unselectedtextColor:
@@ -217,26 +214,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                         });
                                                       },
                                                     ),
-                                              (role == lecturerRole)
-                                                  ? TabItem(
-                                                      label: allCourses,
-                                                      iconPath:
-                                                          AssetPaths.homeIcon,
-                                                      selectedTab: tabSelected,
-                                                      currentTab: allCourses,
-                                                      unselectedtextColor:
-                                                          kPrimaryWhite,
-                                                      onTap: (tab) {
-                                                        navigateTo(
-                                                          allCoursesRoute,
-                                                          navigatorKeyForDesktopWeb,
-                                                        );
-                                                        setState(() {
-                                                          tabSelected = tab;
-                                                        });
-                                                      },
-                                                    )
-                                                  : Container(),
                                               TabItem(
                                                 label: addNew,
                                                 iconPath: AssetPaths.plusIcon,
@@ -254,6 +231,26 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                   });
                                                 },
                                               ),
+                                              (role == lecturerRole)
+                                                  ? TabItem(
+                                                      label: allCourses,
+                                                      iconPath:
+                                                          AssetPaths.courses,
+                                                      selectedTab: tabSelected,
+                                                      currentTab: allCourses,
+                                                      unselectedtextColor:
+                                                          kPrimaryWhite,
+                                                      onTap: (tab) {
+                                                        navigateTo(
+                                                          allCoursesRoute,
+                                                          navigatorKeyForDesktopWeb,
+                                                        );
+                                                        setState(() {
+                                                          tabSelected = tab;
+                                                        });
+                                                      },
+                                                    )
+                                                  : Container(),
                                               TabItem(
                                                 label: books,
                                                 iconPath:

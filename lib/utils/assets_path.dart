@@ -10,11 +10,19 @@ class AssetPaths {
   static String departmentLogo = "${imgPath}department_logo.png";
   static String emptyPage = "${imgPath}empty_page.png";
   static String arrowDownward = "${imgPath}arrow_downward.png";
+  static String accBackgroundOne = "${imgPath}accBackgroundOne.png";
+  static String accBackgroundTwo = "${imgPath}accBackgroundTwo.png";
+  static String accBackgroundThree = "${imgPath}accBackgroundThree.png";
+  static String accBackgroundFour = "${imgPath}accBackgroundFour.png";
+  static String ccmasImageOne = "${imgPath}ccmasImageOne.png";
+  static String ccmasImageTwo = "${imgPath}ccmasImageTwo.png";
+  static String doc = "${imgPath}doc.png";
 
   /// ICONS
   /// Add svg filenames and extension from the assets directory e.g ${iconPath}icon.svg here
   // static String icons = "${iconPath}icon.svg";
-  static String homeIcon = "${iconPath}home.svg";
+  static String homeIcon = "${iconPath}home_active.svg";
+  static String notificationIcon = "${iconPath}notification.svg";
   static String plusIcon = "${iconPath}plus.svg";
   static String bookOpenIcon = "${iconPath}bookopen.svg";
   static String projectIcon = "${iconPath}project.svg";
@@ -35,4 +43,5 @@ class AssetPaths {
   static String logoutIcon = "${iconPath}log_out.svg";
   static String profileIcon = "${iconPath}profile.svg";
   static String profileEditIcon = "${iconPath}profile_edit.svg";
+  static String accreditationIcon = "${iconPath}accreditation.svg";
 }

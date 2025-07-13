@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -195,6 +197,40 @@ class FunctionsAsyncNotifier extends _$FunctionsAsyncNotifier {
           throw PermissionDeniedFunctionException();
         case "invalid-argument":
           throw InvalidArgumentFunctionException();
+        case "deadline-exceeded":
+          throw DeadlineExceededFunctionException();
+        case "resource-exhausted":
+          throw ResourceExhaustedFunctionException();
+        default:
+          throw GenericFunctionException();
+      }
+    } catch (_) {
+      throw GenericFunctionException();
+    }
+  }
+
+  Future<Uint8List?> getPdfBytes({
+    required String filePath,
+    required String requesterUid,
+  }) async {
+    try {
+      final response = await initialize().httpsCallable('getPdfBase64').call({
+        "filePath": filePath,
+        "requesterUid": requesterUid,
+      });
+
+      final base64Data = response.data['base64'];
+      return base64Decode(base64Data); // Converts Base64 to Uint8List
+    } on FirebaseFunctionsException catch (e) {
+      switch (e.code) {
+        case "unauthenticated":
+          throw UnAuthenticatedFunctionException();
+        case "permission-denied":
+          throw PermissionDeniedFunctionException();
+        case "invalid-argument":
+          throw InvalidArgumentFunctionException();
+        case "not-found":
+          throw NotFoundFunctionException();
         case "deadline-exceeded":
           throw DeadlineExceededFunctionException();
         case "resource-exhausted":

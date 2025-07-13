@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/firebase_options.dart';
 import 'package:systems_app/modules/add_new/add_new.dart';
+import 'package:systems_app/modules/admin/accreditation/accreditation.dart';
 import 'package:systems_app/modules/admin/add_new/add_new.dart';
-import 'package:systems_app/modules/admin/courses/courses.dart';
 import 'package:systems_app/modules/admin/hod/hod.dart';
 import 'package:systems_app/modules/admin/homepage/homepage.dart';
 import 'package:systems_app/modules/admin/lecturers/add_lecturers.dart';
@@ -17,6 +17,7 @@ import 'package:systems_app/modules/authentication/forgot_password.dart';
 import 'package:systems_app/modules/authentication/sign_in.dart';
 import 'package:systems_app/modules/admin/authentication/sign_in_admin.dart';
 import 'package:systems_app/modules/books/books.dart';
+import 'package:systems_app/modules/courses/courses.dart';
 import 'package:systems_app/modules/home_dashboard/home_dashboard.dart';
 import 'package:systems_app/modules/homepage/homepage.dart';
 import 'package:systems_app/modules/my_courses/my_courses.dart';
@@ -72,6 +73,7 @@ class _MyAppState extends State<MyApp> {
         lecturersRoute: (context) => const Lecturers(),
         hodRoute: (context) => const Hod(),
         coursesRoute: (context) => const Courses(),
+        accreditationRoute: (context) => const Accreditation(),
         addNewAdminRoute: (context) => const AddNewAdmin(),
       },
     );

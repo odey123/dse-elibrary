@@ -6,14 +6,10 @@ import 'package:shimmer/shimmer.dart';
 import 'package:systems_app/app/function/handle_profile_submit.dart';
 import 'package:systems_app/app/function/image_picker.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
-import 'package:systems_app/app/loading/loading_screen.dart';
 import 'package:systems_app/modules/reuseables/profile_drawer.dart';
 import 'package:systems_app/modules/reuseables/projects_card.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
-import 'package:systems_app/modules/shared/profile_image.dart';
-import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
-import 'package:systems_app/services/cloud/database/cloud_profile.dart';
 import 'package:systems_app/services/cloud/database/database_actions.dart';
 import 'package:systems_app/services/cloud/model/project_paper.dart';
 import 'package:systems_app/services/cloud/storage/storage.actions.dart';
@@ -46,7 +42,6 @@ class _ProjectsState extends ConsumerState<Projects> {
   late final TextEditingController _levelCourseAdvisor;
   late final TextEditingController _currentLevel;
   late final TextEditingController _email;
-  bool _showSignOut = false;
   bool _isProfileEditLoading = false;
 
   @override
@@ -205,7 +200,7 @@ class _ProjectsState extends ConsumerState<Projects> {
                     ? Container()
                     : Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: kLargePadding,
+                          horizontal: kMediumPadding,
                           vertical: kPadding,
                         ),
                         child: SingleChildScrollView(
@@ -230,22 +225,20 @@ class _ProjectsState extends ConsumerState<Projects> {
                                   ),
                                   child: Row(
                                     children: [
-                                      SizedBox(
-                                        width: 14,
-                                        height: 15,
-                                        child: SvgPicture.asset(
-                                          AssetPaths.arrowBack,
-                                        ),
+                                      const Icon(
+                                        Icons.arrow_back_ios,
+                                        color: kBlack,
+                                        size: 16,
                                       ),
-                                      XBox(kSmallPadding),
+                                      XBox(kPadding),
                                       Transform.translate(
                                         offset: const Offset(0, 1),
                                         child: Text(
-                                          back,
+                                          projects,
                                           style:
                                               textTheme.titleMedium!.copyWith(
                                             fontSize: 13,
-                                            color: kGry800,
+                                            color: kBlack,
                                           ),
                                         ),
                                       ),
@@ -253,123 +246,22 @@ class _ProjectsState extends ConsumerState<Projects> {
                                   ),
                                 ),
                               ),
-                              XBox(kLargePadding + kSmallPadding),
-                              Container(
-                                width: screenSize.width * 0.37,
-                                height: 34,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(90),
-                                  color: kPrimaryWhite,
-                                  border: Border.all(
-                                    color: kGry800,
-                                  ),
-                                ),
-                                child: TextField(
-                                  controller: _searchTextField,
-                                  keyboardType: TextInputType.text,
-                                  enableSuggestions: false,
-                                  autocorrect: false,
-                                  textAlignVertical: TextAlignVertical.center,
-                                  decoration: InputDecoration(
-                                    hintText:
-                                        'Search books articles and more.....',
-                                    hintStyle: textTheme.titleMedium!.copyWith(
-                                      fontSize: 13,
-                                      color: kGry800,
-                                    ),
-                                    contentPadding: const EdgeInsets.only(
-                                      bottom: kPadding * 2.5,
-                                    ),
-                                    prefixIcon: Padding(
-                                      padding: const EdgeInsets.all(5.0),
-                                      child: SvgPicture.asset(
-                                        AssetPaths.searchIcon,
-                                        fit: BoxFit.scaleDown,
-                                      ),
-                                    ),
-                                    border: InputBorder.none,
-                                  ),
-                                  cursorColor: kBlack,
-                                ),
-                              ),
-                              XBox(kPadding),
                               Row(
                                 children: [
                                   Container(
-                                    height: 24,
-                                    width: 24,
-                                    decoration: const BoxDecoration(),
-                                    child: const Icon(
-                                      Icons.notifications_none,
-                                      weight: 100,
-                                      color: kBlack800,
-                                    ),
-                                  ),
-                                  XBox(kRegularPadding),
-                                  Container(
                                     height: 25,
                                     width: 25,
+                                    padding: const EdgeInsets.all(6),
                                     decoration: const BoxDecoration(
-                                      color: kOrange500,
+                                      color: kLightSkyeBlue,
                                       shape: BoxShape.circle,
+                                    ),
+                                    child: SvgPicture.asset(
+                                      AssetPaths.notificationIcon,
+                                      fit: BoxFit.scaleDown,
                                     ),
                                   ),
                                   XBox(kRegularPadding),
-                                  Container(
-                                    height: 28,
-                                    width: 28,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: StreamBuilder(
-                                      stream: _database.getUserProfile(
-                                        ownerUserId: _auth.currentUser!.uid,
-                                        role: SessionManager.getRole() ?? '',
-                                      ),
-                                      builder: (context, snapshot) {
-                                        switch (snapshot.connectionState) {
-                                          case ConnectionState.waiting:
-                                          case ConnectionState.active:
-                                            if (snapshot.hasData) {
-                                              final profile =
-                                                  snapshot.data as CloudProfile;
-                                              return ProfileImage(
-                                                imageUrl:
-                                                    profile.profileImageUrl,
-                                                radius: 14,
-                                                onTap: () {
-                                                  setState(() {
-                                                    _showSignOut =
-                                                        !_showSignOut;
-                                                  });
-                                                },
-                                              );
-                                            } else {
-                                              return ProfileImage(
-                                                imageUrl: '',
-                                                radius: 14,
-                                                onTap: () {
-                                                  setState(() {
-                                                    _showSignOut =
-                                                        !_showSignOut;
-                                                  });
-                                                },
-                                              );
-                                            }
-                                          default:
-                                            return ProfileImage(
-                                              imageUrl: '',
-                                              radius: 14,
-                                              onTap: () {
-                                                setState(() {
-                                                  _showSignOut = !_showSignOut;
-                                                });
-                                              },
-                                            );
-                                        }
-                                      },
-                                    ),
-                                  ),
                                 ],
                               )
                             ],
@@ -567,13 +459,13 @@ class _ProjectsState extends ConsumerState<Projects> {
                                           right: kLargePadding,
                                         ),
                                         child: Container(
-                                          height: 32,
+                                          height: 35,
                                           decoration: BoxDecoration(
                                             borderRadius:
-                                                BorderRadius.circular(90),
+                                                BorderRadius.circular(11),
                                             color: kPrimaryWhite,
                                             border: Border.all(
-                                              color: kGry800,
+                                              color: const Color(0xffEBE6F0),
                                             ),
                                           ),
                                           child: TextField(
@@ -583,20 +475,27 @@ class _ProjectsState extends ConsumerState<Projects> {
                                             autocorrect: false,
                                             textAlignVertical:
                                                 TextAlignVertical.center,
+                                            style:
+                                                textTheme.titleMedium!.copyWith(
+                                              fontSize: 12,
+                                              color: kGry800,
+                                            ),
                                             decoration: InputDecoration(
-                                              hintText: 'Search.....',
+                                              hintText: 'Search',
                                               hintStyle: textTheme.titleMedium!
                                                   .copyWith(
-                                                fontSize: 13,
+                                                fontSize: 12,
                                                 color: kGry800,
                                               ),
                                               contentPadding:
                                                   const EdgeInsets.only(
-                                                bottom: kPadding * 2.5,
+                                                bottom: kPadding * 2.7,
                                               ),
                                               prefixIcon: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(5.0),
+                                                padding: const EdgeInsets.only(
+                                                  top: 5.0,
+                                                  bottom: 5.0,
+                                                ),
                                                 child: SvgPicture.asset(
                                                   AssetPaths.searchIcon,
                                                   fit: BoxFit.scaleDown,
@@ -625,14 +524,16 @@ class _ProjectsState extends ConsumerState<Projects> {
                                               selectedCourseCategory = selected;
                                             });
                                           },
+                                          borderRadius:
+                                              BorderRadius.circular(11),
                                           child: Container(
-                                            height: 32,
+                                            height: 35,
                                             decoration: BoxDecoration(
                                               borderRadius:
-                                                  BorderRadius.circular(90),
+                                                  BorderRadius.circular(11),
                                               color: kPrimaryWhite,
                                               border: Border.all(
-                                                color: kGry800,
+                                                color: const Color(0xffEBE6F0),
                                               ),
                                             ),
                                             child: Row(
@@ -794,135 +695,6 @@ class _ProjectsState extends ConsumerState<Projects> {
                 ),
               ],
             ),
-            _showSignOut
-                ? Padding(
-                    padding: const EdgeInsets.only(
-                      top: kFullPadding,
-                      right: kRegularPadding,
-                    ),
-                    child: Container(
-                      width: 200,
-                      decoration: BoxDecoration(
-                          color: kPrimaryWhite,
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(4),
-                          ),
-                          border: Border.all(
-                            color: kGry500,
-                            width: 0.5,
-                          )),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: kSmallPadding,
-                        horizontal: kSmallPadding,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            height: 28,
-                            width: 28,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                            ),
-                            child: ProfileImage(
-                              imageUrl:
-                                  SessionManager.getProfileImageUrl() ?? '',
-                              radius: 14,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: kMediumPadding),
-                            child: Text(
-                              '${SessionManager.getLastName()} ${SessionManager.getFirstName()}',
-                              style: textTheme.titleMedium!.copyWith(
-                                fontSize: 13,
-                                color: kBlack,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                top: kSmallPadding, bottom: kPadding),
-                            child: Text(
-                              SessionManager.getEmail() ?? '',
-                              style: textTheme.titleMedium!.copyWith(
-                                fontSize: 13,
-                                color: kBlack,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                top: kSmallPadding, bottom: kPadding),
-                            child: Container(
-                              height: 1,
-                              decoration: const BoxDecoration(
-                                color: kGry600,
-                              ),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () async {
-                              LoadingScreen()
-                                  .show(context: context, showProgress: true);
-                              await _auth.logOut();
-                              LoadingScreen().hide();
-                              Navigator.of(context, rootNavigator: true)
-                                  .pushNamedAndRemoveUntil(
-                                signInRoute,
-                                (route) => false,
-                              );
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                  top: kSmallPadding, bottom: kPadding),
-                              child: Row(
-                                children: [
-                                  SvgPicture.asset(AssetPaths.logoutIcon),
-                                  XBox(kPadding),
-                                  Text(
-                                    logout,
-                                    style: textTheme.titleMedium!.copyWith(
-                                      fontSize: 13,
-                                      color: kBlack,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              openEndDrawer();
-                              setState(() {
-                                _showSignOut = !_showSignOut;
-                              });
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                top: kSmallPadding,
-                              ),
-                              child: Row(
-                                children: [
-                                  SvgPicture.asset(AssetPaths.profileIcon),
-                                  XBox(kPadding),
-                                  Text(
-                                    pROfile,
-                                    style: textTheme.titleMedium!.copyWith(
-                                      fontSize: 13,
-                                      color: kBlack,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : Container()
           ],
         ),
       ),

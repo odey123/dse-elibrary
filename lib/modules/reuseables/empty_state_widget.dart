@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
+import 'package:systems_app/modules/reuseables/size_boxes.dart';
 import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/services/cloud/database/cloud_profile.dart';
 import 'package:systems_app/utils/assets_path.dart';
@@ -23,6 +24,7 @@ class EmptyStateWidget extends StatefulWidget {
 }
 
 class _EmptyStateWidgetState extends State<EmptyStateWidget> {
+  bool _showSignOut = false;
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -34,52 +36,98 @@ class _EmptyStateWidgetState extends State<EmptyStateWidget> {
         if (!isPhoneWeb)
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: kLargePadding,
+              horizontal: kMediumPadding,
               vertical: kPadding,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                InkWell(
-                  onTap: () => Navigator.pop(context),
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 14,
-                        height: 15,
-                        child: SvgPicture.asset(AssetPaths.arrowBack),
+            child: SingleChildScrollView(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    hoverColor: Colors.transparent,
+                    child: Container(
+                      padding: const EdgeInsets.only(
+                        right: kMediumPadding,
+                        top: kSmallPadding,
+                        bottom: kSmallPadding,
                       ),
-                      const SizedBox(width: kSmallPadding),
-                      Transform.translate(
-                        offset: const Offset(0, 1),
-                        child: Text(
-                          'Back',
-                          style: textTheme.titleMedium?.copyWith(
-                            fontSize: 13,
-                            color: kGry800,
+                      decoration: const BoxDecoration(
+                        color: kTransparent,
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.arrow_back_ios,
+                            color: kBlack,
+                            size: 16,
+                          ),
+                          XBox(kPadding),
+                          Transform.translate(
+                            offset: const Offset(0, 1),
+                            child: Text(
+                              widget.namePlaceholder,
+                              style: textTheme.titleMedium!.copyWith(
+                                fontSize: 13,
+                                color: kBlack,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        height: 25,
+                        width: 25,
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: kLightSkyeBlue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: SvgPicture.asset(
+                          AssetPaths.notificationIcon,
+                          fit: BoxFit.scaleDown,
+                        ),
+                      ),
+                      XBox(kRegularPadding),
+                      Container(
+                        height: 25,
+                        width: 1,
+                        decoration: const BoxDecoration(color: kLightAsh),
+                      ),
+                      XBox(kRegularPadding),
+                      InkWell(
+                        overlayColor:
+                            const WidgetStatePropertyAll(kTransparent),
+                        hoverColor: kTransparent,
+                        onTap: () {
+                          setState(() {
+                            _showSignOut = !_showSignOut;
+                          });
+                        },
+                        child: Container(
+                          height: 26,
+                          width: 26,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                          ),
+                          child: ProfileImage(
+                            imageUrl: SessionManager.getProfileImageUrl() ?? '',
+                            radius: 14,
                           ),
                         ),
                       ),
                     ],
-                  ),
-                ),
-                Row(
-                  children: [
-                    const Icon(Icons.notifications_none, color: kBlack800),
-                    const SizedBox(width: kRegularPadding),
-                    const CircleAvatar(
-                        backgroundColor: kOrange500, radius: 12.5),
-                    const SizedBox(width: kRegularPadding),
-                    ProfileImage(
-                      imageUrl: SessionManager.getProfileImageUrl() ?? '',
-                      radius: 12.5,
-                    ),
-                  ],
-                ),
-              ],
+                  )
+                ],
+              ),
             ),
           ),
         Expanded(

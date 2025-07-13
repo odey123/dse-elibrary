@@ -5,6 +5,9 @@ import 'package:systems_app/services/cloud/database/cloud_database_exception.dar
 import 'package:systems_app/services/cloud/database/cloud_profile.dart';
 import 'package:systems_app/services/cloud/model/book.dart';
 import 'package:systems_app/services/cloud/model/course.dart';
+import 'package:systems_app/services/cloud/model/hand_book.dart';
+import 'package:systems_app/services/cloud/model/lab_manual.dart';
+import 'package:systems_app/services/cloud/model/lab_report.dart';
 import 'package:systems_app/services/cloud/model/lecturer.dart';
 import 'package:systems_app/services/cloud/model/project_paper.dart';
 import 'package:systems_app/services/cloud/model/student.dart';
@@ -371,5 +374,47 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
       });
     }
     await batch.commit();
+  }
+
+  Stream<List<HandBook>> getAllHandbook() {
+    final collection = initialize()
+        .collection(accreditationCollection)
+        .where(typeFieldName, isEqualTo: handbook)
+        .snapshots();
+    return collection.map((event) {
+      if (event.docs.isNotEmpty) {
+        return event.docs.map((doc) => HandBook.fromSnapshot(doc)).toList();
+      } else {
+        return [];
+      }
+    });
+  }
+
+  Stream<List<LabReport>> getAllLabReport() {
+    final collection = initialize()
+        .collection(accreditationCollection)
+        .where(typeFieldName, isEqualTo: labReport)
+        .snapshots();
+    return collection.map((event) {
+      if (event.docs.isNotEmpty) {
+        return event.docs.map((doc) => LabReport.fromSnapshot(doc)).toList();
+      } else {
+        return [];
+      }
+    });
+  }
+
+  Stream<List<LabManual>> getAllLabManual() {
+    final collection = initialize()
+        .collection(accreditationCollection)
+        .where(typeFieldName, isEqualTo: labManual)
+        .snapshots();
+    return collection.map((event) {
+      if (event.docs.isNotEmpty) {
+        return event.docs.map((doc) => LabManual.fromSnapshot(doc)).toList();
+      } else {
+        return [];
+      }
+    });
   }
 }

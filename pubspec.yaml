@@ -36,6 +36,7 @@ dependencies:
   cached_network_image: ^3.4.1
   shared_preferences: ^2.5.3
   image_network: ^2.6.0
+  pdfx: ^2.9.2
 
 dev_dependencies:
   flutter_test:

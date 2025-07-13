@@ -4,6 +4,8 @@ class PermissionDeniedFunctionException implements Exception {}
 
 class InvalidArgumentFunctionException implements Exception {}
 
+class NotFoundFunctionException implements Exception {}
+
 class AlreadyExistsFunctionException implements Exception {}
 
 class InvalidEmailFunctionException implements Exception {}

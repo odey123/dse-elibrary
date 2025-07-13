@@ -38,16 +38,22 @@ const Color kGry600 = Color(0xff898989);
 const Color kgry700 = Color(0xff858383);
 const Color kGry800 = Color(0xff828282);
 const Color kGry900 = Color(0xFF616161);
+const Color kLighterAsh = Color(0xFFFBFBFB);
+const Color kLightAsh = Color(0xFFE6E6E6);
 const Color kRed = Color(0xffC5221F);
+const Color kLightSkyeBlue = Color(0xffE1F0FA);
 const Color kDarkYellow = Color(0xfff1c40f);
+const Color kLightYellow = Color(0xffFDF6DB);
 const Color kOrange500 = Color(0xFFEAC217);
+const Color kOrange400 = Color(0xFFEBCA44);
 const Color kTransparent = Colors.transparent;
 const Color kBlue800 = Color(0xff14B3FC);
 const Color kTextfieldLoginBackground = Color(0xffF4F4F4);
 const Color kDeepOcean = Color(0xFF163641);
 const Color kError = Color(0xFFFF0000);
-const Color kSearchBack = Color(0xff1C1C1C);
+const Color kBlack900 = Color(0xff1C1C1C);
 const Color kGreenSuccess = Color(0xFF00711F);
+const Color kAshyBlue = Colors.black54;
 // Text
 TextStyle kDisplayLargeTextStyle = const TextStyle(
   fontWeight: FontWeight.w400,

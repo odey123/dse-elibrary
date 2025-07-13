@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:systems_app/modules/admin/accreditation/accreditation.dart';
 import 'package:systems_app/modules/admin/add_new/add_new.dart';
-import 'package:systems_app/modules/admin/courses/courses.dart';
 import 'package:systems_app/modules/admin/hod/hod.dart';
 import 'package:systems_app/modules/admin/home_dashboard/home_dashboard.dart';
 import 'package:systems_app/modules/admin/lecturers/lecturers.dart';
@@ -54,11 +54,6 @@ class _ViewAreaAdminState extends State<ViewAreaAdmin> {
                   navigatorKeyForDesktopWeb: widget.navigatorKey,
                 );
             break;
-          case coursesRoute:
-            builder = (context) => Courses(
-                  navigatorKeyForDesktopWeb: widget.navigatorKey,
-                );
-            break;
           case booksRoute:
             builder = (context) => Books(
                   navigatorKeyForDesktopWeb: widget.navigatorKey,
@@ -66,6 +61,11 @@ class _ViewAreaAdminState extends State<ViewAreaAdmin> {
             break;
           case projectsRoute:
             builder = (context) => Projects(
+                  navigatorKeyForDesktopWeb: widget.navigatorKey,
+                );
+            break;
+          case accreditationRoute:
+            builder = (context) => Accreditation(
                   navigatorKeyForDesktopWeb: widget.navigatorKey,
                 );
             break;
