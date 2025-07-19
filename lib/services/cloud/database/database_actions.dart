@@ -230,6 +230,7 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
     required String ownerUid,
     required String coverUrl,
     required String bookUrl,
+    required String category,
     required String id,
   }) async {
     final collection = initialize().collection(booksCollection);
@@ -239,6 +240,7 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
       ownerUidFieldName: ownerUid,
       coverUrlFieldName: coverUrl,
       bookUrlFieldName: bookUrl,
+      categoryFieldName: category,
       idFieldName: id,
     });
   }

@@ -31,6 +31,7 @@ const coordinatorNameFieldName = 'coordinator_name';
 const coordinatorUidFieldName = 'coordinator_uid';
 const paperUrlFieldName = 'paper_url';
 const bookUrlFieldName = 'book_url';
+const categoryFieldName = 'category';
 const coverUrlFieldName = 'cover_url';
 const authorFieldName = 'author';
 const idFieldName = 'id';

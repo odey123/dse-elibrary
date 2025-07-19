@@ -175,6 +175,9 @@ class _SignInAsAdminState extends ConsumerState<SignInAsAdmin> {
                 onTap: () {
                   Navigator.pop(context);
                 },
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(8),
+                ),
                 child: Container(
                   padding: const EdgeInsets.only(
                     left: 9,

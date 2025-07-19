@@ -26,7 +26,7 @@ class BookCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: const BorderRadius.all(Radius.circular(8)),
       child: Container(
-        width: 190,
+        width: 180,
         decoration: BoxDecoration(
           color: kTransparent,
           borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -41,8 +41,8 @@ class BookCard extends StatelessWidget {
             ImageNetwork(
               key: ValueKey(coverImagePath),
               image: coverImagePath,
-              height: 190,
-              width: 190,
+              height: 220,
+              width: 180,
               duration: 500,
               onPointer: true,
               debugPrint: false,

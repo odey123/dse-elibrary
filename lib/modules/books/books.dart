@@ -36,7 +36,7 @@ class _BooksState extends ConsumerState<Books> {
   late final AuthenticationAsyncNotifier _auth;
   late final StorageAsyncNotifier _storage;
   final TextEditingController _searchTextField = TextEditingController();
-  String? selectedCourseCategory;
+  String? selectedBookCategory;
   late final TextEditingController _firstName;
   late final TextEditingController _lastName;
   late final TextEditingController _prefferedAcademicName;
@@ -348,8 +348,7 @@ class _BooksState extends ConsumerState<Books> {
                                           textAlignVertical:
                                               TextAlignVertical.center,
                                           decoration: InputDecoration(
-                                            hintText:
-                                                'Search books articles and more......',
+                                            hintText: 'Search',
                                             hintStyle:
                                                 textTheme.titleMedium!.copyWith(
                                               fontSize: 15,
@@ -382,10 +381,10 @@ class _BooksState extends ConsumerState<Books> {
                                           final selected = await _showMenu(
                                             context: context,
                                             width: 400,
-                                            listItems: courseCategory,
+                                            listItems: bookCategory,
                                           );
                                           setState(() {
-                                            selectedCourseCategory = selected;
+                                            selectedBookCategory = selected;
                                           });
                                         },
                                         child: Container(
@@ -407,7 +406,7 @@ class _BooksState extends ConsumerState<Books> {
                                                   left: kSmallPadding,
                                                 ),
                                                 child: Text(
-                                                  selectedCourseCategory ??
+                                                  selectedBookCategory ??
                                                       'Categories',
                                                   style: textTheme.titleMedium!
                                                       .copyWith(
@@ -507,10 +506,10 @@ class _BooksState extends ConsumerState<Books> {
                                             final selected = await _showMenu(
                                               context: context,
                                               width: 400,
-                                              listItems: courseCategory,
+                                              listItems: bookCategory,
                                             );
                                             setState(() {
-                                              selectedCourseCategory = selected;
+                                              selectedBookCategory = selected;
                                             });
                                           },
                                           borderRadius:
@@ -536,7 +535,7 @@ class _BooksState extends ConsumerState<Books> {
                                                     left: kSmallPadding,
                                                   ),
                                                   child: Text(
-                                                    selectedCourseCategory ??
+                                                    selectedBookCategory ??
                                                         'Categories',
                                                     style: textTheme
                                                         .titleMedium!

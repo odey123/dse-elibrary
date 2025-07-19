@@ -187,6 +187,9 @@ class _SignInState extends ConsumerState<SignIn> {
                     onTap: () {
                       SystemNavigator.pop();
                     },
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(8),
+                    ),
                     child: Container(
                       padding: const EdgeInsets.only(
                         left: 9,

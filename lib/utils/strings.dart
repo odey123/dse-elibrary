@@ -141,10 +141,13 @@ String bookInfo = 'Book info';
 String bookTitle = 'Book title';
 String enterBookTitle = 'Enter book title';
 String author = 'Author';
+String selectBookCategory = 'Select book category';
+String category = 'Category';
 String enterAuthorName = 'Enter author name';
 String uploadCoverImage = 'Upload Cover Image';
 String uploadProjectPaper = 'Upload Project Paper';
-String uploadOneSupportedPDF = 'Upload 1 supported file: PDF. Max 10MB';
+String uploadBook = 'Upload Book';
+String uploadOneSupportedPDF = 'Upload 1 supported file: PDF.';
 String uploadOneSupportedImage = 'Upload 1 supported file: Image. Max 10MB';
 String addFile = 'Add file';
 String addBook = 'Add book';
@@ -704,6 +707,13 @@ const List<String> prefixs = [
 const List<String> semesters = [
   'First',
   'Second',
+];
+
+const List<String> bookCategory = [
+  'Industrial Engineering',
+  'Artificial Intelligence',
+  'Robotics',
+  'Others'
 ];
 
 const List<String> weeks = [

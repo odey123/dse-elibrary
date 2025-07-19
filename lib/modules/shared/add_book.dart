@@ -46,6 +46,7 @@ class _AddBookState extends ConsumerState<AddBook> {
   late final TextEditingController _levelCourseAdvisor;
   late final TextEditingController _currentLevel;
   late final TextEditingController _email;
+  late final TextEditingController _category;
   bool _isProfileEditLoading = false;
   PlatformFile? _bookPicked;
   PlatformFile? _coverPicked;
@@ -70,6 +71,7 @@ class _AddBookState extends ConsumerState<AddBook> {
     _levelCourseAdvisor = TextEditingController();
     _currentLevel = TextEditingController();
     _email = TextEditingController();
+    _category = TextEditingController();
     setControllerText();
     super.initState();
   }
@@ -101,6 +103,7 @@ class _AddBookState extends ConsumerState<AddBook> {
   void _undoController() {
     _title.clear();
     _author.clear();
+    _category.clear();
     setState(() {
       _isBookUploaded = false;
       _isCoverUploaded = false;
@@ -402,6 +405,13 @@ class _AddBookState extends ConsumerState<AddBook> {
                                   controller: _author,
                                 ),
                                 YBox(kMacroPadding),
+                                CustomDropdownField(
+                                  label: category,
+                                  hintText: selectBookCategory,
+                                  items: bookCategory,
+                                  controller: _category,
+                                ),
+                                YBox(kMacroPadding),
                                 Text(
                                   uploadCoverImage,
                                   style: textTheme.titleMedium!.copyWith(
@@ -525,7 +535,7 @@ class _AddBookState extends ConsumerState<AddBook> {
                                       ),
                                 YBox(kMicroPadding),
                                 Text(
-                                  uploadProjectPaper,
+                                  uploadBook,
                                   style: textTheme.titleMedium!.copyWith(
                                     fontSize: (!kIsWeb || isPhoneWeb) ? 16 : 13,
                                     fontWeight: FontWeight.w400,
@@ -666,8 +676,10 @@ class _AddBookState extends ConsumerState<AddBook> {
                                         final author = _author.text;
                                         final bookfile = _bookPicked;
                                         final coverfile = _coverPicked;
+                                        final category = _category.text;
                                         if (title.isEmpty ||
                                             author.isEmpty ||
+                                            category.isEmpty ||
                                             bookfile == null ||
                                             coverfile == null) {
                                           CustomSnackBarForEmptyField.show(
@@ -710,6 +722,7 @@ class _AddBookState extends ConsumerState<AddBook> {
                                               ownerUid: _auth.currentUser!.uid,
                                               bookUrl: bookUrl,
                                               coverUrl: coverUrl,
+                                              category: category,
                                               id: generateReference(),
                                             );
                                             setState(() {
