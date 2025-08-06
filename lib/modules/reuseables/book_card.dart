@@ -6,10 +6,6 @@ class BookCard extends StatelessWidget {
   final String title;
   final String author;
   final String coverImagePath;
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
   final String bookUrl;
   final VoidCallback? onTap;
 
