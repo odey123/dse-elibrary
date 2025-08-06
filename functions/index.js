@@ -2,6 +2,7 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const cors = require('cors')({ origin: true });
 const { getStorage } = require('firebase-admin/storage');
+const axios = require("axios");
 // var serviceAccount = require("C:/Users/user/Downloads/dse-elibrary-75930-firebase-adminsdk-fbsvc-9ef43177b0");
 
 admin.initializeApp(
@@ -413,6 +414,33 @@ exports.getPdfBase64 = functions.https.onCall(async (request, response) => {
     } catch (error) {
         console.error("Error fetching PDF:", error);
         throw new functions.https.HttpsError(error.code || "internal", error.message);
+    }
+});
+
+exports.getPdfBase64FromUrl = functions.https.onCall(async (request, response) => {
+    try {
+        const { fileUrl, requesterUid } = request.data;
+
+        if (!fileUrl || !requesterUid) {
+            throw new functions.https.HttpsError("invalid-argument", "Missing required fields.");
+        }
+
+        // Fetch PDF file from public download URL
+        const response = await axios.get(fileUrl, {
+            responseType: "arraybuffer",
+        });
+
+        const base64String = Buffer.from(response.data).toString("base64");
+
+        return {
+            success: true,
+            base64: base64String,
+            message: "PDF fetched and encoded successfully.",
+        };
+
+    } catch (error) {
+        console.error("Error fetching PDF from URL:", error);
+        throw new functions.https.HttpsError("internal", error.message || "Something went wrong.");
     }
 });
 

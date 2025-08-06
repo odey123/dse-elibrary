@@ -6,7 +6,7 @@ class BookCard extends StatelessWidget {
   final String title;
   final String author;
   final String coverImagePath;
-  final String tag;
+
   final String bookUrl;
   final VoidCallback? onTap;
 
@@ -15,7 +15,6 @@ class BookCard extends StatelessWidget {
     required this.title,
     required this.author,
     required this.coverImagePath,
-    required this.tag,
     required this.bookUrl,
     required this.onTap,
   });

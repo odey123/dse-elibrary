@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:html' as html;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,11 +9,13 @@ import 'package:shimmer/shimmer.dart';
 import 'package:systems_app/app/function/handle_profile_submit.dart';
 import 'package:systems_app/app/function/image_picker.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
+import 'package:systems_app/app/loading/loading_pdf_screen.dart';
 import 'package:systems_app/modules/reuseables/book_card.dart';
 import 'package:systems_app/modules/reuseables/profile_drawer.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
 import 'package:systems_app/services/cloud/database/database_actions.dart';
+import 'package:systems_app/services/cloud/function/functions_actions.dart';
 import 'package:systems_app/services/cloud/model/book.dart';
 import 'package:systems_app/services/cloud/storage/storage.actions.dart';
 import 'package:systems_app/utils/assets_path.dart';
@@ -35,6 +38,7 @@ class _BooksState extends ConsumerState<Books> {
   late final DatabaseAsyncNotifier _database;
   late final AuthenticationAsyncNotifier _auth;
   late final StorageAsyncNotifier _storage;
+  late final FunctionsAsyncNotifier _function;
   final TextEditingController _searchTextField = TextEditingController();
   String? selectedBookCategory;
   late final TextEditingController _firstName;
@@ -51,6 +55,7 @@ class _BooksState extends ConsumerState<Books> {
     _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
     _database = ref.read(databaseAsyncNotifierProvider.notifier);
     _storage = ref.read(storageAsyncNotifierProvider.notifier);
+    _function = ref.read(functionsAsyncNotifierProvider.notifier);
     _firstName = TextEditingController();
     _lastName = TextEditingController();
     _prefferedAcademicName = TextEditingController();
@@ -64,6 +69,17 @@ class _BooksState extends ConsumerState<Books> {
 
   void openEndDrawer() {
     _scaffoldKey.currentState?.openEndDrawer();
+  }
+
+  void openFileInNewTab(Uint8List fileBytes, String mimeType, String fileName) {
+    final blob = html.Blob([fileBytes], mimeType);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    html.window.open(url, '_blank');
+
+    Future.delayed(const Duration(seconds: 10), () {
+      html.Url.revokeObjectUrl(url);
+    });
   }
 
   void setControllerText() {
@@ -597,8 +613,34 @@ class _BooksState extends ConsumerState<Books> {
                                                                 .coverUrl,
                                                         bookUrl: books[index]
                                                             .bookUrl,
-                                                        tag: 'Science',
-                                                        onTap: () {},
+                                                        onTap: () async {
+                                                          LoadingPdfScreen()
+                                                              .show(
+                                                            context: context,
+                                                            showProgress: true,
+                                                          );
+                                                          final docbytes =
+                                                              await _function
+                                                                  .getPdfBytesFromUrl(
+                                                            fileUrl:
+                                                                books[index]
+                                                                    .bookUrl,
+                                                            requesterUid: _auth
+                                                                .currentUser!
+                                                                .uid,
+                                                          );
+                                                          LoadingPdfScreen()
+                                                              .hide();
+                                                          if (docbytes !=
+                                                              null) {
+                                                            openFileInNewTab(
+                                                              docbytes,
+                                                              applicationPdf,
+                                                              books[index]
+                                                                  .title,
+                                                            );
+                                                          }
+                                                        },
                                                       );
                                                     },
                                                   ),
@@ -704,8 +746,28 @@ class _BooksState extends ConsumerState<Books> {
                                                   coverImagePath:
                                                       books[index].coverUrl,
                                                   bookUrl: books[index].bookUrl,
-                                                  tag: 'Science',
-                                                  onTap: () {},
+                                                  onTap: () async {
+                                                    LoadingPdfScreen().show(
+                                                      context: context,
+                                                      showProgress: true,
+                                                    );
+                                                    final docbytes =
+                                                        await _function
+                                                            .getPdfBytesFromUrl(
+                                                      fileUrl:
+                                                          books[index].bookUrl,
+                                                      requesterUid: _auth
+                                                          .currentUser!.uid,
+                                                    );
+                                                    LoadingPdfScreen().hide();
+                                                    if (docbytes != null) {
+                                                      openFileInNewTab(
+                                                        docbytes,
+                                                        applicationPdf,
+                                                        books[index].title,
+                                                      );
+                                                    }
+                                                  },
                                                 );
                                               },
                                             ),

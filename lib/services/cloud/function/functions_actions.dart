@@ -242,4 +242,39 @@ class FunctionsAsyncNotifier extends _$FunctionsAsyncNotifier {
       throw GenericFunctionException();
     }
   }
+
+  Future<Uint8List?> getPdfBytesFromUrl({
+    required String fileUrl,
+    required String requesterUid,
+  }) async {
+    try {
+      final response =
+          await initialize().httpsCallable('getPdfBase64FromUrl').call({
+        "fileUrl": fileUrl,
+        "requesterUid": requesterUid,
+      });
+
+      final base64Data = response.data['base64'];
+      return base64Decode(base64Data); // Converts Base64 to Uint8List
+    } on FirebaseFunctionsException catch (e) {
+      switch (e.code) {
+        case "unauthenticated":
+          throw UnAuthenticatedFunctionException();
+        case "permission-denied":
+          throw PermissionDeniedFunctionException();
+        case "invalid-argument":
+          throw InvalidArgumentFunctionException();
+        case "not-found":
+          throw NotFoundFunctionException();
+        case "deadline-exceeded":
+          throw DeadlineExceededFunctionException();
+        case "resource-exhausted":
+          throw ResourceExhaustedFunctionException();
+        default:
+          throw GenericFunctionException();
+      }
+    } catch (_) {
+      throw GenericFunctionException();
+    }
+  }
 }

@@ -3,13 +3,8 @@
         "origin": [
             "*"
         ],
-        "responseHeader": [
-            "Content-Type"
-        ],
         "method": [
-            "GET",
-            "HEAD",
-            "DELETE"
+            "GET"
         ],
         "maxAgeSeconds": 3600
     }
