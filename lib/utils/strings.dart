@@ -142,6 +142,7 @@ String bookTitle = 'Book title';
 String enterBookTitle = 'Enter book title';
 String author = 'Author';
 String selectBookCategory = 'Select book category';
+String selectProjectCategory = 'Select project category';
 String category = 'Category';
 String enterAuthorName = 'Enter author name';
 String uploadCoverImage = 'Upload Cover Image';
@@ -157,6 +158,7 @@ String pROfile = 'Profile';
 String university = 'University';
 String department = 'Department';
 String documents = 'Documents';
+String all = 'All';
 String universityShortHistory =
     "The University of Lagos (UNILAG) was established in 1962 by an act of the Federal Parliament of Nigeria. Located in Akoka, Lagos State, it is one of Nigeria’s first-generation universities and remains one of the country’s most prestigious higher institutions. UNILAG began with three faculties: Commerce and Business Administration, Law, and Medicine. Over the years, it has grown significantly in size, scope, and academic reputation, now offering a wide range of undergraduate, postgraduate, and professional programs. The university is known for its vibrant student life, research output, and notable alumni across sectors including government, business, entertainment, and academia. Its motto is \"In deed and in truth,\" reflecting its commitment to integrity and academic excellence.";
 String missionOfTheUniversity = 'Mission of the University';
@@ -711,10 +713,19 @@ const List<String> semesters = [
 ];
 
 const List<String> bookCategory = [
+  'All',
   'Industrial Engineering',
   'Artificial Intelligence',
   'Robotics',
-  'Others'
+  'Others',
+];
+
+const List<String> projectCategory = [
+  'All',
+  'AI/ML',
+  'Industrial Engineering',
+  'Engineering Analysis',
+  'Mechanics and Control',
 ];
 
 const List<String> weeks = [

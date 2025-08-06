@@ -8,6 +8,7 @@ class Book {
   final String bookUrl;
   final String coverUrl;
   final String ownerUid;
+  final String category;
 
   Book({
     required this.id,
@@ -16,6 +17,7 @@ class Book {
     required this.bookUrl,
     required this.coverUrl,
     required this.ownerUid,
+    required this.category,
   });
 
   Book.fromSnapshot(QueryDocumentSnapshot<Map<String, dynamic>> snapshot)
@@ -24,5 +26,6 @@ class Book {
         author = snapshot.data()[authorFieldName] ?? '',
         bookUrl = snapshot.data()[bookUrlFieldName] ?? '',
         coverUrl = snapshot.data()[coverUrlFieldName] ?? '',
-        ownerUid = snapshot.data()[ownerUidFieldName] ?? '';
+        ownerUid = snapshot.data()[ownerUidFieldName] ?? '',
+        category = snapshot.data()[categoryFieldName];
 }

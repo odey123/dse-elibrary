@@ -211,6 +211,7 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
     required String coordinatorName,
     required String coordinatorUid,
     required String paperUrl,
+    required String category,
     required String id,
   }) async {
     final collection = initialize().collection(projectPapersCollection);
@@ -221,6 +222,8 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
       coordinatorUidFieldName: coordinatorUid,
       paperUrlFieldName: paperUrl,
       idFieldName: id,
+      categoryFieldName: category,
+      searchFieldName: title.toLowerCase().replaceAll(RegExp(r'\s+'), ''),
     });
   }
 
@@ -242,13 +245,31 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
       bookUrlFieldName: bookUrl,
       categoryFieldName: category,
       idFieldName: id,
+      searchFieldName: title.toLowerCase().replaceAll(RegExp(r'\s+'), ''),
     });
   }
 
-  Stream<List<ProjectPaper>> getAllProjectPapers() {
-    final collection =
-        initialize().collection(projectPapersCollection).snapshots();
-    return collection.map((event) {
+  Stream<List<ProjectPaper>> getAllProjectPapers({
+    String? filter,
+    String searchTerm = '',
+  }) {
+    Query<Map<String, dynamic>> query =
+        initialize().collection(projectPapersCollection);
+
+    if (filter != null && filter.isNotEmpty) {
+      query = query.where(categoryFieldName, isEqualTo: filter);
+    }
+
+    // Normalize search term (lowercase, no extra spaces)
+    final normalizedSearchTerm =
+        searchTerm.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
+
+    if (normalizedSearchTerm.isNotEmpty) {
+      query = query.orderBy(searchFieldName).startAt(
+          [normalizedSearchTerm]).endAt(['$normalizedSearchTerm\uf8ff']);
+    }
+
+    return query.snapshots().map((event) {
       if (event.docs.isNotEmpty) {
         return event.docs.map((doc) => ProjectPaper.fromSnapshot(doc)).toList();
       } else {
@@ -257,9 +278,29 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
     });
   }
 
-  Stream<List<Book>> getAllBooks() {
-    final collection = initialize().collection(booksCollection).snapshots();
-    return collection.map((event) {
+  Stream<List<Book>> getAllBooks({
+    required String? filter,
+    String searchTerm = '',
+  }) {
+    Query<Map<String, dynamic>> query =
+        initialize().collection(booksCollection);
+
+    if (filter != null && filter.isNotEmpty) {
+      query = query.where(categoryFieldName, isEqualTo: filter);
+    }
+
+    // Normalize search term (lowercase, no extra spaces)
+    final normalizedSearchTerm =
+        searchTerm.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
+
+    // Firestore cannot do 'contains' text search natively without indexing (e.g., Algolia or Firebase Extensions).
+    // For basic prefix matching:
+    if (normalizedSearchTerm.isNotEmpty) {
+      query = query.orderBy(searchFieldName).startAt(
+          [normalizedSearchTerm]).endAt(['$normalizedSearchTerm\uf8ff']);
+    }
+
+    return query.snapshots().map((event) {
       if (event.docs.isNotEmpty) {
         return event.docs.map((doc) => Book.fromSnapshot(doc)).toList();
       } else {

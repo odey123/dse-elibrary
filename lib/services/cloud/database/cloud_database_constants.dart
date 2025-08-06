@@ -23,6 +23,7 @@ const ownerNameFieldName = 'owner_name';
 const ownerUidFieldName = 'owner_uid';
 const semesterFieldName = 'semester';
 const titleFieldName = 'title';
+const searchFieldName = 'search_text';
 const weekTopicFieldName = 'week_topic';
 const materialFieldName = 'material';
 const roleFieldName = 'role';

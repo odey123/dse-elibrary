@@ -39,7 +39,7 @@ class _BooksState extends ConsumerState<Books> {
   late final AuthenticationAsyncNotifier _auth;
   late final StorageAsyncNotifier _storage;
   late final FunctionsAsyncNotifier _function;
-  final TextEditingController _searchTextField = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   String? selectedBookCategory;
   late final TextEditingController _firstName;
   late final TextEditingController _lastName;
@@ -49,6 +49,7 @@ class _BooksState extends ConsumerState<Books> {
   late final TextEditingController _currentLevel;
   late final TextEditingController _email;
   bool _isProfileEditLoading = false;
+  String _searchTerm = '';
 
   @override
   void initState() {
@@ -64,6 +65,11 @@ class _BooksState extends ConsumerState<Books> {
     _currentLevel = TextEditingController();
     _email = TextEditingController();
     setControllerText();
+    _searchController.addListener(() {
+      setState(() {
+        _searchTerm = _searchController.text;
+      });
+    });
     super.initState();
   }
 
@@ -154,6 +160,9 @@ class _BooksState extends ConsumerState<Books> {
         },
       ),
     );
+    if (result == all) {
+      return null;
+    }
     return result;
   }
 
@@ -357,7 +366,7 @@ class _BooksState extends ConsumerState<Books> {
                                           ),
                                         ),
                                         child: TextField(
-                                          controller: _searchTextField,
+                                          controller: _searchController,
                                           keyboardType: TextInputType.text,
                                           enableSuggestions: false,
                                           autocorrect: false,
@@ -473,7 +482,7 @@ class _BooksState extends ConsumerState<Books> {
                                             ),
                                           ),
                                           child: TextField(
-                                            controller: _searchTextField,
+                                            controller: _searchController,
                                             keyboardType: TextInputType.text,
                                             enableSuggestions: false,
                                             autocorrect: false,
@@ -582,7 +591,10 @@ class _BooksState extends ConsumerState<Books> {
                         YBox(kMediumPadding),
                         (!kIsWeb || isPhoneWeb)
                             ? StreamBuilder(
-                                stream: _database.getAllBooks(),
+                                stream: _database.getAllBooks(
+                                  filter: selectedBookCategory,
+                                  searchTerm: _searchTerm,
+                                ),
                                 builder: (context, snapshot) {
                                   switch (snapshot.connectionState) {
                                     case ConnectionState.waiting:
@@ -613,34 +625,7 @@ class _BooksState extends ConsumerState<Books> {
                                                                 .coverUrl,
                                                         bookUrl: books[index]
                                                             .bookUrl,
-                                                        onTap: () async {
-                                                          LoadingPdfScreen()
-                                                              .show(
-                                                            context: context,
-                                                            showProgress: true,
-                                                          );
-                                                          final docbytes =
-                                                              await _function
-                                                                  .getPdfBytesFromUrl(
-                                                            fileUrl:
-                                                                books[index]
-                                                                    .bookUrl,
-                                                            requesterUid: _auth
-                                                                .currentUser!
-                                                                .uid,
-                                                          );
-                                                          LoadingPdfScreen()
-                                                              .hide();
-                                                          if (docbytes !=
-                                                              null) {
-                                                            openFileInNewTab(
-                                                              docbytes,
-                                                              applicationPdf,
-                                                              books[index]
-                                                                  .title,
-                                                            );
-                                                          }
-                                                        },
+                                                        onTap: () {},
                                                       );
                                                     },
                                                   ),
@@ -659,7 +644,7 @@ class _BooksState extends ConsumerState<Books> {
                                             spacing: kRegularPadding,
                                             runSpacing: kRegularPadding,
                                             children: List.generate(
-                                              7,
+                                              14,
                                               (index) {
                                                 return Shimmer.fromColors(
                                                   baseColor: Colors.grey[200]!,
@@ -693,7 +678,7 @@ class _BooksState extends ConsumerState<Books> {
                                           spacing: kRegularPadding,
                                           runSpacing: kRegularPadding,
                                           children: List.generate(
-                                            7,
+                                            14,
                                             (index) {
                                               return Shimmer.fromColors(
                                                 baseColor: Colors.grey[200]!,
@@ -720,7 +705,10 @@ class _BooksState extends ConsumerState<Books> {
                                 },
                               )
                             : StreamBuilder(
-                                stream: _database.getAllBooks(),
+                                stream: _database.getAllBooks(
+                                  filter: selectedBookCategory,
+                                  searchTerm: _searchTerm,
+                                ),
                                 builder: (context, snapshot) {
                                   switch (snapshot.connectionState) {
                                     case ConnectionState.waiting:
@@ -783,7 +771,7 @@ class _BooksState extends ConsumerState<Books> {
                                             spacing: kRegularPadding,
                                             runSpacing: kRegularPadding,
                                             children: List.generate(
-                                              7,
+                                              14,
                                               (index) {
                                                 return Shimmer.fromColors(
                                                   baseColor: Colors.grey[200]!,
@@ -817,7 +805,7 @@ class _BooksState extends ConsumerState<Books> {
                                           spacing: kRegularPadding,
                                           runSpacing: kRegularPadding,
                                           children: List.generate(
-                                            7,
+                                            14,
                                             (index) {
                                               return Shimmer.fromColors(
                                                 baseColor: Colors.grey[200]!,

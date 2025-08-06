@@ -49,6 +49,7 @@ class _AddProjectPaperState extends ConsumerState<AddProjectPaper> {
   late final TextEditingController _levelCourseAdvisor;
   late final TextEditingController _currentLevel;
   late final TextEditingController _email;
+  late final TextEditingController _category;
   bool _isLoading = false;
   bool _isProfileEditLoading = false;
   bool _isPaperUploaded = false;
@@ -69,6 +70,7 @@ class _AddProjectPaperState extends ConsumerState<AddProjectPaper> {
     _levelCourseAdvisor = TextEditingController();
     _currentLevel = TextEditingController();
     _email = TextEditingController();
+    _category = TextEditingController();
     setControllerText();
     super.initState();
   }
@@ -398,6 +400,13 @@ class _AddProjectPaperState extends ConsumerState<AddProjectPaper> {
                                   controller: _writtenBy,
                                 ),
                                 YBox(kMacroPadding),
+                                CustomDropdownField(
+                                  label: category,
+                                  hintText: selectProjectCategory,
+                                  items: projectCategory,
+                                  controller: _category,
+                                ),
+                                YBox(kMacroPadding),
                                 Text(
                                   uploadProjectPaper,
                                   style: textTheme.titleMedium!.copyWith(
@@ -539,8 +548,10 @@ class _AddProjectPaperState extends ConsumerState<AddProjectPaper> {
                                         final title = _projectTitle.text;
                                         final writtenBy = _writtenBy.text;
                                         final pickedfile = _paperPicked;
+                                        final category = _category.text;
                                         if (title.isEmpty ||
                                             writtenBy.isEmpty ||
+                                            category.isEmpty ||
                                             pickedfile == null) {
                                           CustomSnackBarForEmptyField.show(
                                             mainContext,
@@ -575,6 +586,7 @@ class _AddProjectPaperState extends ConsumerState<AddProjectPaper> {
                                               writtenBy: writtenBy,
                                               coordinatorName:
                                                   profile.preferredAcademicName,
+                                              category: category,
                                               coordinatorUid:
                                                   _auth.currentUser!.uid,
                                               paperUrl: url,

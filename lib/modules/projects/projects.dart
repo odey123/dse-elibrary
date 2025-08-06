@@ -38,8 +38,8 @@ class _ProjectsState extends ConsumerState<Projects> {
   late final AuthenticationAsyncNotifier _auth;
   late final StorageAsyncNotifier _storage;
   late final FunctionsAsyncNotifier _function;
-  final TextEditingController _searchTextField = TextEditingController();
-  String? selectedCourseCategory;
+  final TextEditingController _searchController = TextEditingController();
+  String? selectedProjectCategory;
   late final TextEditingController _firstName;
   late final TextEditingController _lastName;
   late final TextEditingController _prefferedAcademicName;
@@ -48,6 +48,7 @@ class _ProjectsState extends ConsumerState<Projects> {
   late final TextEditingController _currentLevel;
   late final TextEditingController _email;
   bool _isProfileEditLoading = false;
+  String _searchTerm = '';
 
   @override
   void initState() {
@@ -63,6 +64,12 @@ class _ProjectsState extends ConsumerState<Projects> {
     _currentLevel = TextEditingController();
     _email = TextEditingController();
     setControllerText();
+    _searchController.addListener(() {
+      setState(() {
+        _searchTerm = _searchController.text;
+      });
+    });
+
     super.initState();
   }
 
@@ -153,6 +160,9 @@ class _ProjectsState extends ConsumerState<Projects> {
         },
       ),
     );
+    if (result == all) {
+      return null;
+    }
     return result;
   }
 
@@ -370,14 +380,14 @@ class _ProjectsState extends ConsumerState<Projects> {
                                           ),
                                         ),
                                         child: TextField(
-                                          controller: _searchTextField,
+                                          controller: _searchController,
                                           keyboardType: TextInputType.text,
                                           enableSuggestions: false,
                                           autocorrect: false,
                                           textAlignVertical:
                                               TextAlignVertical.center,
                                           decoration: InputDecoration(
-                                            hintText: 'Search.....',
+                                            hintText: 'Search',
                                             hintStyle:
                                                 textTheme.titleMedium!.copyWith(
                                               fontSize: 15,
@@ -410,10 +420,10 @@ class _ProjectsState extends ConsumerState<Projects> {
                                           final selected = await _showMenu(
                                             context: context,
                                             width: 400,
-                                            listItems: courseCategory,
+                                            listItems: projectCategory,
                                           );
                                           setState(() {
-                                            selectedCourseCategory = selected;
+                                            selectedProjectCategory = selected;
                                           });
                                         },
                                         child: Container(
@@ -435,7 +445,7 @@ class _ProjectsState extends ConsumerState<Projects> {
                                                   left: kSmallPadding,
                                                 ),
                                                 child: Text(
-                                                  selectedCourseCategory ??
+                                                  selectedProjectCategory ??
                                                       'Categories',
                                                   style: textTheme.titleMedium!
                                                       .copyWith(
@@ -486,7 +496,7 @@ class _ProjectsState extends ConsumerState<Projects> {
                                             ),
                                           ),
                                           child: TextField(
-                                            controller: _searchTextField,
+                                            controller: _searchController,
                                             keyboardType: TextInputType.text,
                                             enableSuggestions: false,
                                             autocorrect: false,
@@ -535,10 +545,11 @@ class _ProjectsState extends ConsumerState<Projects> {
                                             final selected = await _showMenu(
                                               context: context,
                                               width: 400,
-                                              listItems: courseCategory,
+                                              listItems: projectCategory,
                                             );
                                             setState(() {
-                                              selectedCourseCategory = selected;
+                                              selectedProjectCategory =
+                                                  selected;
                                             });
                                           },
                                           borderRadius:
@@ -564,7 +575,7 @@ class _ProjectsState extends ConsumerState<Projects> {
                                                     left: kSmallPadding,
                                                   ),
                                                   child: Text(
-                                                    selectedCourseCategory ??
+                                                    selectedProjectCategory ??
                                                         'Categories',
                                                     style: textTheme
                                                         .titleMedium!
@@ -592,139 +603,276 @@ class _ProjectsState extends ConsumerState<Projects> {
                                   ],
                                 ),
                               ),
-                        StreamBuilder(
-                            stream: _database.getAllProjectPapers(),
-                            builder: (context, snapshot) {
-                              switch (snapshot.connectionState) {
-                                case ConnectionState.waiting:
-                                case ConnectionState.active:
-                                  if (snapshot.hasData) {
-                                    final projectPapers =
-                                        snapshot.data as List<ProjectPaper>;
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: kRegularPadding,
-                                        vertical: kPadding,
-                                      ),
-                                      child: Wrap(
-                                        spacing: kSmallPadding,
-                                        runSpacing: kRegularPadding,
-                                        children: List.generate(
-                                          projectPapers.length,
-                                          (index) {
-                                            return ProjectsCard(
-                                              title: projectPapers[index].title,
-                                              writtenBy: projectPapers[index]
-                                                  .writtenBy,
-                                              avatarPath: AssetPaths.avatar,
-                                              onTap: () async {
-                                                LoadingPdfScreen().show(
-                                                  context: context,
-                                                  showProgress: true,
+                        (!kIsWeb || isPhoneWeb)
+                            ? StreamBuilder(
+                                stream: _database.getAllProjectPapers(
+                                  filter: selectedProjectCategory,
+                                  searchTerm: _searchTerm,
+                                ),
+                                builder: (context, snapshot) {
+                                  switch (snapshot.connectionState) {
+                                    case ConnectionState.waiting:
+                                    case ConnectionState.active:
+                                      if (snapshot.hasData) {
+                                        final projectPapers =
+                                            snapshot.data as List<ProjectPaper>;
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: kRegularPadding,
+                                            vertical: kPadding,
+                                          ),
+                                          child: Wrap(
+                                            spacing: kSmallPadding,
+                                            runSpacing: kRegularPadding,
+                                            children: List.generate(
+                                              projectPapers.length,
+                                              (index) {
+                                                return ProjectsCard(
+                                                  title: projectPapers[index]
+                                                      .title,
+                                                  writtenBy:
+                                                      projectPapers[index]
+                                                          .writtenBy,
+                                                  avatarPath: AssetPaths.avatar,
+                                                  onTap: () async {
+                                                    LoadingPdfScreen().show(
+                                                      context: context,
+                                                      showProgress: true,
+                                                    );
+                                                    final docbytes =
+                                                        await _function
+                                                            .getPdfBytesFromUrl(
+                                                      fileUrl:
+                                                          projectPapers[index]
+                                                              .paperUrl,
+                                                      requesterUid: _auth
+                                                          .currentUser!.uid,
+                                                    );
+                                                    LoadingPdfScreen().hide();
+                                                    if (docbytes != null) {
+                                                      openFileInNewTab(
+                                                        docbytes,
+                                                        applicationPdf,
+                                                        projectPapers[index]
+                                                            .title,
+                                                      );
+                                                    }
+                                                  },
                                                 );
-                                                final docbytes = await _function
-                                                    .getPdfBytesFromUrl(
-                                                  fileUrl: projectPapers[index]
-                                                      .paperUrl,
-                                                  requesterUid:
-                                                      _auth.currentUser!.uid,
-                                                );
-                                                LoadingPdfScreen().hide();
-                                                if (docbytes != null) {
-                                                  openFileInNewTab(
-                                                    docbytes,
-                                                    applicationPdf,
-                                                    projectPapers[index].title,
-                                                  );
-                                                }
                                               },
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: List.generate(
-                                        7,
-                                        (index) {
-                                          return Row(
-                                            children: [
-                                              Flexible(
-                                                child: Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    vertical: kSmallPadding,
-                                                    horizontal: kRegularPadding,
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        return Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: List.generate(
+                                            7,
+                                            (index) {
+                                              return Row(
+                                                children: [
+                                                  Flexible(
+                                                    child: Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        vertical: kSmallPadding,
+                                                        horizontal:
+                                                            kRegularPadding,
+                                                      ),
+                                                      child: Shimmer.fromColors(
+                                                        baseColor:
+                                                            Colors.grey[200]!,
+                                                        highlightColor:
+                                                            Colors.grey[50]!,
+                                                        child: Container(
+                                                          height: 130,
+                                                          decoration:
+                                                              const BoxDecoration(
+                                                            color: Colors.white,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .all(
+                                                              Radius.circular(
+                                                                  8),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
                                                   ),
-                                                  child: Shimmer.fromColors(
-                                                    baseColor:
-                                                        Colors.grey[200]!,
-                                                    highlightColor:
-                                                        Colors.grey[50]!,
-                                                    child: Container(
-                                                      height: 130,
-                                                      decoration:
-                                                          const BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius:
-                                                            BorderRadius.all(
-                                                          Radius.circular(8),
+                                                ],
+                                              );
+                                            },
+                                          ),
+                                        );
+                                      }
+                                    default:
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: List.generate(
+                                          7,
+                                          (index) {
+                                            return Row(
+                                              children: [
+                                                Flexible(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      vertical: kSmallPadding,
+                                                      horizontal:
+                                                          kRegularPadding,
+                                                    ),
+                                                    child: Shimmer.fromColors(
+                                                      baseColor:
+                                                          Colors.grey[200]!,
+                                                      highlightColor:
+                                                          Colors.grey[50]!,
+                                                      child: Container(
+                                                        height: 130,
+                                                        decoration:
+                                                            const BoxDecoration(
+                                                          color: Colors.white,
+                                                          borderRadius:
+                                                              BorderRadius.all(
+                                                            Radius.circular(8),
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      ),
-                                    );
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                      );
                                   }
-                                default:
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: List.generate(
-                                      7,
-                                      (index) {
-                                        return Row(
-                                          children: [
-                                            Flexible(
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  vertical: kSmallPadding,
-                                                  horizontal: kRegularPadding,
-                                                ),
-                                                child: Shimmer.fromColors(
-                                                  baseColor: Colors.grey[200]!,
-                                                  highlightColor:
-                                                      Colors.grey[50]!,
-                                                  child: Container(
-                                                    height: 130,
-                                                    decoration:
-                                                        const BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius:
-                                                          BorderRadius.all(
-                                                        Radius.circular(8),
+                                })
+                            : StreamBuilder(
+                                stream: _database.getAllProjectPapers(
+                                  filter: selectedProjectCategory,
+                                  searchTerm: _searchTerm,
+                                ),
+                                builder: (context, snapshot) {
+                                  switch (snapshot.connectionState) {
+                                    case ConnectionState.waiting:
+                                    case ConnectionState.active:
+                                      if (snapshot.hasData) {
+                                        final projectPapers =
+                                            snapshot.data as List<ProjectPaper>;
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: kRegularPadding,
+                                            vertical: kPadding,
+                                          ),
+                                          child: Wrap(
+                                            spacing: kSmallPadding,
+                                            runSpacing: kRegularPadding,
+                                            children: List.generate(
+                                              projectPapers.length,
+                                              (index) {
+                                                return ProjectsCard(
+                                                  title: projectPapers[index]
+                                                      .title,
+                                                  writtenBy:
+                                                      projectPapers[index]
+                                                          .writtenBy,
+                                                  avatarPath: AssetPaths.avatar,
+                                                  onTap: () {},
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        return Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: List.generate(
+                                            7,
+                                            (index) {
+                                              return Row(
+                                                children: [
+                                                  Flexible(
+                                                    child: Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        vertical: kSmallPadding,
+                                                        horizontal:
+                                                            kRegularPadding,
+                                                      ),
+                                                      child: Shimmer.fromColors(
+                                                        baseColor:
+                                                            Colors.grey[200]!,
+                                                        highlightColor:
+                                                            Colors.grey[50]!,
+                                                        child: Container(
+                                                          height: 130,
+                                                          decoration:
+                                                              const BoxDecoration(
+                                                            color: Colors.white,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .all(
+                                                              Radius.circular(
+                                                                  8),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          ),
+                                        );
+                                      }
+                                    default:
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: List.generate(
+                                          7,
+                                          (index) {
+                                            return Row(
+                                              children: [
+                                                Flexible(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      vertical: kSmallPadding,
+                                                      horizontal:
+                                                          kRegularPadding,
+                                                    ),
+                                                    child: Shimmer.fromColors(
+                                                      baseColor:
+                                                          Colors.grey[200]!,
+                                                      highlightColor:
+                                                          Colors.grey[50]!,
+                                                      child: Container(
+                                                        height: 130,
+                                                        decoration:
+                                                            const BoxDecoration(
+                                                          color: Colors.white,
+                                                          borderRadius:
+                                                              BorderRadius.all(
+                                                            Radius.circular(8),
+                                                          ),
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    ),
-                                  );
-                              }
-                            }),
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                      );
+                                  }
+                                }),
                         YBox(kLargePadding),
                       ],
                     ),
