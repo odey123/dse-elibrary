@@ -85,25 +85,44 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
     });
   }
 
-  Stream<List<Student>> getAllStudents() {
-    final collection = initialize().collection(studentsCollection).snapshots();
-    return collection.map((event) {
-      if (event.docs.isNotEmpty) {
-        return event.docs.map((doc) => Student.fromSnapshot(doc)).toList();
-      } else {
-        return [];
-      }
+  Stream<List<Student>> getAllStudents({
+    String searchTerm = '',
+  }) {
+    final normalizedSearchTerm =
+        searchTerm.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
+
+    return initialize().collection(studentsCollection).snapshots().map((event) {
+      if (event.docs.isEmpty) return [];
+
+      return event.docs
+          .map((doc) => Student.fromSnapshot(doc))
+          .where((student) {
+        final field =
+            student.searchText.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+        return field.contains(normalizedSearchTerm);
+      }).toList();
     });
   }
 
-  Stream<List<Lecturer>> getAllLecturers() {
-    final collection = initialize().collection(lecturersCollection).snapshots();
-    return collection.map((event) {
-      if (event.docs.isNotEmpty) {
-        return event.docs.map((doc) => Lecturer.fromSnapshot(doc)).toList();
-      } else {
-        return [];
-      }
+  Stream<List<Lecturer>> getAllLecturers({
+    String searchTerm = '',
+  }) {
+    final normalizedSearchTerm =
+        searchTerm.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
+
+    return initialize()
+        .collection(lecturersCollection)
+        .snapshots()
+        .map((event) {
+      if (event.docs.isEmpty) return [];
+
+      return event.docs
+          .map((doc) => Lecturer.fromSnapshot(doc))
+          .where((lecturer) {
+        final field =
+            lecturer.searchText.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+        return field.contains(normalizedSearchTerm);
+      }).toList();
     });
   }
 

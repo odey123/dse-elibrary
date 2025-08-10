@@ -97,6 +97,7 @@ exports.onboardStudent = functions.https.onCall(async (requests, response) => {
                 uid: newUser.uid,
                 role: 'student',
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                search_text: `${firstName.toLowerCase()}${lastName.toLowerCase()}`,
             });
         } catch (firestoreError) {
             switch (firestoreError.code) {
@@ -195,6 +196,7 @@ exports.onboardLecturer = functions.https.onCall(async (requests, response) => {
                 uid: newUser.uid,
                 role: 'lecturer',
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                search_text: `${firstName.toLowerCase()}${lastName.toLowerCase()}`,
             });
         } catch (firestoreError) {
             switch (firestoreError.code) {

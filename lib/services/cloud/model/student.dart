@@ -8,6 +8,7 @@ class Student {
   final String level;
   final String gender;
   final String uid;
+  final String searchText;
 
   Student({
     required this.firstName,
@@ -16,6 +17,7 @@ class Student {
     required this.level,
     required this.gender,
     required this.uid,
+    required this.searchText,
   });
 
   Student.fromSnapshot(QueryDocumentSnapshot<Map<String, dynamic>> snapshot)
@@ -24,5 +26,6 @@ class Student {
         email = snapshot.data()[emailFieldName] ?? '',
         level = snapshot.data()[levelFieldName] ?? '',
         gender = snapshot.data()[genderFieldName] ?? '',
+        searchText = snapshot.data()[searchFieldName],
         uid = snapshot.data()[uidFieldName] ?? '';
 }

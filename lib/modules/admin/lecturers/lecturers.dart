@@ -31,13 +31,19 @@ class Lecturers extends ConsumerStatefulWidget {
 class _LecturersState extends ConsumerState<Lecturers> {
   late final AuthenticationAsyncNotifier _auth;
   late final DatabaseAsyncNotifier _database;
-  final TextEditingController _searchTextField = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   bool _showSignOut = false;
+  String _searchTerm = '';
 
   @override
   void initState() {
     _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
     _database = ref.read(databaseAsyncNotifierProvider.notifier);
+    _searchController.addListener(() {
+      setState(() {
+        _searchTerm = _searchController.text;
+      });
+    });
     super.initState();
   }
 
@@ -48,7 +54,9 @@ class _LecturersState extends ConsumerState<Lecturers> {
       child: Scaffold(
         backgroundColor: kPrimaryWhite,
         body: StreamBuilder(
-            stream: _database.getAllLecturers(),
+            stream: _database.getAllLecturers(
+              searchTerm: _searchTerm,
+            ),
             builder: (context, snapshot) {
               switch (snapshot.connectionState) {
                 case ConnectionState.waiting:
@@ -255,7 +263,7 @@ class _LecturersState extends ConsumerState<Lecturers> {
                                                   ),
                                                 ),
                                                 child: TextField(
-                                                  controller: _searchTextField,
+                                                  controller: _searchController,
                                                   keyboardType:
                                                       TextInputType.text,
                                                   enableSuggestions: false,

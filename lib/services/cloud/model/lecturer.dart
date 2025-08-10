@@ -10,6 +10,7 @@ class Lecturer {
   final String userId;
   final String preferredAcademicname;
   final String levelCourseAdvisor;
+  final String searchText;
 
   Lecturer({
     required this.firstName,
@@ -20,6 +21,7 @@ class Lecturer {
     required this.userId,
     required this.preferredAcademicname,
     required this.levelCourseAdvisor,
+    required this.searchText,
   });
 
   Lecturer.fromSnapshot(QueryDocumentSnapshot<Map<String, dynamic>> snapshot)
@@ -31,5 +33,6 @@ class Lecturer {
         gender = snapshot.data()[genderFieldName] ?? '',
         preferredAcademicname =
             snapshot.data()[preferredAcademicNameFieldName] ?? '',
+        searchText = snapshot.data()[searchFieldName],
         levelCourseAdvisor = snapshot.data()[levelCourseAdvisorFieldName] ?? '';
 }
