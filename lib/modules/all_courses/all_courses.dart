@@ -167,7 +167,8 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
           firstNameController: _firstName,
           lastNameController: _lastName,
           emailController: _email,
-          levelController: SessionManager.getRole() == lecturerRole
+          levelController: SessionManager.getRole() == lecturerRole ||
+                  SessionManager.getRole() == hodRole
               ? _levelCourseAdvisor
               : _currentLevel,
           prefixController: _prefix,
@@ -179,7 +180,8 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
           onSubmit: () async {
             await handleProfileSubmit(
               context: context,
-              isLecturer: SessionManager.getRole() == lecturerRole,
+              isLecturer: SessionManager.getRole() == lecturerRole ||
+                  SessionManager.getRole() == hodRole,
               firstNameController: _firstName,
               lastNameController: _lastName,
               preferredAcademicNameController: _prefferedAcademicName,
@@ -199,7 +201,8 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
             auth: _auth,
             mounted: mounted,
           ),
-          isLecturer: SessionManager.getRole() == lecturerRole,
+          isLecturer: SessionManager.getRole() == lecturerRole ||
+              SessionManager.getRole() == hodRole,
           isLoading: _isProfileEditLoading,
         ),
         body: Stack(

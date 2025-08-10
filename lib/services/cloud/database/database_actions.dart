@@ -28,7 +28,11 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
     required String ownerUserId,
     required String role,
   }) {
-    if (role == lecturerRole) {
+    if (role == hodRole) {
+      final profile =
+          initialize().collection(hodCollection).doc(ownerUserId).snapshots();
+      return profile.map((snapshot) => CloudProfile.fromSnapshot(snapshot));
+    } else if (role == lecturerRole) {
       final profile = initialize()
           .collection(lecturersCollection)
           .doc(ownerUserId)
@@ -422,6 +426,12 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
     if (role == lecturerRole) {
       final profile =
           await initialize().collection(lecturersCollection).doc(userId).get();
+      await profile.reference.update({
+        profileImageUrlFieldName: profileImageUrl,
+      });
+    } else if (role == hodRole) {
+      final profile =
+          await initialize().collection(hodCollection).doc(userId).get();
       await profile.reference.update({
         profileImageUrlFieldName: profileImageUrl,
       });

@@ -177,7 +177,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                   });
                                                 },
                                               ),
-                                              (role == lecturerRole)
+                                              (role == lecturerRole ||
+                                                      role == hodRole)
                                                   ? TabItem(
                                                       label: myCourses,
                                                       iconPath:
@@ -231,7 +232,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                   });
                                                 },
                                               ),
-                                              (role == lecturerRole)
+                                              (role == lecturerRole ||
+                                                      role == hodRole)
                                                   ? TabItem(
                                                       label: allCourses,
                                                       iconPath:

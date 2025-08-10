@@ -166,7 +166,8 @@ class _CoursesState extends ConsumerState<Courses> {
                     controller: _lastName,
                   ),
                   YBox(kSmallPadding),
-                  SessionManager.getRole() == lecturerRole
+                  SessionManager.getRole() == lecturerRole ||
+                          SessionManager.getRole() == hodRole
                       ? CustomTextInputField(
                           label: preferredAcademicName,
                           hintText: enterPreferredAcademicName,
@@ -175,10 +176,12 @@ class _CoursesState extends ConsumerState<Courses> {
                       : Container(),
                   YBox(kSmallPadding),
                   CustomTextInputField(
-                    label: SessionManager.getRole() == lecturerRole
+                    label: SessionManager.getRole() == lecturerRole ||
+                            SessionManager.getRole() == hodRole
                         ? lecturerEmailAddress
                         : studentEmailAddress,
-                    hintText: SessionManager.getRole() == lecturerRole
+                    hintText: SessionManager.getRole() == lecturerRole ||
+                            SessionManager.getRole() == hodRole
                         ? enterLecturerEmailAddress
                         : enterStudentEmailAddress,
                     controller: _email,
@@ -187,7 +190,8 @@ class _CoursesState extends ConsumerState<Courses> {
                     keyboardType: TextInputType.emailAddress,
                   ),
                   YBox(kSmallPadding),
-                  SessionManager.getRole() == lecturerRole
+                  SessionManager.getRole() == lecturerRole ||
+                          SessionManager.getRole() == hodRole
                       ? CustomDropdownField(
                           label: levelCourseAdvisor,
                           hintText: selectLevel,
@@ -211,7 +215,8 @@ class _CoursesState extends ConsumerState<Courses> {
                           dropdownIcon: Icons.keyboard_arrow_down,
                         ),
                   YBox(kSmallPadding),
-                  SessionManager.getRole() == lecturerRole
+                  SessionManager.getRole() == lecturerRole ||
+                          SessionManager.getRole() == hodRole
                       ? CustomDropdownField(
                           label: prefix,
                           hintText: selectPrefix,
@@ -225,7 +230,8 @@ class _CoursesState extends ConsumerState<Courses> {
                   CustomTextButton(
                     text: submit,
                     onPressed: () async {
-                      if (SessionManager.getRole() == lecturerRole) {
+                      if (SessionManager.getRole() == lecturerRole ||
+                          SessionManager.getRole() == hodRole) {
                         final firstName = _firstName.text;
                         final lastName = _lastName.text;
                         final preferredAcademicName =

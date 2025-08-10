@@ -131,7 +131,8 @@ class _AddBookState extends ConsumerState<AddBook> {
           firstNameController: _firstName,
           lastNameController: _lastName,
           emailController: _email,
-          levelController: SessionManager.getRole() == lecturerRole
+          levelController: SessionManager.getRole() == lecturerRole ||
+                  SessionManager.getRole() == hodRole
               ? _levelCourseAdvisor
               : _currentLevel,
           prefixController: _prefix,
@@ -143,7 +144,8 @@ class _AddBookState extends ConsumerState<AddBook> {
           onSubmit: () async {
             await handleProfileSubmit(
               context: context,
-              isLecturer: SessionManager.getRole() == lecturerRole,
+              isLecturer: SessionManager.getRole() == lecturerRole ||
+                  SessionManager.getRole() == hodRole,
               firstNameController: _firstName,
               lastNameController: _lastName,
               preferredAcademicNameController: _prefferedAcademicName,
@@ -163,7 +165,8 @@ class _AddBookState extends ConsumerState<AddBook> {
             auth: _auth,
             mounted: mounted,
           ),
-          isLecturer: SessionManager.getRole() == lecturerRole,
+          isLecturer: SessionManager.getRole() == lecturerRole ||
+              SessionManager.getRole() == hodRole,
           isLoading: _isProfileEditLoading,
         ),
         body: Stack(

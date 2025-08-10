@@ -126,7 +126,8 @@ class _AddProjectPaperState extends ConsumerState<AddProjectPaper> {
           firstNameController: _firstName,
           lastNameController: _lastName,
           emailController: _email,
-          levelController: SessionManager.getRole() == lecturerRole
+          levelController: SessionManager.getRole() == lecturerRole ||
+                  SessionManager.getRole() == hodRole
               ? _levelCourseAdvisor
               : _currentLevel,
           prefixController: _prefix,
@@ -138,7 +139,8 @@ class _AddProjectPaperState extends ConsumerState<AddProjectPaper> {
           onSubmit: () async {
             await handleProfileSubmit(
               context: context,
-              isLecturer: SessionManager.getRole() == lecturerRole,
+              isLecturer: SessionManager.getRole() == lecturerRole ||
+                  SessionManager.getRole() == hodRole,
               firstNameController: _firstName,
               lastNameController: _lastName,
               preferredAcademicNameController: _prefferedAcademicName,
@@ -158,7 +160,8 @@ class _AddProjectPaperState extends ConsumerState<AddProjectPaper> {
             auth: _auth,
             mounted: mounted,
           ),
-          isLecturer: SessionManager.getRole() == lecturerRole,
+          isLecturer: SessionManager.getRole() == lecturerRole ||
+              SessionManager.getRole() == hodRole,
           isLoading: _isProfileEditLoading,
         ),
         body: Stack(
@@ -578,7 +581,9 @@ class _AddProjectPaperState extends ConsumerState<AddProjectPaper> {
                                                 .getUserProfile(
                                                   ownerUserId:
                                                       _auth.currentUser!.uid,
-                                                  role: lecturerRole,
+                                                  role: SessionManager
+                                                          .getRole() ??
+                                                      '',
                                                 )
                                                 .first;
                                             await _database.addProjectPaper(

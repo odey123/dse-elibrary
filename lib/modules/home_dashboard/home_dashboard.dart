@@ -390,7 +390,8 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
         firstNameController: _firstName,
         lastNameController: _lastName,
         emailController: _email,
-        levelController: SessionManager.getRole() == lecturerRole
+        levelController: SessionManager.getRole() == lecturerRole ||
+                SessionManager.getRole() == hodRole
             ? _levelCourseAdvisor
             : _currentLevel,
         prefixController: _prefix,
@@ -402,7 +403,8 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
         onSubmit: () async {
           await handleProfileSubmit(
             context: context,
-            isLecturer: SessionManager.getRole() == lecturerRole,
+            isLecturer: SessionManager.getRole() == lecturerRole ||
+                SessionManager.getRole() == hodRole,
             firstNameController: _firstName,
             lastNameController: _lastName,
             preferredAcademicNameController: _prefferedAcademicName,
@@ -421,7 +423,8 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
           auth: _auth,
           mounted: mounted,
         ),
-        isLecturer: SessionManager.getRole() == lecturerRole,
+        isLecturer: SessionManager.getRole() == lecturerRole ||
+            SessionManager.getRole() == hodRole,
         isLoading: _isLoading,
       ),
       body: Stack(
@@ -618,7 +621,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                                   children: [
                                     YBox(kSmallPadding),
                                     Text(
-                                      '$welcomeBack ${(SessionManager.getRole() == lecturerRole) ? SessionManager.getPreferredAcademicName() : SessionManager.getFirstName()}',
+                                      '$welcomeBack ${(SessionManager.getRole() == lecturerRole || SessionManager.getRole() == hodRole) ? SessionManager.getPreferredAcademicName() : SessionManager.getFirstName()}',
                                       style: textTheme.titleMedium!.copyWith(
                                         fontSize:
                                             (!kIsWeb || isPhoneWeb) ? 21 : 24,
@@ -679,16 +682,17 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                             child: Row(
                               children: [
                                 StreamBuilder(
-                                  stream:
-                                      (SessionManager.getRole() == lecturerRole)
-                                          ? _database.getLecturerCourses(
-                                              ownerUid: _auth.currentUser!.uid,
-                                              searchTerm: _searchTerm,
-                                            )
-                                          : _database.getAllCourses(
-                                              level: SessionManager.getLevel(),
-                                              searchTerm: _searchTerm,
-                                            ),
+                                  stream: (SessionManager.getRole() ==
+                                              lecturerRole ||
+                                          SessionManager.getRole() == hodRole)
+                                      ? _database.getLecturerCourses(
+                                          ownerUid: _auth.currentUser!.uid,
+                                          searchTerm: _searchTerm,
+                                        )
+                                      : _database.getAllCourses(
+                                          level: SessionManager.getLevel(),
+                                          searchTerm: _searchTerm,
+                                        ),
                                   builder: (context, snapshot) {
                                     switch (snapshot.connectionState) {
                                       case ConnectionState.waiting:
@@ -867,7 +871,9 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                                   children: [
                                     StreamBuilder(
                                       stream: (SessionManager.getRole() ==
-                                              lecturerRole)
+                                                  lecturerRole ||
+                                              SessionManager.getRole() ==
+                                                  hodRole)
                                           ? _database.getLecturerCourses(
                                               ownerUid: _auth.currentUser!.uid,
                                               searchTerm: _searchTerm,

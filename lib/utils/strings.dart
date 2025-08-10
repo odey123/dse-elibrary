@@ -40,6 +40,7 @@ String lecturers = 'Lecturers';
 String student = 'Student';
 String studentRole = 'student';
 String lecturerRole = 'lecturer';
+String hodRole = 'hod';
 String hod = 'HOD';
 String lecturer = 'Lecturer';
 String courses = 'Courses';
