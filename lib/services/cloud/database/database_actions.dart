@@ -6,6 +6,7 @@ import 'package:systems_app/services/cloud/database/cloud_profile.dart';
 import 'package:systems_app/services/cloud/model/book.dart';
 import 'package:systems_app/services/cloud/model/course.dart';
 import 'package:systems_app/services/cloud/model/hand_book.dart';
+import 'package:systems_app/services/cloud/model/hod.dart';
 import 'package:systems_app/services/cloud/model/lab_manual.dart';
 import 'package:systems_app/services/cloud/model/lab_report.dart';
 import 'package:systems_app/services/cloud/model/lecturer.dart';
@@ -126,42 +127,49 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
     });
   }
 
-  Stream<List<Lecturer>> getHod() {
-    final collection = initialize().collection(hod).snapshots();
-    return collection.map((event) {
-      if (event.docs.isNotEmpty) {
-        return event.docs.map((doc) => Lecturer.fromSnapshot(doc)).toList();
-      } else {
-        return [];
-      }
+  Stream<List<HOD>> getHod({
+    String searchTerm = '',
+  }) {
+    final normalizedSearchTerm =
+        searchTerm.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
+
+    return initialize().collection(hodCollection).snapshots().map((event) {
+      if (event.docs.isEmpty) return [];
+
+      return event.docs.map((doc) => HOD.fromSnapshot(doc)).where((hod) {
+        final field =
+            hod.searchText.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+        return field.contains(normalizedSearchTerm);
+      }).toList();
     });
   }
 
   Stream<List<Course>> getAllCourses({
     String? level,
+    String searchTerm = '',
   }) {
-    if (level != null) {
-      final collection = initialize()
-          .collection(coursesCollection)
-          .where(levelFieldName, isEqualTo: level)
-          .snapshots();
-      return collection.map((event) {
-        if (event.docs.isNotEmpty) {
-          return event.docs.map((doc) => Course.fromSnapshot(doc)).toList();
-        } else {
-          return [];
-        }
-      });
-    } else {
-      final collection = initialize().collection(coursesCollection).snapshots();
-      return collection.map((event) {
-        if (event.docs.isNotEmpty) {
-          return event.docs.map((doc) => Course.fromSnapshot(doc)).toList();
-        } else {
-          return [];
-        }
-      });
+    Query<Map<String, dynamic>> query =
+        initialize().collection(coursesCollection);
+
+    if (level != null && level.isNotEmpty) {
+      query = query.where(levelFieldName, isEqualTo: level);
     }
+
+    final normalizedSearchTerm =
+        searchTerm.trim().toUpperCase().replaceAll(RegExp(r'\s+'), '');
+
+    if (normalizedSearchTerm.isNotEmpty) {
+      query = query.orderBy(courseCodeFieldName).startAt(
+          [normalizedSearchTerm]).endAt(['$normalizedSearchTerm\uf8ff']);
+    }
+
+    return query.snapshots().map((event) {
+      if (event.docs.isNotEmpty) {
+        return event.docs.map((doc) => Course.fromSnapshot(doc)).toList();
+      } else {
+        return [];
+      }
+    });
   }
 
   Stream<List<Course>> getAllCoursesPerSemester({
@@ -377,33 +385,33 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
   Stream<List<Course>> getLecturerCourses({
     required String ownerUid,
     String? semester,
+    String searchTerm = '',
   }) {
-    if (semester != null) {
-      final collection = initialize()
-          .collection(coursesCollection)
-          .where(semesterFieldName, isEqualTo: semester)
-          .where(ownerUidFieldName, arrayContains: ownerUid)
-          .snapshots();
-      return collection.map((event) {
-        if (event.docs.isNotEmpty) {
-          return event.docs.map((doc) => Course.fromSnapshot(doc)).toList();
-        } else {
-          return [];
-        }
-      });
-    } else {
-      final collection = initialize()
-          .collection(coursesCollection)
-          .where(ownerUidFieldName, arrayContains: ownerUid)
-          .snapshots();
-      return collection.map((event) {
-        if (event.docs.isNotEmpty) {
-          return event.docs.map((doc) => Course.fromSnapshot(doc)).toList();
-        } else {
-          return [];
-        }
-      });
+    Query<Map<String, dynamic>> query = initialize()
+        .collection(coursesCollection)
+        .where(ownerUidFieldName, arrayContains: ownerUid);
+
+    // Apply semester filter if provided
+    if (semester != null && semester.isNotEmpty) {
+      query = query.where(semesterFieldName, isEqualTo: semester);
     }
+
+    // Normalize search term
+    final normalizedSearchTerm =
+        searchTerm.trim().toUpperCase().replaceAll(RegExp(r'\s+'), '');
+
+    if (normalizedSearchTerm.isNotEmpty) {
+      query = query.orderBy(courseCodeFieldName).startAt(
+          [normalizedSearchTerm]).endAt(['$normalizedSearchTerm\uf8ff']);
+    }
+
+    return query.snapshots().map((event) {
+      if (event.docs.isNotEmpty) {
+        return event.docs.map((doc) => Course.fromSnapshot(doc)).toList();
+      } else {
+        return [];
+      }
+    });
   }
 
   Future<void> addImageUrlToUserProfile({

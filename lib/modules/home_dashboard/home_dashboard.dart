@@ -37,7 +37,7 @@ class HomeDashboard extends ConsumerStatefulWidget {
 
 class _HomeDashboardState extends ConsumerState<HomeDashboard> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final TextEditingController _searchTextField = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   late final DatabaseAsyncNotifier _database;
   late final AuthenticationAsyncNotifier _auth;
   late final StorageAsyncNotifier _storage;
@@ -51,6 +51,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
   String tabSelected = dashboard;
   bool _isLoading = false;
   bool _showSignOut = false;
+  String _searchTerm = '';
 
   @override
   void initState() {
@@ -64,6 +65,11 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
     _levelCourseAdvisor = TextEditingController();
     _currentLevel = TextEditingController();
     _email = TextEditingController();
+    _searchController.addListener(() {
+      setState(() {
+        _searchTerm = _searchController.text;
+      });
+    });
     setControllerText();
     super.initState();
   }
@@ -447,7 +453,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                                     ),
                                   ),
                                   child: TextField(
-                                    controller: _searchTextField,
+                                    controller: _searchController,
                                     keyboardType: TextInputType.text,
                                     enableSuggestions: false,
                                     autocorrect: false,
@@ -457,7 +463,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                                       color: kGry800,
                                     ),
                                     decoration: InputDecoration(
-                                      hintText: 'Search',
+                                      hintText: 'Search by course code',
                                       hintStyle:
                                           textTheme.titleMedium!.copyWith(
                                         fontSize: 12,
@@ -677,9 +683,11 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                                       (SessionManager.getRole() == lecturerRole)
                                           ? _database.getLecturerCourses(
                                               ownerUid: _auth.currentUser!.uid,
+                                              searchTerm: _searchTerm,
                                             )
                                           : _database.getAllCourses(
                                               level: SessionManager.getLevel(),
+                                              searchTerm: _searchTerm,
                                             ),
                                   builder: (context, snapshot) {
                                     switch (snapshot.connectionState) {
@@ -862,9 +870,11 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                                               lecturerRole)
                                           ? _database.getLecturerCourses(
                                               ownerUid: _auth.currentUser!.uid,
+                                              searchTerm: _searchTerm,
                                             )
                                           : _database.getAllCourses(
                                               level: SessionManager.getLevel(),
+                                              searchTerm: _searchTerm,
                                             ),
                                       builder: (context, snapshot) {
                                         switch (snapshot.connectionState) {

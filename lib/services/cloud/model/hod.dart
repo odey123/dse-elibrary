@@ -7,7 +7,10 @@ class HOD {
   final String email;
   final String prefix;
   final String gender;
+  final String userId;
+  final String levelCourseAdvisor;
   final String preferredAcademicname;
+  final String searchText;
 
   HOD({
     required this.firstName,
@@ -15,15 +18,21 @@ class HOD {
     required this.email,
     required this.prefix,
     required this.gender,
+    required this.userId,
+    required this.levelCourseAdvisor,
     required this.preferredAcademicname,
+    required this.searchText,
   });
 
   HOD.fromSnapshot(QueryDocumentSnapshot<Map<String, dynamic>> snapshot)
       : firstName = snapshot.data()[firstNameFieldName] ?? '',
         lastName = snapshot.data()[lastNameFieldName] ?? '',
         email = snapshot.data()[emailFieldName] ?? '',
+        userId = snapshot.data()[uidFieldName] ?? '',
         prefix = snapshot.data()[prefixFieldName] ?? '',
         gender = snapshot.data()[genderFieldName] ?? '',
+        levelCourseAdvisor = snapshot.data()[levelCourseAdvisorFieldName] ?? '',
+        searchText = snapshot.data()[searchFieldName],
         preferredAcademicname =
             snapshot.data()[preferredAcademicNameFieldName] ?? '';
 }

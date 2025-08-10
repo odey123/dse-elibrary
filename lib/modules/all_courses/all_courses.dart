@@ -37,7 +37,7 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
   late final DatabaseAsyncNotifier _database;
   late final AuthenticationAsyncNotifier _auth;
   late final StorageAsyncNotifier _storage;
-  final TextEditingController _searchTextField = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   String? selectedCourseCategory;
   late final TextEditingController _firstName;
   late final TextEditingController _lastName;
@@ -48,6 +48,7 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
   late final TextEditingController _email;
   bool _isProfileEditLoading = false;
   bool _showSignOut = false;
+  String _searchTerm = '';
 
   @override
   void initState() {
@@ -62,6 +63,11 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
     _currentLevel = TextEditingController();
     _email = TextEditingController();
     setControllerText();
+    _searchController.addListener(() {
+      setState(() {
+        _searchTerm = _searchController.text;
+      });
+    });
     super.initState();
   }
 
@@ -388,7 +394,7 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
                                           ),
                                         ),
                                         child: TextField(
-                                          controller: _searchTextField,
+                                          controller: _searchController,
                                           keyboardType: TextInputType.text,
                                           enableSuggestions: false,
                                           autocorrect: false,
@@ -416,63 +422,6 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
                                             border: InputBorder.none,
                                           ),
                                           cursorColor: kBlack,
-                                        ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        top: kSmallPadding,
-                                      ),
-                                      child: InkWell(
-                                        onTap: () async {
-                                          final selected = await _showMenu(
-                                            context: context,
-                                            width: 400,
-                                            listItems: courseCategory,
-                                          );
-                                          setState(() {
-                                            selectedCourseCategory = selected;
-                                          });
-                                        },
-                                        child: Container(
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(90),
-                                            color: kPrimaryWhite,
-                                            border: Border.all(
-                                              color: kGry800,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: kSmallPadding,
-                                                ),
-                                                child: Text(
-                                                  selectedCourseCategory ??
-                                                      'Categories',
-                                                  style: textTheme.titleMedium!
-                                                      .copyWith(
-                                                    fontSize: 15,
-                                                    color: kGry800,
-                                                  ),
-                                                ),
-                                              ),
-                                              const Padding(
-                                                padding: EdgeInsets.only(
-                                                    right: kSmallPadding),
-                                                child: Icon(
-                                                  Icons.keyboard_arrow_down,
-                                                  size: 25,
-                                                  color: kGry800,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
                                         ),
                                       ),
                                     ),
@@ -504,7 +453,7 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
                                             ),
                                           ),
                                           child: TextField(
-                                            controller: _searchTextField,
+                                            controller: _searchController,
                                             keyboardType: TextInputType.text,
                                             enableSuggestions: false,
                                             autocorrect: false,
@@ -543,70 +492,6 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
                                         ),
                                       ),
                                     ),
-                                    Flexible(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: kLargePadding,
-                                        ),
-                                        child: InkWell(
-                                          onTap: () async {
-                                            final selected = await _showMenu(
-                                              context: context,
-                                              width: 400,
-                                              listItems: courseCategory,
-                                            );
-                                            setState(() {
-                                              selectedCourseCategory = selected;
-                                            });
-                                          },
-                                          borderRadius:
-                                              BorderRadius.circular(11),
-                                          child: Container(
-                                            height: 35,
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(11),
-                                              color: kPrimaryWhite,
-                                              border: Border.all(
-                                                color: const Color(0xffEBE6F0),
-                                              ),
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    left: kSmallPadding,
-                                                  ),
-                                                  child: Text(
-                                                    selectedCourseCategory ??
-                                                        'Categories',
-                                                    style: textTheme
-                                                        .titleMedium!
-                                                        .copyWith(
-                                                      fontSize: 13,
-                                                      color: kGry800,
-                                                    ),
-                                                  ),
-                                                ),
-                                                const Padding(
-                                                  padding: EdgeInsets.only(
-                                                      right: kSmallPadding),
-                                                  child: Icon(
-                                                    Icons.keyboard_arrow_down,
-                                                    size: 23,
-                                                    color: kGry800,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ),
@@ -640,6 +525,7 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
                                           level: hundred,
+                                          searchTerm: _searchTerm,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
@@ -852,6 +738,7 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
                                           level: twoHundred,
+                                          searchTerm: _searchTerm,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
@@ -1064,6 +951,7 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
                                           level: threeHundred,
+                                          searchTerm: _searchTerm,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
@@ -1276,6 +1164,7 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
                                           level: fourHundred,
+                                          searchTerm: _searchTerm,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
@@ -1488,6 +1377,7 @@ class _AllCoursesState extends ConsumerState<AllCourses> {
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
                                           level: fiveHundred,
+                                          searchTerm: _searchTerm,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {

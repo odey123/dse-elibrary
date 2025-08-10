@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/app/loading/loading_screen.dart';
 import 'package:systems_app/modules/admin/hod/add_hod.dart';
+import 'package:systems_app/modules/admin/hod/hod_list_view.dart';
 import 'package:systems_app/modules/reuseables/empty_state_widget.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
 import 'package:systems_app/modules/shared/profile_image.dart';
@@ -30,12 +31,19 @@ class Hod extends ConsumerStatefulWidget {
 class _HodState extends ConsumerState<Hod> {
   late final DatabaseAsyncNotifier _database;
   late final AuthenticationAsyncNotifier _auth;
+  final TextEditingController _searchController = TextEditingController();
   bool _showSignOut = false;
+  String _searchTerm = '';
 
   @override
   void initState() {
     _database = ref.read(databaseAsyncNotifierProvider.notifier);
     _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
+    _searchController.addListener(() {
+      setState(() {
+        _searchTerm = _searchController.text;
+      });
+    });
     super.initState();
   }
 
@@ -45,7 +53,9 @@ class _HodState extends ConsumerState<Hod> {
       canPop: false,
       child: Scaffold(
         body: StreamBuilder(
-            stream: _database.getHod(),
+            stream: _database.getHod(
+              searchTerm: _searchTerm,
+            ),
             builder: (context, snapshot) {
               switch (snapshot.connectionState) {
                 case ConnectionState.waiting:
@@ -96,7 +106,7 @@ class _HodState extends ConsumerState<Hod> {
                                                   Transform.translate(
                                                     offset: const Offset(0, 1),
                                                     child: Text(
-                                                      'Students',
+                                                      'HOD',
                                                       style: textTheme
                                                           .titleMedium!
                                                           .copyWith(
@@ -177,10 +187,10 @@ class _HodState extends ConsumerState<Hod> {
                                   CustomTextButton(
                                     text: exportCsv,
                                     onPressed: () {},
+                                    isLoading: false,
                                     backgroundColor: kPrimaryWhite,
                                     textColor: kDarkYellow,
                                     borderColor: kGry500,
-                                    isLoading: false,
                                     padding: const EdgeInsets.only(
                                       left: kMediumPadding,
                                       right: kMediumPadding,
@@ -189,9 +199,129 @@ class _HodState extends ConsumerState<Hod> {
                                     ),
                                   ),
                                   XBox(kSmallPadding),
+                                  CustomTextButton(
+                                    text: addHod,
+                                    isLoading: false,
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .push(MaterialPageRoute(
+                                        builder: (context) => const AddHod(),
+                                      ));
+                                    },
+                                    backgroundColor: kDarkYellow,
+                                    textColor: kPrimaryWhite,
+                                    borderColor: kTransparent,
+                                    icon: Icons.add,
+                                  ),
                                 ],
                               ),
                             ),
+                            Flexible(
+                              child: SingleChildScrollView(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: kRegularPadding,
+                                    vertical: kRegularPadding,
+                                  ),
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      color: kGry400,
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(6),
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: kRegularPadding,
+                                        vertical: kLargePadding,
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            children: [
+                                              CustomTextForBorderButton(
+                                                text: addFilter,
+                                                onPressed: () {},
+                                                backgroundColor: kPrimaryWhite,
+                                                textColor: kGry600,
+                                                borderColor: kGry500,
+                                                icon: Icons.keyboard_arrow_down,
+                                              ),
+                                              XBox(kPadding),
+                                              Container(
+                                                width: screenSize.width * 0.37,
+                                                height: 35,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(11),
+                                                  color: kPrimaryWhite,
+                                                  border: Border.all(
+                                                    color:
+                                                        const Color(0xffEBE6F0),
+                                                  ),
+                                                ),
+                                                child: TextField(
+                                                  controller: _searchController,
+                                                  keyboardType:
+                                                      TextInputType.text,
+                                                  enableSuggestions: false,
+                                                  autocorrect: false,
+                                                  textAlignVertical:
+                                                      TextAlignVertical.center,
+                                                  style: textTheme.titleMedium!
+                                                      .copyWith(
+                                                    fontSize: 12,
+                                                    color: kGry800,
+                                                  ),
+                                                  decoration: InputDecoration(
+                                                    hintText: 'Search',
+                                                    hintStyle: textTheme
+                                                        .titleMedium!
+                                                        .copyWith(
+                                                      fontSize: 12,
+                                                      color: kGry800,
+                                                    ),
+                                                    contentPadding:
+                                                        const EdgeInsets.only(
+                                                      bottom: kPadding * 2.7,
+                                                    ),
+                                                    prefixIcon: Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                        top: 5.0,
+                                                        bottom: 5.0,
+                                                      ),
+                                                      child: SvgPicture.asset(
+                                                        AssetPaths.searchIcon,
+                                                        fit: BoxFit.scaleDown,
+                                                      ),
+                                                    ),
+                                                    border: InputBorder.none,
+                                                  ),
+                                                  cursorColor: kBlack,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          YBox(kRegularPadding),
+                                          Container(
+                                            width: screenSize.width,
+                                            decoration: const BoxDecoration(
+                                              color: kPrimaryWhite,
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(7)),
+                                            ),
+                                            child: HODListView(
+                                              hods: hods,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
                           ],
                         ),
                         _showSignOut

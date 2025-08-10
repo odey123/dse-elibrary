@@ -276,7 +276,7 @@ exports.onboardHod = functions.https.onCall(async (requests, response) => {
         }
 
         try {
-            await admin.firestore().collection("hods").doc(newUser.uid).set({
+            await admin.firestore().collection("hod").doc(newUser.uid).set({
                 first_name: firstName,
                 last_name: lastName,
                 email: email,
@@ -287,6 +287,7 @@ exports.onboardHod = functions.https.onCall(async (requests, response) => {
                 uid: newUser.uid,
                 role: "hod",
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                search_text: `${firstName.toLowerCase()}${lastName.toLowerCase()}`,
             });
         } catch (firestoreError) {
             switch (firestoreError.code) {

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
-import 'package:systems_app/services/cloud/model/lecturer.dart';
+import 'package:systems_app/services/cloud/model/hod.dart';
 import 'package:systems_app/utils/constant.dart';
 
-class LecturersListView extends StatelessWidget {
-  final List<Lecturer> lecturers;
-  const LecturersListView({
+class HODListView extends StatelessWidget {
+  final List<HOD> hods;
+  const HODListView({
     super.key,
-    required this.lecturers,
+    required this.hods,
   });
 
   @override
@@ -15,7 +15,7 @@ class LecturersListView extends StatelessWidget {
     return Column(
       children: [
         _buildHeaderRow(),
-        ...lecturers.map((lecturer) => _buildLecturerRow(lecturer)),
+        ...hods.map((hod) => _buildHODRow(hod)),
       ],
     );
   }
@@ -44,7 +44,7 @@ class LecturersListView extends StatelessWidget {
     );
   }
 
-  Widget _buildLecturerRow(Lecturer lecturer) {
+  Widget _buildHODRow(HOD hod) {
     return Container(
       padding: const EdgeInsets.symmetric(
         vertical: 8,
@@ -61,9 +61,9 @@ class LecturersListView extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildDataColumn(lecturer.preferredAcademicname),
-          _buildDataColumn(lecturer.email),
-          _buildDataColumn(lecturer.gender),
+          _buildDataColumn(hod.preferredAcademicname),
+          _buildDataColumn(hod.email),
+          _buildDataColumn(hod.gender),
         ],
       ),
     );

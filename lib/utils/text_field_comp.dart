@@ -147,6 +147,11 @@ class CustomDropdownField extends StatelessWidget {
             width: width,
             child: DropdownButtonFormField<String>(
               value: controller.text.isNotEmpty ? controller.text : null,
+              style: textTheme.bodySmall!.copyWith(
+                color: textColor,
+                fontSize: (!kIsWeb || isPhoneWeb) ? 15 : 12,
+                fontWeight: FontWeight.w400,
+              ),
               items: items
                   .map((item) => DropdownMenuItem(
                         value: item,

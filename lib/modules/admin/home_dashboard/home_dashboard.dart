@@ -36,14 +36,20 @@ class HomeDashboardAdmin extends ConsumerStatefulWidget {
 class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
   late final DatabaseAsyncNotifier _database;
   late final AuthenticationAsyncNotifier _auth;
-  final TextEditingController _searchTextField = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   String tabSelected = dashboard;
   bool _showSignOut = false;
+  String _searchTerm = '';
 
   @override
   void initState() {
     _database = ref.read(databaseAsyncNotifierProvider.notifier);
     _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
+    _searchController.addListener(() {
+      setState(() {
+        _searchTerm = _searchController.text;
+      });
+    });
     super.initState();
   }
 
@@ -284,7 +290,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                       ),
                                     ),
                                     child: TextField(
-                                      controller: _searchTextField,
+                                      controller: _searchController,
                                       keyboardType: TextInputType.text,
                                       enableSuggestions: false,
                                       autocorrect: false,
@@ -295,7 +301,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                         color: kGry800,
                                       ),
                                       decoration: InputDecoration(
-                                        hintText: 'Search',
+                                        hintText: 'Search by course code',
                                         hintStyle:
                                             textTheme.titleMedium!.copyWith(
                                           fontSize: 12,
@@ -1032,6 +1038,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
                                           level: hundred,
+                                          searchTerm: _searchTerm,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
@@ -1244,6 +1251,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
                                           level: twoHundred,
+                                          searchTerm: _searchTerm,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
@@ -1456,6 +1464,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
                                           level: threeHundred,
+                                          searchTerm: _searchTerm,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
@@ -1668,6 +1677,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
                                           level: fourHundred,
+                                          searchTerm: _searchTerm,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
@@ -1880,6 +1890,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                                       StreamBuilder(
                                         stream: _database.getAllCourses(
                                           level: fiveHundred,
+                                          searchTerm: _searchTerm,
                                         ),
                                         builder: (context, snapshot) {
                                           switch (snapshot.connectionState) {
