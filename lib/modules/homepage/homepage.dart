@@ -215,23 +215,27 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                         });
                                                       },
                                                     ),
-                                              TabItem(
-                                                label: addNew,
-                                                iconPath: AssetPaths.plusIcon,
-                                                selectedTab: tabSelected,
-                                                currentTab: addNew,
-                                                unselectedtextColor:
-                                                    kPrimaryWhite,
-                                                onTap: (tab) {
-                                                  navigateTo(
-                                                    addNewRoute,
-                                                    navigatorKeyForDesktopWeb,
-                                                  );
-                                                  setState(() {
-                                                    tabSelected = tab;
-                                                  });
-                                                },
-                                              ),
+                                              (role == lecturerRole ||
+                                                      role == hodRole)
+                                                  ? TabItem(
+                                                      label: addNew,
+                                                      iconPath:
+                                                          AssetPaths.plusIcon,
+                                                      selectedTab: tabSelected,
+                                                      currentTab: addNew,
+                                                      unselectedtextColor:
+                                                          kPrimaryWhite,
+                                                      onTap: (tab) {
+                                                        navigateTo(
+                                                          addNewRoute,
+                                                          navigatorKeyForDesktopWeb,
+                                                        );
+                                                        setState(() {
+                                                          tabSelected = tab;
+                                                        });
+                                                      },
+                                                    )
+                                                  : Container(),
                                               (role == lecturerRole ||
                                                       role == hodRole)
                                                   ? TabItem(
