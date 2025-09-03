@@ -15,6 +15,7 @@ import 'package:systems_app/services/cloud/database/database_actions.dart';
 import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
 import 'package:systems_app/utils/strings.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -36,6 +37,14 @@ class _HomePageState extends ConsumerState<HomePage> {
     _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
     _database = ref.read(databaseAsyncNotifierProvider.notifier);
     super.initState();
+  }
+
+  Future<void> _launchURL() async {
+    if (await canLaunchUrl(Uri.parse(projectExternalUrl))) {
+      await launchUrl(Uri.parse(projectExternalUrl));
+    } else {
+      throw 'Could not launch $projectExternalUrl';
+    }
   }
 
   @override
@@ -284,15 +293,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                 unselectedtextColor:
                                                     kPrimaryWhite,
                                                 onTap: (tab) {
-                                                  navigateTo(
-                                                    projectsRoute,
-                                                    navigatorKeyForDesktopWeb,
-                                                  );
-                                                  setState(
-                                                    () {
-                                                      tabSelected = tab;
-                                                    },
-                                                  );
+                                                  _launchURL();
                                                 },
                                               ),
                                             ],

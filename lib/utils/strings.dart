@@ -337,7 +337,8 @@ String peo4Sub =
 String peo5 = 'PEO5: ';
 String peo5Sub =
     'produce engineers with capacity for advanced design and innovation to drive sustainable development at national and international levels.';
-
+String projectExternalUrl =
+    "https://myresearchprojects-csbshne6e5c4awhh.westeurope-01.azurewebsites.net/";
 const List<String> addFilterList = [
   'Level',
   'Gender',

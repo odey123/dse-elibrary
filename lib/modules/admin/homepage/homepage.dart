@@ -8,6 +8,7 @@ import 'package:systems_app/routes.dart';
 import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
 import 'package:systems_app/utils/strings.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePageAdmin extends StatefulWidget {
   const HomePageAdmin({super.key});
@@ -21,6 +22,14 @@ class _HomePageAdminState extends State<HomePageAdmin> {
 
   final GlobalKey<NavigatorState> navigatorKeyForDesktopWeb =
       GlobalKey<NavigatorState>();
+
+  Future<void> _launchURL() async {
+    if (await canLaunchUrl(Uri.parse(projectExternalUrl))) {
+      await launchUrl(Uri.parse(projectExternalUrl));
+    } else {
+      throw 'Could not launch $projectExternalUrl';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -184,15 +193,7 @@ class _HomePageAdminState extends State<HomePageAdmin> {
                           currentTab: projects,
                           unselectedtextColor: kPrimaryWhite,
                           onTap: (tab) {
-                            adminNavigateTo(
-                              projectsRoute,
-                              navigatorKeyForDesktopWeb,
-                            );
-                            setState(
-                              () {
-                                tabSelected = tab;
-                              },
-                            );
+                            _launchURL();
                           },
                         ),
                         TabItem(
