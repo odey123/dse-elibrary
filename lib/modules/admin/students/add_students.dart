@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/app/loading/loading_screen.dart';
+import 'package:systems_app/modules/admin/students/add_student_bulk.dart';
 import 'package:systems_app/modules/admin/students/add_student_single.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
 import 'package:systems_app/modules/shared/profile_image.dart';
@@ -211,7 +212,14 @@ class _AddStudentsState extends ConsumerState<AddStudents> {
                                   CustomTextButton(
                                     text: addBulk,
                                     isLoading: false,
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const AddStudentBulk(),
+                                        ),
+                                      );
+                                    },
                                     backgroundColor: kPrimaryColor,
                                     textColor: kPrimaryWhite,
                                     borderColor: kTransparent,

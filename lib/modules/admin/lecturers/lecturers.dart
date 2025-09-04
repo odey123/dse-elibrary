@@ -1,7 +1,11 @@
+import 'dart:typed_data';
+import 'dart:html' as html;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
+import 'package:systems_app/app/loading/loading_pdf_screen.dart';
 import 'package:systems_app/app/loading/loading_screen.dart';
 import 'package:systems_app/modules/admin/lecturers/add_lecturers.dart';
 import 'package:systems_app/modules/admin/lecturers/lecturers_list_view.dart';
@@ -11,6 +15,7 @@ import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
 import 'package:systems_app/services/cloud/database/database_actions.dart';
+import 'package:systems_app/services/cloud/function/functions_actions.dart';
 import 'package:systems_app/services/cloud/model/lecturer.dart';
 import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
@@ -31,6 +36,7 @@ class Lecturers extends ConsumerStatefulWidget {
 class _LecturersState extends ConsumerState<Lecturers> {
   late final AuthenticationAsyncNotifier _auth;
   late final DatabaseAsyncNotifier _database;
+  late final FunctionsAsyncNotifier _function;
   final TextEditingController _searchController = TextEditingController();
   bool _showSignOut = false;
   String _searchTerm = '';
@@ -38,6 +44,7 @@ class _LecturersState extends ConsumerState<Lecturers> {
   @override
   void initState() {
     _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
+    _function = ref.read(functionsAsyncNotifierProvider.notifier);
     _database = ref.read(databaseAsyncNotifierProvider.notifier);
     _searchController.addListener(() {
       setState(() {
@@ -47,8 +54,23 @@ class _LecturersState extends ConsumerState<Lecturers> {
     super.initState();
   }
 
+  void openFileInNewTab(Uint8List fileBytes, String mimeType, String fileName) {
+    final blob = html.Blob([fileBytes], mimeType);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    final anchor = html.AnchorElement(href: url)
+      ..target = '_blank'
+      ..download = fileName;
+
+    anchor.click();
+
+    Future.delayed(const Duration(seconds: 10), () {
+      html.Url.revokeObjectUrl(url);
+    });
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext mainContext) {
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -187,7 +209,26 @@ class _LecturersState extends ConsumerState<Lecturers> {
                                 children: [
                                   CustomTextButton(
                                     text: exportCsv,
-                                    onPressed: () {},
+                                    onPressed: () async {
+                                      LoadingPdfScreen().show(
+                                          context: mainContext,
+                                          showProgress: true);
+                                      try {
+                                        final currentUser = _auth.currentUser;
+                                        final byte = await _function
+                                            .exportLecturersToCSv(
+                                          uid: currentUser!.uid,
+                                        );
+                                        LoadingPdfScreen().hide();
+                                        if (byte != null) {
+                                          openFileInNewTab(
+                                            byte,
+                                            textCSV,
+                                            'Lecturers.csv',
+                                          );
+                                        }
+                                      } catch (_) {}
+                                    },
                                     isLoading: false,
                                     backgroundColor: kPrimaryWhite,
                                     textColor: kDarkYellow,

@@ -19,3 +19,5 @@ class DeadlineExceededFunctionException implements Exception {}
 class ResourceExhaustedFunctionException implements Exception {}
 
 class GenericFunctionException implements Exception {}
+
+class EmptyReportFunctionException implements Exception {}

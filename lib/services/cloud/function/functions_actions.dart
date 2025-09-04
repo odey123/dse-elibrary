@@ -63,6 +63,46 @@ class FunctionsAsyncNotifier extends _$FunctionsAsyncNotifier {
     }
   }
 
+  Future<void> onboardStudentsFromCSV({
+    required List<Map<String, dynamic>> students,
+    required String adminUId,
+  }) async {
+    try {
+      final response =
+          await initialize().httpsCallable('onboardStudentsFromCSV').call({
+        "students": students,
+        "UId": adminUId,
+      });
+
+      log("Success: ${response.data['message']}");
+    } on FirebaseFunctionsException catch (e) {
+      switch (e.code) {
+        case "unauthenticated":
+          throw UnAuthenticatedFunctionException();
+        case "permission-denied":
+          throw PermissionDeniedFunctionException();
+        case "invalid-argument":
+          throw InvalidArgumentFunctionException();
+        case "already-exists":
+          throw AlreadyExistsFunctionException();
+        case "invalid-email":
+          throw InvalidArgumentFunctionException();
+        case "failed-precondition":
+          throw FailedPreconditionFunctionException();
+        case "weak-password":
+          throw WeakPasswordFunctionException();
+        case "deadline-exceeded":
+          throw DeadlineExceededFunctionException();
+        case "resource-exhausted":
+          throw ResourceExhaustedFunctionException();
+        default:
+          throw GenericFunctionException();
+      }
+    } catch (_) {
+      throw GenericFunctionException();
+    }
+  }
+
   Future<void> onboardLecturer({
     required String firstName,
     required String lastName,
@@ -274,6 +314,89 @@ class FunctionsAsyncNotifier extends _$FunctionsAsyncNotifier {
           throw GenericFunctionException();
       }
     } catch (_) {
+      throw GenericFunctionException();
+    }
+  }
+
+  Future<Uint8List?> exportStudentsToCSv({
+    required String uid,
+  }) async {
+    try {
+      final response =
+          await initialize().httpsCallable('exportStudentsToCSV').call({
+        "uid": uid,
+      });
+      final base64Csv = response.data['base64Csv'];
+
+      return base64Decode(base64Csv);
+    } on FirebaseFunctionsException catch (e) {
+      switch (e.code) {
+        case "permission-denied":
+          throw PermissionDeniedFunctionException();
+        case "invalid-argument":
+          throw InvalidArgumentFunctionException();
+        case "not-found":
+          throw EmptyReportFunctionException();
+        default:
+          throw GenericFunctionException();
+      }
+    } catch (e) {
+      log('$e');
+      throw GenericFunctionException();
+    }
+  }
+
+  Future<Uint8List?> exportLecturersToCSv({
+    required String uid,
+  }) async {
+    try {
+      final response =
+          await initialize().httpsCallable('exportLecturersToCSV').call({
+        "uid": uid,
+      });
+      final base64Csv = response.data['base64Csv'];
+
+      return base64Decode(base64Csv);
+    } on FirebaseFunctionsException catch (e) {
+      switch (e.code) {
+        case "permission-denied":
+          throw PermissionDeniedFunctionException();
+        case "invalid-argument":
+          throw InvalidArgumentFunctionException();
+        case "not-found":
+          throw EmptyReportFunctionException();
+        default:
+          throw GenericFunctionException();
+      }
+    } catch (e) {
+      log('$e');
+      throw GenericFunctionException();
+    }
+  }
+
+  Future<Uint8List?> exportHODToCSv({
+    required String uid,
+  }) async {
+    try {
+      final response = await initialize().httpsCallable('exportHODToCSV').call({
+        "uid": uid,
+      });
+      final base64Csv = response.data['base64Csv'];
+
+      return base64Decode(base64Csv);
+    } on FirebaseFunctionsException catch (e) {
+      switch (e.code) {
+        case "permission-denied":
+          throw PermissionDeniedFunctionException();
+        case "invalid-argument":
+          throw InvalidArgumentFunctionException();
+        case "not-found":
+          throw EmptyReportFunctionException();
+        default:
+          throw GenericFunctionException();
+      }
+    } catch (e) {
+      log('$e');
       throw GenericFunctionException();
     }
   }

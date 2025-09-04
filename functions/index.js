@@ -3,6 +3,7 @@ const admin = require('firebase-admin');
 const cors = require('cors')({ origin: true });
 const { getStorage } = require('firebase-admin/storage');
 const axios = require("axios");
+const { Parser } = require("json2csv");
 // var serviceAccount = require("C:/Users/user/Downloads/dse-elibrary-75930-firebase-adminsdk-fbsvc-9ef43177b0");
 
 admin.initializeApp(
@@ -120,6 +121,89 @@ exports.onboardStudent = functions.https.onCall(async (requests, response) => {
     } catch (error) {
         console.error("Error onboarding student:", error);
         throw new functions.https.HttpsError(error.code || "internal", error.message);
+    }
+});
+
+exports.onboardStudentsFromCSV = functions.https.onCall(async (requests, response) => {
+    try {
+        const { students, UId } = requests.data;
+
+        const userRecord = await admin.auth().getUser(UId);
+        const claims = userRecord.customClaims || {};
+
+        if (!Array.isArray(students)) {
+            throw new functions.https.HttpsError("invalid-argument", "Students data must be an array.");
+        }
+
+        if (!claims.admin) {
+            throw new functions.https.HttpsError("permission-denied", "Only admins can onboard students.");
+        }
+
+        let onboardedStudents = [];
+
+        for (const student of students) {
+            const firstName = student['First Name'];
+            const lastName = student['Last Name'];
+            const email = student['Email'];
+            const level = student['Level'];
+            const gender = student['Gender'];
+
+            // Check for missing fields
+            if (!firstName || !lastName || !email || !level || !gender) {
+                continue;
+            }
+
+            const password = lastName.toLowerCase();
+            const finalPassword = password.length < 6 ? password + '#'.repeat(6 - password.length) : password;
+
+            let newUser;
+            try {
+                newUser = await admin.auth().createUser({
+                    email: email,
+                    password: finalPassword,
+                    emailVerified: true,
+                    displayName: `${firstName} ${lastName}`,
+                });
+            } catch (authError) {
+                console.error(`Error creating user for ${email}: ${authError.message}`);
+                continue;
+            }
+
+            try {
+                await admin.auth().setCustomUserClaims(newUser.uid, { role: "student" });
+            } catch (claimsError) {
+                console.error(`Error setting custom claims for ${email}: ${claimsError.message}`);
+                continue;
+            }
+
+            try {
+                await admin.firestore().collection("students").doc(newUser.uid).set({
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: email,
+                    level: level,
+                    gender: gender,
+                    uid: newUser.uid,
+                    role: 'student',
+                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                    search_text: `${firstName.toLowerCase()}${lastName.toLowerCase()}`,
+                });
+            } catch (firestoreError) {
+                console.error(`Error saving student data for ${email}: ${firestoreError.message}`);
+                continue;
+            }
+
+            onboardedStudents.push({ firstName, lastName, email, uid: newUser.uid });
+        }
+
+        return {
+            success: true,
+            message: `${onboardedStudents.length} students onboarded successfully.`,
+            onboardedStudents
+        };
+    } catch (error) {
+        console.error("Error onboarding students:", error);
+        throw new functions.https.HttpsError("internal", error.message);
     }
 });
 
@@ -447,6 +531,172 @@ exports.getPdfBase64FromUrl = functions.https.onCall(async (request, response) =
     }
 });
 
+exports.exportStudentsToCSV = functions.https.onCall(async (request, response) => {
+    try {
+        const { uid } = request.data;
+
+        // Check if the user is an admin
+        const user = await admin.auth().getUser(uid);
+        const claims = user.customClaims || {};
+        if (!claims.admin) {
+            throw new functions.https.HttpsError('permission-denied', 'Only admins can export data.');
+        }
+
+        // Fetch the students data
+        const studentsRef = admin.firestore().collection('students');
+        const snapshot = await studentsRef.get();
+
+        if (snapshot.empty) {
+            throw new functions.https.HttpsError('not-found', 'No students found.');
+        }
+
+        // Process the students data
+        const studentsData = [];
+        snapshot.forEach(doc => {
+            const student = doc.data();
+            studentsData.push({
+                first_name: student.first_name,
+                last_name: student.last_name,
+                gender: student.gender,
+                email: student.email,
+                level: student.level
+            });
+        });
+
+        // Define CSV fields
+        const fields = [
+            { label: 'First Name', value: 'first_name' },
+            { label: 'Last Name', value: 'last_name' },
+            { label: 'Gender', value: 'gender' },
+            { label: 'Email', value: 'email' },
+            { label: 'Level', value: 'level' }
+        ];
+
+        // Use a CSV writer to convert the data to CSV format
+        const parser = new Parser({ fields });
+        const csv = parser.parse(studentsData);
+        const base64Csv = Buffer.from(csv).toString("base64");
+
+        return {
+            filename: `students_data.csv`,
+            base64Csv,
+        };
+
+    } catch (error) {
+        console.error("CSV Export Error:", error);
+        throw new functions.https.HttpsError(error.code || 'internal', error.message);
+    }
+});
+
+exports.exportLecturersToCSV = functions.https.onCall(async (request, response) => {
+    try {
+        const { uid } = request.data;
+
+        // Check if the user is an admin
+        const user = await admin.auth().getUser(uid);
+        const claims = user.customClaims || {};
+        if (!claims.admin) {
+            throw new functions.https.HttpsError('permission-denied', 'Only admins can export data.');
+        }
+
+        // Fetch the students data
+        const lecturersRef = admin.firestore().collection('lecturers');
+        const snapshot = await lecturersRef.get();
+
+        if (snapshot.empty) {
+            throw new functions.https.HttpsError('not-found', 'No lecturers found.');
+        }
+
+        // Process the students data
+        const lecturersData = [];
+        snapshot.forEach(doc => {
+            const lecturer = doc.data();
+            lecturersData.push({
+                preferred_academic_name: lecturer.preferred_academic_name,
+                gender: lecturer.gender,
+                email: lecturer.email,
+                level_course_advisor: lecturer.level_course_advisor
+            });
+        });
+
+        // Define CSV fields
+        const fields = [
+            { label: 'Name', value: 'preferred_academic_name' },
+            { label: 'Gender', value: 'gender' },
+            { label: 'Email', value: 'email' },
+            { label: 'Level Course Advisor', value: 'level_course_advisor' }
+        ];
+
+        // Use a CSV writer to convert the data to CSV format
+        const parser = new Parser({ fields });
+        const csv = parser.parse(lecturersData);
+        const base64Csv = Buffer.from(csv).toString("base64");
+
+        return {
+            filename: `lecturers_data.csv`,
+            base64Csv,
+        };
+
+    } catch (error) {
+        console.error("CSV Export Error:", error);
+        throw new functions.https.HttpsError(error.code || 'internal', error.message);
+    }
+});
+
+exports.exportHODToCSV = functions.https.onCall(async (request, response) => {
+    try {
+        const { uid } = request.data;
+
+        // Check if the user is an admin
+        const user = await admin.auth().getUser(uid);
+        const claims = user.customClaims || {};
+        if (!claims.admin) {
+            throw new functions.https.HttpsError('permission-denied', 'Only admins can export data.');
+        }
+
+        // Fetch the students data
+        const hodsRef = admin.firestore().collection('hod');
+        const snapshot = await hodsRef.get();
+
+        if (snapshot.empty) {
+            throw new functions.https.HttpsError('not-found', 'No HOD found.');
+        }
+
+        // Process the students data
+        const hodData = [];
+        snapshot.forEach(doc => {
+            const hod = doc.data();
+            hodData.push({
+                preferred_academic_name: hod.preferred_academic_name,
+                gender: hod.gender,
+                email: hod.email,
+                level_course_advisor: hod.level_course_advisor
+            });
+        });
+
+        // Define CSV fields
+        const fields = [
+            { label: 'Name', value: 'preferred_academic_name' },
+            { label: 'Gender', value: 'gender' },
+            { label: 'Email', value: 'email' },
+            { label: 'Level Course Advisor', value: 'level_course_advisor' }
+        ];
+
+        // Use a CSV writer to convert the data to CSV format
+        const parser = new Parser({ fields });
+        const csv = parser.parse(hodData);
+        const base64Csv = Buffer.from(csv).toString("base64");
+
+        return {
+            filename: `hod_data.csv`,
+            base64Csv,
+        };
+
+    } catch (error) {
+        console.error("CSV Export Error:", error);
+        throw new functions.https.HttpsError(error.code || 'internal', error.message);
+    }
+});
 
 
 

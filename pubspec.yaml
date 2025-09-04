@@ -39,6 +39,7 @@ dependencies:
   pdfx: ^2.9.2
   pdf_viewer_plus: ^1.0.1
   url_launcher: ^6.3.2
+  fast_csv: ^0.2.11
 
 dev_dependencies:
   flutter_test:
