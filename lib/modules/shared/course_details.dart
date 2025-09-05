@@ -1016,7 +1016,6 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                                                           final checker =
                                                               await confirmationDialog(
                                                             context: context,
-                                                            mounted: mounted,
                                                             body:
                                                                 'Are you sure you want to download this material',
                                                           );

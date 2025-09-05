@@ -20,10 +20,10 @@ class _TabThreeScreenState extends State<TabThreeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              ccmas,
+              bmas,
               style: textTheme.bodySmall!.copyWith(
                 color: kBlack,
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -31,7 +31,7 @@ class _TabThreeScreenState extends State<TabThreeScreen> {
               height: kSmallPadding,
             ),
             Text(
-              ccmasSubOne,
+              bmasSub,
               style: textTheme.bodySmall!.copyWith(
                 color: kGry900,
                 fontSize: 12.5,
@@ -76,7 +76,18 @@ class _TabThreeScreenState extends State<TabThreeScreen> {
                               height: kMediumPadding,
                             ),
                             Text(
-                              ccmasSubTwo,
+                              ccmas,
+                              style: textTheme.bodySmall!.copyWith(
+                                color: kBlack,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(
+                              height: kSmallPadding,
+                            ),
+                            Text(
+                              ccmasSub,
                               style: textTheme.bodySmall!.copyWith(
                                 color: kGry900,
                                 fontSize: 12.5,

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -40,10 +42,13 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _launchURL() async {
-    if (await canLaunchUrl(Uri.parse(projectExternalUrl))) {
-      await launchUrl(Uri.parse(projectExternalUrl));
+    String url =
+        '$projectExternalUrl?email=${SessionManager.getEmail()}&uid=${SessionManager.getUserId()}&role=${SessionManager.getRole()}&first_name=${SessionManager.getFirstName()}&last_name=${SessionManager.getLastName()}&gender=${SessionManager.getGender()}';
+    log(url);
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
     } else {
-      throw 'Could not launch $projectExternalUrl';
+      throw 'Could not launch $url';
     }
   }
 

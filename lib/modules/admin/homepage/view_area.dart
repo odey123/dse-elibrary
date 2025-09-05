@@ -59,11 +59,6 @@ class _ViewAreaAdminState extends State<ViewAreaAdmin> {
                   navigatorKeyForDesktopWeb: widget.navigatorKey,
                 );
             break;
-          case projectsRoute:
-            builder = (context) => Projects(
-                  navigatorKeyForDesktopWeb: widget.navigatorKey,
-                );
-            break;
           case accreditationRoute:
             builder = (context) => Accreditation(
                   navigatorKeyForDesktopWeb: widget.navigatorKey,

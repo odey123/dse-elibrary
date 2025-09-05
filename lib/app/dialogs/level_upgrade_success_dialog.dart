@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:systems_app/utils/constant.dart';
+import 'package:systems_app/utils/strings.dart';
 import 'package:systems_app/utils/text_button_comp.dart';
 
-Future<bool> confirmationDialog({
+typedef DialogOptionBuilder<T> = Map<String, T?> Function();
+
+Future<T?> levelUpgradeSuccessDialog<T>({
   required BuildContext context,
-  required String body,
+  required String name,
+  required String buttonText,
 }) {
-  return showDialog<bool>(
+  return showDialog(
     context: context,
     builder: (context) {
       return Dialog(
@@ -27,7 +31,7 @@ Future<bool> confirmationDialog({
                   padding:
                       const EdgeInsets.symmetric(horizontal: kSmallPadding),
                   child: Text(
-                    'Confirmation',
+                    'Upgraded Successfully',
                     style: textTheme.displayMedium!.copyWith(
                       fontSize: 22,
                       fontWeight: FontWeight.w600,
@@ -36,11 +40,11 @@ Future<bool> confirmationDialog({
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 26),
                 SizedBox(
                   width: 200,
                   child: Text(
-                    body,
+                    'You have successfully upgraded all students level',
                     style: textTheme.displayMedium!.copyWith(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -54,24 +58,23 @@ Future<bool> confirmationDialog({
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomTextForBorderButton(
-                      text: 'NO',
+                      text: close,
                       onPressed: () {
-                        Navigator.pop(context, false);
+                        Navigator.pop(context);
                       },
                       backgroundColor: kPrimaryWhite,
                       textColor: kDarkYellow,
                       borderColor: kDarkYellow,
                     ),
                     CustomTextButton(
-                      text: 'YES',
+                      text: buttonText,
                       isLoading: false,
                       onPressed: () {
-                        Navigator.pop(context, true);
+                        Navigator.pop(context);
                       },
                       backgroundColor: kDarkYellow,
                       textColor: kPrimaryWhite,
                       borderColor: kTransparent,
-                      icon: Icons.check,
                     ),
                   ],
                 ),
@@ -82,5 +85,5 @@ Future<bool> confirmationDialog({
         ),
       );
     },
-  ).then((value) => value ?? false); // Returns false if no action is taken
+  );
 }

@@ -819,44 +819,6 @@ class _CoursesState extends ConsumerState<Courses> {
                           ),
                         ),
                         YBox(kMediumPadding),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: kRegularPadding,
-                          ),
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: CustomTextButton(
-                              text: addNew,
-                              icon: Icons.add,
-                              onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => const AddCourse(),
-                                ));
-                              },
-                              isLoading: false,
-                              backgroundColor: kDarkYellow.withOpacity(
-                                0.1,
-                              ),
-                              textColor: kDarkYellow,
-                              borderColor: kDarkYellow,
-                              padding: EdgeInsets.only(
-                                left: (!kIsWeb || isPhoneWeb)
-                                    ? kMediumPadding
-                                    : kFullPadding,
-                                right: (!kIsWeb || isPhoneWeb)
-                                    ? kMediumPadding
-                                    : kFullPadding,
-                                bottom: (!kIsWeb || isPhoneWeb)
-                                    ? kSmallPadding
-                                    : kRegularPadding + 2,
-                                top: (!kIsWeb || isPhoneWeb)
-                                    ? kSmallPadding
-                                    : kRegularPadding + 2,
-                              ),
-                            ),
-                          ),
-                        ),
-                        YBox(kLargePadding),
                       ],
                     ),
                   ),

@@ -397,6 +397,32 @@ exports.onboardHod = functions.https.onCall(async (requests, response) => {
     }
 });
 
+exports.deleteUsersFromAuth = functions.https.onCall(async (requests, response) => {
+    try {
+        const { uids } = requests.data;
+
+        if (!uids || !Array.isArray(uids) || uids.length === 0) {
+            throw new functions.https.HttpsError("invalid-argument", "Missing or invalid list of UIDs.");
+        }
+
+        // Loop through each UID and delete the corresponding user from Firebase Authentication
+        for (const uid of uids) {
+            try {
+                await admin.auth().deleteUser(uid);
+                console.log(`User with UID ${uid} deleted successfully.`);
+            } catch (error) {
+                console.log(`Error deleting user with UID ${uid}: ${error.message}`);
+            }
+        }
+
+        return { success: true, message: "Users deleted successfully from Firebase Authentication." };
+
+    } catch (error) {
+        console.error("Error deleting users from Firebase Authentication:", error);
+        throw new functions.https.HttpsError(error.code || "internal", error.message);
+    }
+});
+
 exports.addCourse = functions.https.onCall(async (requests, response) => {
     try {
         const { courseName, courseCode, unit, level, semester, ownerUid, ownerName } = requests.data;

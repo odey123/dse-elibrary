@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:systems_app/services/cloud/database/cloud_database_constants.dart';
@@ -88,6 +90,46 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
       firstNameFieldName: firstName,
       lastNameFieldName: lastName,
     });
+  }
+
+  Future<List<String>> upgradeAllStudents() async {
+    final firestore = initialize();
+    final studentsRef = firestore.collection(studentsCollection);
+
+    List<String> deletedStudentUids = [];
+
+    final snapshot = await studentsRef.get();
+
+    for (final doc in snapshot.docs) {
+      try {
+        final data = doc.data();
+        final currentLevel = int.tryParse(data['level'].toString());
+
+        if (currentLevel == null) {
+          log("Skipping ${doc.id}: invalid level");
+          continue;
+        }
+
+        if (currentLevel < 500) {
+          final newLevel = currentLevel + 100;
+          await doc.reference.update({'level': "$newLevel"});
+          log("Student ${doc.id} upgraded from $currentLevel to $newLevel");
+        } else {
+          final graduateRef = firestore.collection('graduate').doc(doc.id);
+
+          await graduateRef.set(data);
+          await doc.reference.delete();
+
+          deletedStudentUids.add(data['uid']);
+          log("Student ${doc.id} moved to graduate collection");
+        }
+      } catch (e) {
+        log("Error processing ${doc.id}: $e");
+      }
+    }
+
+    // Return the list of UIDs of deleted students
+    return deletedStudentUids;
   }
 
   Stream<List<Student>> getAllStudents({

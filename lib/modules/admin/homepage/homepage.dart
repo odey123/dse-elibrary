@@ -187,16 +187,6 @@ class _HomePageAdminState extends State<HomePageAdmin> {
                           },
                         ),
                         TabItem(
-                          label: projects,
-                          iconPath: AssetPaths.accreditationIcon,
-                          selectedTab: tabSelected,
-                          currentTab: projects,
-                          unselectedtextColor: kPrimaryWhite,
-                          onTap: (tab) {
-                            _launchURL();
-                          },
-                        ),
-                        TabItem(
                           label: accreditation,
                           iconPath: AssetPaths.accreditationIcon,
                           selectedTab: tabSelected,

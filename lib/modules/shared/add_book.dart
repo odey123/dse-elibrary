@@ -467,6 +467,7 @@ class _AddBookState extends ConsumerState<AddBook> {
                                               onTap: () {
                                                 setState(() {
                                                   _isCoverUploaded = false;
+                                                  _coverPicked = null;
                                                 });
                                               },
                                               child: const Icon(
@@ -589,6 +590,7 @@ class _AddBookState extends ConsumerState<AddBook> {
                                               onTap: () {
                                                 setState(() {
                                                   _isBookUploaded = false;
+                                                  _bookPicked = null;
                                                 });
                                               },
                                               child: const Icon(

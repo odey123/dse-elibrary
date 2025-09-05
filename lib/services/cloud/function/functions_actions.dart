@@ -206,6 +206,35 @@ class FunctionsAsyncNotifier extends _$FunctionsAsyncNotifier {
     }
   }
 
+  Future<void> removeUser({
+    required List<String> uids,
+  }) async {
+    try {
+      final response =
+          await initialize().httpsCallable('deleteUsersFromAuth').call({
+        "uids": uids,
+      });
+      if (response.data != null && response.data['message'] != null) {
+        log("Success: ${response.data['message']}");
+      } else {
+        log("Unexpected response format.");
+      }
+    } on FirebaseFunctionsException catch (e) {
+      switch (e.code) {
+        case "permission-denied":
+          throw PermissionDeniedFunctionException();
+        case "deadline-exceeded":
+          throw DeadlineExceededFunctionException();
+        case "resource-exhausted":
+          throw ResourceExhaustedFunctionException();
+        default:
+          throw GenericFunctionException();
+      }
+    } catch (_) {
+      throw GenericFunctionException();
+    }
+  }
+
   Future<void> addCourse({
     required String courseName,
     required String courseCode,

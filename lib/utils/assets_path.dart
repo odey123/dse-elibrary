@@ -7,10 +7,10 @@ class AssetPaths {
   static String avatar = "${imgPath}avatar.png";
   static String upload = "${imgPath}upload.png";
   static String onBoard = "${imgPath}on_board.png";
-  static String departmentLogo = "${imgPath}department_logo.png";
+  static String departmentLogo = "${imgPath}department_logo.jpg";
   static String emptyPage = "${imgPath}empty_page.png";
   static String arrowDownward = "${imgPath}arrow_downward.png";
-  static String accBackgroundOne = "${imgPath}accBackgroundOne.png";
+  static String accBackgroundOne = "${imgPath}accBackgroundOne.jpeg";
   static String accBackgroundTwo = "${imgPath}accBackgroundTwo.png";
   static String accBackgroundThree = "${imgPath}accBackgroundThree.png";
   static String accBackgroundFour = "${imgPath}accBackgroundFour.png";

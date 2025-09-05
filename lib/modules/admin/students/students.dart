@@ -4,6 +4,9 @@ import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:systems_app/app/dialogs/confirmation_dialog.dart';
+import 'package:systems_app/app/dialogs/error_dialog.dart';
+import 'package:systems_app/app/dialogs/level_upgrade_success_dialog.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/app/loading/loading_pdf_screen.dart';
 import 'package:systems_app/app/loading/loading_screen.dart';
@@ -15,6 +18,7 @@ import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
 import 'package:systems_app/services/cloud/database/database_actions.dart';
+import 'package:systems_app/services/cloud/function/function_exception.dart';
 import 'package:systems_app/services/cloud/function/functions_actions.dart';
 import 'package:systems_app/services/cloud/model/student.dart';
 import 'package:systems_app/utils/assets_path.dart';
@@ -39,6 +43,7 @@ class _StudentsState extends ConsumerState<Students> {
   late final FunctionsAsyncNotifier _function;
   final TextEditingController _searchController = TextEditingController();
   bool _showSignOut = false;
+  bool _isLoading = false;
   String _searchTerm = '';
 
   @override
@@ -252,6 +257,78 @@ class _StudentsState extends ConsumerState<Students> {
                                   textColor: kPrimaryWhite,
                                   borderColor: kTransparent,
                                   icon: Icons.add,
+                                ),
+                                XBox(kSmallPadding),
+                                CustomTextButton(
+                                  text: upgradeLevel,
+                                  isLoading: _isLoading,
+                                  onPressed: () async {
+                                    final checker = await confirmationDialog(
+                                      context: context,
+                                      body:
+                                          "Are you sure you want to upgrade all student level to the next level",
+                                    );
+                                    if (checker) {
+                                      try {
+                                        setState(() {
+                                          _isLoading = true;
+                                        });
+                                        LoadingScreen().show(
+                                            context: mainContext,
+                                            showProgress: false);
+                                        final uids = await _database
+                                            .upgradeAllStudents();
+                                        await _function.removeUser(uids: uids);
+                                        setState(() {
+                                          _isLoading = false;
+                                        });
+                                        LoadingScreen().hide();
+                                        await levelUpgradeSuccessDialog(
+                                          context: mainContext,
+                                          name: firstName,
+                                          buttonText: continuee,
+                                        );
+                                      } on Exception catch (e) {
+                                        if (mounted) {
+                                          setState(() {
+                                            _isLoading = false;
+                                          });
+                                          LoadingScreen().hide();
+                                          if (e
+                                              is PermissionDeniedFunctionException) {
+                                            showErrorDialog(
+                                              context: mainContext,
+                                              text:
+                                                  'You do not have permission to upgrade students.',
+                                            );
+                                          } else if (e
+                                              is DeadlineExceededFunctionException) {
+                                            showErrorDialog(
+                                              context: mainContext,
+                                              text:
+                                                  'The request took too long, please try again.',
+                                            );
+                                          } else if (e
+                                              is ResourceExhaustedFunctionException) {
+                                            showErrorDialog(
+                                              context: mainContext,
+                                              text:
+                                                  'Too many requests, please try later.',
+                                            );
+                                          } else if (e
+                                              is GenericFunctionException) {
+                                            showErrorDialog(
+                                              context: mainContext,
+                                              text: 'Please try again later.',
+                                            );
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  backgroundColor: kPrimaryColor,
+                                  textColor: kPrimaryWhite,
+                                  borderColor: kTransparent,
                                 ),
                               ],
                             ),

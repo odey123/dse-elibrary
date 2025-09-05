@@ -1,25 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:systems_app/app/custom_snack_bar/custom_snack_bar_for_empty_field.dart';
+import 'package:systems_app/app/custom_snack_bar/custom_snack_bar_one.dart';
+import 'package:systems_app/app/dialogs/error_dialog.dart';
+import 'package:systems_app/app/dialogs/internet_dialog.dart';
+import 'package:systems_app/app/loading/loading_screen.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
 import 'package:systems_app/routes.dart';
+import 'package:systems_app/services/auth/auth_exception.dart';
+import 'package:systems_app/services/auth/authentication_actions.dart';
 import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
 import 'package:systems_app/utils/strings.dart';
 
-class ForgotPassword extends StatefulWidget {
+class ForgotPassword extends ConsumerStatefulWidget {
   const ForgotPassword({super.key});
 
   @override
-  State<ForgotPassword> createState() => _ForgotPasswordState();
+  ConsumerState<ForgotPassword> createState() => _ForgotPasswordState();
 }
 
-class _ForgotPasswordState extends State<ForgotPassword> {
+class _ForgotPasswordState extends ConsumerState<ForgotPassword> {
   late final TextEditingController _email;
+  late final AuthenticationAsyncNotifier _auth;
+  final FocusNode _focusNodeEmail = FocusNode();
+  Color emailBorderColor = kGry450;
+  bool _isLoading = false;
 
   @override
   void initState() {
+    _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
     _email = TextEditingController();
     super.initState();
+  }
+
+  Future<void> handleSubmit(
+      {required BuildContext context,
+      required AuthenticationAsyncNotifier auth}) async {
+    final email = _email.text;
+
+    if (email.isEmpty) {
+      setState(() {
+        emailBorderColor = kError;
+      });
+      CustomSnackBarForEmptyField.show(
+        context,
+        'Field must not be empty',
+        40,
+      );
+    } else {
+      setState(() {
+        _isLoading = true;
+      });
+      LoadingScreen().show(context: context, showProgress: false);
+      try {
+        await auth.sendPasswordReset(toEmail: email);
+        setState(() {
+          _isLoading = false;
+        });
+        LoadingScreen().hide();
+        if (mounted) {
+          CustomSnackBarOne.show(
+            context,
+            'Reset password link sent!',
+            40,
+          );
+        }
+      } on Exception catch (e) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          LoadingScreen().hide();
+          if (e is UserNotFoundAuthException) {
+            showErrorDialog(
+              context: context,
+              text: 'There is no account associated with this email address.',
+            );
+          } else if (e is NetworkRequestFailedAuthException) {
+            showInternetDialog(
+              context: context,
+              text: "There is no internet connection.",
+            );
+          } else if (e is TooManyRequestAuthException) {
+            showErrorDialog(
+              context: context,
+              text: 'Please attempt it again after some time',
+            );
+          } else if (e is GenericAuthException) {
+            showErrorDialog(
+              context: context,
+              text: 'Please attempt it again after some time',
+            );
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -102,12 +179,14 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5),
                     border: Border.all(
-                      color: kGry450,
+                      color:
+                          _focusNodeEmail.hasFocus ? kGry450 : emailBorderColor,
                     ),
                     color: kTextfieldLoginBackground,
                   ),
                   child: TextField(
                     controller: _email,
+                    focusNode: _focusNodeEmail,
                     keyboardType: TextInputType.emailAddress,
                     enableSuggestions: false,
                     autocorrect: false,
@@ -116,7 +195,13 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
                     ),
-                    onChanged: (value) {},
+                    onChanged: (value) {
+                      if (value.isNotEmpty) {
+                        setState(() {
+                          emailBorderColor = kGry450;
+                        });
+                      }
+                    },
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.only(
                         left: 10,
@@ -132,6 +217,24 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                     cursorColor: kBlack,
                   ),
                 ),
+                (emailBorderColor == kError)
+                    ? const Padding(
+                        padding: EdgeInsets.only(
+                          top: 2,
+                          left: 0,
+                        ),
+                        child: Text(
+                          'Email Address is required.',
+                          style: TextStyle(
+                              fontFamily: 'PlusJakartaSans',
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFFFF0000),
+                              fontSize: 11),
+                        ),
+                      )
+                    : const SizedBox(
+                        height: 6,
+                      ),
                 YBox(kMacroPadding),
                 SizedBox(
                   height: 38,
@@ -149,14 +252,27 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                         borderRadius: BorderRadius.circular(5),
                       ),
                     ),
-                    onPressed: () {},
-                    child: Text(
-                      sendCode,
-                      style: textTheme.titleSmall!.copyWith(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                    onPressed: () async {
+                      await handleSubmit(
+                        context: context,
+                        auth: _auth,
+                      );
+                    },
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: kPrimaryWhite,
+                            ),
+                          )
+                        : Text(
+                            sendCode,
+                            style: textTheme.titleSmall!.copyWith(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
                   ),
                 ),
                 YBox(kMacroPadding),
