@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:systems_app/modules/add_new/add_new.dart';
+import 'package:systems_app/modules/admin/accreditation/accreditation.dart';
+import 'package:systems_app/modules/admin/lecturers/lecturers.dart';
+import 'package:systems_app/modules/admin/students/students.dart';
 import 'package:systems_app/modules/all_courses/all_courses.dart';
 import 'package:systems_app/modules/books/books.dart';
 import 'package:systems_app/modules/courses/courses.dart';
@@ -62,6 +65,21 @@ class _ViewAreaState extends State<ViewArea> {
             break;
           case projectsRoute:
             builder = (context) => Projects(
+                  navigatorKeyForDesktopWeb: widget.navigatorKey,
+                );
+            break;
+          case studentRoute:
+            builder = (context) => Students(
+                  navigatorKeyForDesktopWeb: widget.navigatorKey,
+                );
+            break;
+          case lecturersRoute:
+            builder = (context) => Lecturers(
+                  navigatorKeyForDesktopWeb: widget.navigatorKey,
+                );
+            break;
+          case accreditationRoute:
+            builder = (context) => Accreditation(
                   navigatorKeyForDesktopWeb: widget.navigatorKey,
                 );
             break;

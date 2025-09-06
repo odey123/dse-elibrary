@@ -4,8 +4,9 @@ import 'package:systems_app/app/function/handle_profile_submit.dart';
 import 'package:systems_app/app/function/image_picker.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/modules/reuseables/profile_drawer.dart';
-import 'package:systems_app/modules/shared/profile_image.dart';
+import 'package:systems_app/modules/shared/course_coordinator_list_view.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
+import 'package:systems_app/services/cloud/database/cloud_profile.dart';
 import 'package:systems_app/services/cloud/storage/storage.actions.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:flutter/foundation.dart';
@@ -360,34 +361,27 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                                 ),
                               ),
                               const SizedBox(height: kSmallPadding),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    height: (!kIsWeb || isPhoneWeb) ? 20 : 18,
-                                    width: (!kIsWeb || isPhoneWeb) ? 20 : 18,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: ProfileImage(
-                                      imageUrl: widget.course.profileImageUrl,
-                                      radius: (!kIsWeb || isPhoneWeb) ? 10 : 9,
-                                    ),
-                                  ),
-                                  const SizedBox(width: kPadding),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 2.0),
-                                    child: Text(
-                                      widget.course.ownerName,
-                                      style: textTheme.titleSmall!.copyWith(
-                                        fontSize:
-                                            (!kIsWeb || isPhoneWeb) ? 15 : 13,
-                                        color: kBlack,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              FutureBuilder(
+                                future: _database.getLecturerProfiles(
+                                  uids: widget.course.ownerUids,
+                                ),
+                                builder: (context, snapshot) {
+                                  switch (snapshot.connectionState) {
+                                    case ConnectionState.waiting:
+                                    case ConnectionState.done:
+                                      if (snapshot.hasData) {
+                                        final profile =
+                                            snapshot.data as List<CloudProfile>;
+                                        return CourseCoordinatorListView(
+                                          profiles: profile,
+                                        );
+                                      } else {
+                                        return Container();
+                                      }
+                                    default:
+                                      return Container();
+                                  }
+                                },
                               ),
                             ],
                           ),
@@ -545,7 +539,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                                           final topicsFromStream = snapshot.data
                                               as Map<String, String>;
                                           if (topicsFromStream.isEmpty) {
-                                            return (widget.course.ownerUid.any(
+                                            return (widget.course.ownerUids.any(
                                                     (uid) =>
                                                         uid == widget.userUid))
                                                 ? Padding(
@@ -626,7 +620,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                (widget.course.ownerUid.any(
+                                                (widget.course.ownerUids.any(
                                                         (uid) =>
                                                             uid ==
                                                             widget.userUid))
@@ -816,7 +810,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                                           final materialsFromStream = snapshot
                                               .data as Map<String, String>;
                                           if (materialsFromStream.isEmpty) {
-                                            return (widget.course.ownerUid.any(
+                                            return (widget.course.ownerUids.any(
                                                     (uid) =>
                                                         uid == widget.userUid))
                                                 ? Padding(
@@ -899,7 +893,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
-                                                  (widget.course.ownerUid.any(
+                                                  (widget.course.ownerUids.any(
                                                           (uid) =>
                                                               uid ==
                                                               widget.userUid))

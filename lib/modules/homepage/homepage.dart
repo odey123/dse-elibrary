@@ -229,6 +229,43 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                         });
                                                       },
                                                     ),
+                                              (role == hodRole)
+                                                  ? TabItem(
+                                                      label: students,
+                                                      iconPath:
+                                                          AssetPaths.students,
+                                                      selectedTab: tabSelected,
+                                                      currentTab: students,
+                                                      unselectedtextColor:
+                                                          kPrimaryWhite,
+                                                      onTap: (tab) {
+                                                        navigateTo(studentRoute,
+                                                            navigatorKeyForDesktopWeb);
+                                                        setState(() {
+                                                          tabSelected = tab;
+                                                        });
+                                                      },
+                                                    )
+                                                  : Container(),
+                                              (role == hodRole)
+                                                  ? TabItem(
+                                                      label: lecturers,
+                                                      iconPath: AssetPaths
+                                                          .projectIcon,
+                                                      selectedTab: tabSelected,
+                                                      currentTab: lecturers,
+                                                      unselectedtextColor:
+                                                          kPrimaryWhite,
+                                                      onTap: (tab) {
+                                                        navigateTo(
+                                                            lecturersRoute,
+                                                            navigatorKeyForDesktopWeb);
+                                                        setState(() {
+                                                          tabSelected = tab;
+                                                        });
+                                                      },
+                                                    )
+                                                  : Container(),
                                               (role == lecturerRole ||
                                                       role == hodRole)
                                                   ? TabItem(
@@ -301,6 +338,28 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                   _launchURL();
                                                 },
                                               ),
+                                              (role == hodRole)
+                                                  ? TabItem(
+                                                      label: accreditation,
+                                                      iconPath: AssetPaths
+                                                          .accreditationIcon,
+                                                      selectedTab: tabSelected,
+                                                      currentTab: accreditation,
+                                                      unselectedtextColor:
+                                                          kPrimaryWhite,
+                                                      onTap: (tab) {
+                                                        navigateTo(
+                                                          accreditationRoute,
+                                                          navigatorKeyForDesktopWeb,
+                                                        );
+                                                        setState(
+                                                          () {
+                                                            tabSelected = tab;
+                                                          },
+                                                        );
+                                                      },
+                                                    )
+                                                  : Container(),
                                             ],
                                           ),
                                         ),

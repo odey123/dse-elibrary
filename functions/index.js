@@ -13,28 +13,28 @@ admin.initializeApp(
     // }
 );
 
-const users = [
-    { email: 'systemselibrarya01@gmail.com', password: 'Systems@1999', },
-]
+// const users = [
+//     { email: 'systemselibrarya01@gmail.com', password: 'Systems@1999', },
+// ]
 
-users.forEach(async (user) => {
-    try {
-        const userRecord = await admin.auth().createUser({
-            email: user.email,
-            password: user.password,
-            emailVerified: true,
-        });
+// users.forEach(async (user) => {
+//     try {
+//         const userRecord = await admin.auth().createUser({
+//             email: user.email,
+//             password: user.password,
+//             emailVerified: true,
+//         });
 
-        // Set custom claims to mark as admin
-        await admin.auth().setCustomUserClaims(userRecord.uid, { admin: true });
+//         // Set custom claims to mark as admin
+//         await admin.auth().setCustomUserClaims(userRecord.uid, { admin: true });
 
-        console.log(`Admin user created with UID: ${userRecord.uid}`);
+//         console.log(`Admin user created with UID: ${userRecord.uid}`);
 
-    } catch (error) {
-        console.error('Error creating admin user:', error);
-    }
+//     } catch (error) {
+//         console.error('Error creating admin user:', error);
+//     }
 
-})
+// })
 
 exports.onboardStudent = functions.https.onCall(async (requests, response) => {
     try {
@@ -43,7 +43,7 @@ exports.onboardStudent = functions.https.onCall(async (requests, response) => {
         const userRecord = await admin.auth().getUser(UId);
         const claims = userRecord.customClaims || {};
 
-        if (!claims.admin) {
+        if (!(claims.admin || claims.role === "hod")) {
             throw new functions.https.HttpsError("permission-denied", "Only admins can onboard students.");
         }
 
@@ -135,7 +135,7 @@ exports.onboardStudentsFromCSV = functions.https.onCall(async (requests, respons
             throw new functions.https.HttpsError("invalid-argument", "Students data must be an array.");
         }
 
-        if (!claims.admin) {
+        if (!(claims.admin || claims.role === "hod")) {
             throw new functions.https.HttpsError("permission-denied", "Only admins can onboard students.");
         }
 
@@ -223,8 +223,8 @@ exports.onboardLecturer = functions.https.onCall(async (requests, response) => {
         const userRecord = await admin.auth().getUser(UId);
         const claims = userRecord.customClaims || {};
 
-        if (!claims.admin) {
-            throw new functions.https.HttpsError("permission-denied", "Only admins can onboard lecturers.");
+        if (!(claims.admin || claims.role === "hod")) {
+            throw new functions.https.HttpsError("permission-denied", "Only admins can onboard students.");
         }
 
         if (!firstName || !lastName || !email || !preferredAcademicName || !prefix || !levelCourseAdvisor || !gender || !UId) {
@@ -401,8 +401,11 @@ exports.deleteUsersFromAuth = functions.https.onCall(async (requests, response) 
     try {
         const { uids } = requests.data;
 
-        if (!uids || !Array.isArray(uids) || uids.length === 0) {
-            throw new functions.https.HttpsError("invalid-argument", "Missing or invalid list of UIDs.");
+        const userRecord = await admin.auth().getUser(uids);
+        const claims = userRecord.customClaims || {};
+
+        if (!(claims.admin || claims.role === "hod")) {
+            throw new functions.https.HttpsError("permission-denied", "Only admins can upgrade data.");
         }
 
         // Loop through each UID and delete the corresponding user from Firebase Authentication
@@ -434,7 +437,7 @@ exports.addCourse = functions.https.onCall(async (requests, response) => {
         const userRecord = await admin.auth().getUser(ownerUid);
         const claims = userRecord.customClaims || {};
 
-        if (claims.role !== "lecturer") {
+        if (claims.role !== "lecturer" || claims.role !== "hod") {
             throw new functions.https.HttpsError("permission-denied", "Only lecturers can add courses.");
         }
 
@@ -564,7 +567,7 @@ exports.exportStudentsToCSV = functions.https.onCall(async (request, response) =
         // Check if the user is an admin
         const user = await admin.auth().getUser(uid);
         const claims = user.customClaims || {};
-        if (!claims.admin) {
+        if (!(claims.admin || claims.role === "hod")) {
             throw new functions.https.HttpsError('permission-denied', 'Only admins can export data.');
         }
 
@@ -621,7 +624,7 @@ exports.exportLecturersToCSV = functions.https.onCall(async (request, response) 
         // Check if the user is an admin
         const user = await admin.auth().getUser(uid);
         const claims = user.customClaims || {};
-        if (!claims.admin) {
+        if (!(claims.admin || claims.role === "hod")) {
             throw new functions.https.HttpsError('permission-denied', 'Only admins can export data.');
         }
 

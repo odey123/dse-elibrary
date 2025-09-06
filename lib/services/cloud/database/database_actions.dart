@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:systems_app/services/auth/auth_exception.dart';
 import 'package:systems_app/services/cloud/database/cloud_database_constants.dart';
 import 'package:systems_app/services/cloud/database/cloud_database_exception.dart';
 import 'package:systems_app/services/cloud/database/cloud_profile.dart';
@@ -458,6 +459,27 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
         return [];
       }
     });
+  }
+
+  Future<List<CloudProfile>> getLecturerProfiles({
+    required List<String> uids,
+  }) async {
+    try {
+      List<CloudProfile> lecturerProfiles = [];
+      for (String uid in uids) {
+        final profile =
+            await initialize().collection(lecturersCollection).doc(uid).get();
+        if (profile.exists) {
+          lecturerProfiles.add(CloudProfile.fromSnapshot(profile));
+        } else {
+          log("Lecturer with UID $uid not found.");
+        }
+      }
+      return lecturerProfiles;
+    } catch (_) {
+      log("Lecturer with profile not found.");
+      throw GenericAuthException();
+    }
   }
 
   Future<void> addImageUrlToUserProfile({
