@@ -399,9 +399,9 @@ exports.onboardHod = functions.https.onCall(async (requests, response) => {
 
 exports.deleteUsersFromAuth = functions.https.onCall(async (requests, response) => {
     try {
-        const { uids } = requests.data;
+        const { uids, UId } = requests.data;
 
-        const userRecord = await admin.auth().getUser(uids);
+        const userRecord = await admin.auth().getUser(UId);
         const claims = userRecord.customClaims || {};
 
         if (!(claims.admin || claims.role === "hod")) {

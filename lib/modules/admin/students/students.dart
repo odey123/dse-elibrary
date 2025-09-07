@@ -278,7 +278,10 @@ class _StudentsState extends ConsumerState<Students> {
                                             showProgress: false);
                                         final uids = await _database
                                             .upgradeAllStudents();
-                                        await _function.removeUser(uids: uids);
+                                        await _function.removeUser(
+                                          uids: uids,
+                                          adminUId: _auth.currentUser!.uid,
+                                        );
                                         setState(() {
                                           _isLoading = false;
                                         });

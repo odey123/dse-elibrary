@@ -208,11 +208,13 @@ class FunctionsAsyncNotifier extends _$FunctionsAsyncNotifier {
 
   Future<void> removeUser({
     required List<String> uids,
+    required String adminUId,
   }) async {
     try {
       final response =
           await initialize().httpsCallable('deleteUsersFromAuth').call({
         "uids": uids,
+        "UId": adminUId,
       });
       if (response.data != null && response.data['message'] != null) {
         log("Success: ${response.data['message']}");
