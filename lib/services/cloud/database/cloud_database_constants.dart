@@ -6,6 +6,7 @@ const genderFieldName = 'gender';
 const uidFieldName = 'uid';
 const prefixFieldName = 'prefix';
 const studentsCollection = 'students';
+const graduateCollection = 'graduate';
 const lecturersCollection = 'lecturers';
 const hodCollection = 'hod';
 const projectsCollection = 'projects';

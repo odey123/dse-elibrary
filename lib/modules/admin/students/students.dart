@@ -42,6 +42,7 @@ class _StudentsState extends ConsumerState<Students> {
   late final DatabaseAsyncNotifier _database;
   late final FunctionsAsyncNotifier _function;
   final TextEditingController _searchController = TextEditingController();
+  String? selectedLevelCategory;
   bool _showSignOut = false;
   bool _isLoading = false;
   String _searchTerm = '';
@@ -74,269 +75,327 @@ class _StudentsState extends ConsumerState<Students> {
     });
   }
 
+  Future<String?> _showMenu({
+    required BuildContext context,
+    required double width,
+    required List<String> listItems,
+  }) async {
+    final result = await showMenu(
+      context: context,
+      position: const RelativeRect.fromLTRB(
+        100,
+        120,
+        60,
+        0,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+        side: const BorderSide(
+          width: 0.2,
+        ),
+      ),
+      items: List<PopupMenuItem<String>>.generate(
+        listItems.length,
+        (int index) {
+          String name = listItems[index];
+          return PopupMenuItem<String>(
+            value: name,
+            height: 35,
+            child: SizedBox(
+              width: width,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 13,
+                      bottom: 13,
+                    ),
+                    child: Text(
+                      name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 13,
+                        color: kGry800,
+                      ),
+                    ),
+                  ),
+                  (index != listItems.length - 1)
+                      ? Container(
+                          height: 0.3,
+                          width: width,
+                          decoration: const BoxDecoration(
+                            color: kGry800,
+                          ),
+                        )
+                      : Container(),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    if (result == all) {
+      return null;
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext mainContext) {
     return PopScope(
       canPop: false,
       child: Scaffold(
         backgroundColor: kPrimaryWhite,
-        body: StreamBuilder(
-          stream: _database.getAllStudents(
-            searchTerm: _searchTerm,
-          ),
-          builder: (context, snapshot) {
-            switch (snapshot.connectionState) {
-              case ConnectionState.waiting:
-              case ConnectionState.active:
-                if (snapshot.hasData) {
-                  final students = snapshot.data as List<Student>;
-                  return Stack(
-                    alignment: Alignment.topRight,
-                    children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          (isPhoneWeb)
-                              ? Container()
-                              : Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: kMediumPadding,
-                                    vertical: kPadding,
+        body: Stack(
+          alignment: Alignment.topRight,
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                (isPhoneWeb)
+                    ? Container()
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: kMediumPadding,
+                          vertical: kPadding,
+                        ),
+                        child: SingleChildScrollView(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                },
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                hoverColor: Colors.transparent,
+                                child: Container(
+                                  padding: const EdgeInsets.only(
+                                    right: kMediumPadding,
+                                    top: kSmallPadding,
+                                    bottom: kSmallPadding,
                                   ),
-                                  child: SingleChildScrollView(
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        InkWell(
-                                          onTap: () {
-                                            Navigator.pop(context);
-                                          },
-                                          splashColor: Colors.transparent,
-                                          highlightColor: Colors.transparent,
-                                          hoverColor: Colors.transparent,
-                                          child: Container(
-                                            padding: const EdgeInsets.only(
-                                              right: kMediumPadding,
-                                              top: kSmallPadding,
-                                              bottom: kSmallPadding,
-                                            ),
-                                            decoration: const BoxDecoration(
-                                              color: kTransparent,
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.arrow_back_ios,
-                                                  color: kBlack,
-                                                  size: 16,
-                                                ),
-                                                XBox(kPadding),
-                                                Transform.translate(
-                                                  offset: const Offset(0, 1),
-                                                  child: Text(
-                                                    'Students',
-                                                    style: textTheme
-                                                        .titleMedium!
-                                                        .copyWith(
-                                                      fontSize: 13,
-                                                      color: kBlack,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                  decoration: const BoxDecoration(
+                                    color: kTransparent,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.arrow_back_ios,
+                                        color: kBlack,
+                                        size: 16,
+                                      ),
+                                      XBox(kPadding),
+                                      Transform.translate(
+                                        offset: const Offset(0, 1),
+                                        child: Text(
+                                          'Students',
+                                          style:
+                                              textTheme.titleMedium!.copyWith(
+                                            fontSize: 13,
+                                            color: kBlack,
                                           ),
                                         ),
-                                        Row(
-                                          children: [
-                                            Container(
-                                              height: 25,
-                                              width: 25,
-                                              padding: const EdgeInsets.all(6),
-                                              decoration: const BoxDecoration(
-                                                color: kLightSkyeBlue,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: SvgPicture.asset(
-                                                AssetPaths.notificationIcon,
-                                                fit: BoxFit.scaleDown,
-                                              ),
-                                            ),
-                                            XBox(kRegularPadding),
-                                            Container(
-                                              height: 25,
-                                              width: 1,
-                                              decoration: const BoxDecoration(
-                                                  color: kLightAsh),
-                                            ),
-                                            XBox(kRegularPadding),
-                                            InkWell(
-                                              overlayColor:
-                                                  const WidgetStatePropertyAll(
-                                                      kTransparent),
-                                              hoverColor: kTransparent,
-                                              onTap: () {
-                                                setState(() {
-                                                  _showSignOut = !_showSignOut;
-                                                });
-                                              },
-                                              child: Container(
-                                                height: 26,
-                                                width: 26,
-                                                decoration: const BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                child: ProfileImage(
-                                                  imageUrl: SessionManager
-                                                          .getProfileImageUrl() ??
-                                                      '',
-                                                  radius: 14,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                      ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Container(
+                                    height: 25,
+                                    width: 25,
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: const BoxDecoration(
+                                      color: kLightSkyeBlue,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: SvgPicture.asset(
+                                      AssetPaths.notificationIcon,
+                                      fit: BoxFit.scaleDown,
                                     ),
                                   ),
-                                ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              left: kRegularPadding,
-                              right: kRegularPadding,
-                              top: kRegularPadding,
-                              bottom: kPadding,
-                            ),
-                            child: Row(
-                              children: [
-                                CustomTextButton(
-                                  text: exportCsv,
-                                  onPressed: () async {
-                                    LoadingPdfScreen().show(
-                                        context: mainContext,
-                                        showProgress: true);
-                                    try {
-                                      final currentUser = _auth.currentUser;
-                                      final byte =
-                                          await _function.exportStudentsToCSv(
-                                        uid: currentUser!.uid,
-                                      );
-                                      LoadingPdfScreen().hide();
-                                      if (byte != null) {
-                                        openFileInNewTab(
-                                          byte,
-                                          textCSV,
-                                          'Students.csv',
-                                        );
-                                      }
-                                    } catch (_) {}
-                                  },
-                                  backgroundColor: kPrimaryWhite,
-                                  textColor: kDarkYellow,
-                                  borderColor: kGry500,
-                                  isLoading: false,
-                                  padding: const EdgeInsets.only(
-                                    left: kMediumPadding,
-                                    right: kMediumPadding,
-                                    top: kMediumPadding + 2,
-                                    bottom: kMediumPadding - 2,
+                                  XBox(kRegularPadding),
+                                  Container(
+                                    height: 25,
+                                    width: 1,
+                                    decoration:
+                                        const BoxDecoration(color: kLightAsh),
                                   ),
-                                ),
-                                XBox(kSmallPadding),
-                                CustomTextButton(
-                                  text: addStudent,
-                                  isLoading: false,
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .push(MaterialPageRoute(
-                                      builder: (context) => const AddStudents(),
-                                    ));
-                                  },
-                                  backgroundColor: kDarkYellow,
-                                  textColor: kPrimaryWhite,
-                                  borderColor: kTransparent,
-                                  icon: Icons.add,
-                                ),
-                                XBox(kSmallPadding),
-                                CustomTextButton(
-                                  text: upgradeLevel,
-                                  isLoading: _isLoading,
-                                  onPressed: () async {
-                                    final checker = await confirmationDialog(
-                                      context: context,
-                                      body:
-                                          "Are you sure you want to upgrade all student level to the next level",
-                                    );
-                                    if (checker) {
-                                      try {
-                                        setState(() {
-                                          _isLoading = true;
-                                        });
-                                        LoadingScreen().show(
-                                            context: mainContext,
-                                            showProgress: false);
-                                        final uids = await _database
-                                            .upgradeAllStudents();
-                                        await _function.removeUser(
-                                          uids: uids,
-                                          adminUId: _auth.currentUser!.uid,
-                                        );
-                                        setState(() {
-                                          _isLoading = false;
-                                        });
-                                        LoadingScreen().hide();
-                                        await levelUpgradeSuccessDialog(
-                                          context: mainContext,
-                                          name: firstName,
-                                          buttonText: continuee,
-                                        );
-                                      } on Exception catch (e) {
-                                        if (mounted) {
-                                          setState(() {
-                                            _isLoading = false;
-                                          });
-                                          LoadingScreen().hide();
-                                          if (e
-                                              is PermissionDeniedFunctionException) {
-                                            showErrorDialog(
-                                              context: mainContext,
-                                              text:
-                                                  'You do not have permission to upgrade students.',
-                                            );
-                                          } else if (e
-                                              is DeadlineExceededFunctionException) {
-                                            showErrorDialog(
-                                              context: mainContext,
-                                              text:
-                                                  'The request took too long, please try again.',
-                                            );
-                                          } else if (e
-                                              is ResourceExhaustedFunctionException) {
-                                            showErrorDialog(
-                                              context: mainContext,
-                                              text:
-                                                  'Too many requests, please try later.',
-                                            );
-                                          } else if (e
-                                              is GenericFunctionException) {
-                                            showErrorDialog(
-                                              context: mainContext,
-                                              text: 'Please try again later.',
-                                            );
-                                          }
-                                        }
-                                      }
-                                    }
-                                  },
-                                  backgroundColor: kPrimaryColor,
-                                  textColor: kPrimaryWhite,
-                                  borderColor: kTransparent,
-                                ),
-                              ],
-                            ),
+                                  XBox(kRegularPadding),
+                                  InkWell(
+                                    overlayColor: const WidgetStatePropertyAll(
+                                        kTransparent),
+                                    hoverColor: kTransparent,
+                                    onTap: () {
+                                      setState(() {
+                                        _showSignOut = !_showSignOut;
+                                      });
+                                    },
+                                    child: Container(
+                                      height: 26,
+                                      width: 26,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: ProfileImage(
+                                        imageUrl: SessionManager
+                                                .getProfileImageUrl() ??
+                                            '',
+                                        radius: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ],
                           ),
-                          Flexible(
+                        ),
+                      ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: kRegularPadding,
+                    right: kRegularPadding,
+                    top: kRegularPadding,
+                    bottom: kPadding,
+                  ),
+                  child: Row(
+                    children: [
+                      CustomTextButton(
+                        text: exportCsv,
+                        onPressed: () async {
+                          LoadingPdfScreen()
+                              .show(context: mainContext, showProgress: true);
+                          try {
+                            final currentUser = _auth.currentUser;
+                            final byte = await _function.exportStudentsToCSv(
+                              uid: currentUser!.uid,
+                            );
+                            LoadingPdfScreen().hide();
+                            if (byte != null) {
+                              openFileInNewTab(
+                                byte,
+                                textCSV,
+                                'Students.csv',
+                              );
+                            }
+                          } catch (_) {}
+                        },
+                        backgroundColor: kPrimaryWhite,
+                        textColor: kDarkYellow,
+                        borderColor: kGry500,
+                        isLoading: false,
+                        padding: const EdgeInsets.only(
+                          left: kMediumPadding,
+                          right: kMediumPadding,
+                          top: kMediumPadding + 2,
+                          bottom: kMediumPadding - 2,
+                        ),
+                      ),
+                      XBox(kSmallPadding),
+                      CustomTextButton(
+                        text: addStudent,
+                        isLoading: false,
+                        onPressed: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => const AddStudents(),
+                          ));
+                        },
+                        backgroundColor: kDarkYellow,
+                        textColor: kPrimaryWhite,
+                        borderColor: kTransparent,
+                        icon: Icons.add,
+                      ),
+                      XBox(kSmallPadding),
+                      CustomTextButton(
+                        text: upgradeLevel,
+                        isLoading: _isLoading,
+                        onPressed: () async {
+                          final checker = await confirmationDialog(
+                            context: context,
+                            body:
+                                "Are you sure you want to upgrade all student level to the next level",
+                          );
+                          if (checker) {
+                            try {
+                              setState(() {
+                                _isLoading = true;
+                              });
+                              LoadingScreen().show(
+                                  context: mainContext, showProgress: false);
+                              final uids = await _database.upgradeAllStudents();
+                              await _function.removeUser(
+                                uids: uids,
+                                adminUId: _auth.currentUser!.uid,
+                              );
+                              setState(() {
+                                _isLoading = false;
+                              });
+                              LoadingScreen().hide();
+                              await levelUpgradeSuccessDialog(
+                                context: mainContext,
+                                name: firstName,
+                                buttonText: continuee,
+                              );
+                            } on Exception catch (e) {
+                              if (mounted) {
+                                setState(() {
+                                  _isLoading = false;
+                                });
+                                LoadingScreen().hide();
+                                if (e is PermissionDeniedFunctionException) {
+                                  showErrorDialog(
+                                    context: mainContext,
+                                    text:
+                                        'You do not have permission to upgrade students.',
+                                  );
+                                } else if (e
+                                    is DeadlineExceededFunctionException) {
+                                  showErrorDialog(
+                                    context: mainContext,
+                                    text:
+                                        'The request took too long, please try again.',
+                                  );
+                                } else if (e
+                                    is ResourceExhaustedFunctionException) {
+                                  showErrorDialog(
+                                    context: mainContext,
+                                    text:
+                                        'Too many requests, please try later.',
+                                  );
+                                } else if (e is GenericFunctionException) {
+                                  showErrorDialog(
+                                    context: mainContext,
+                                    text: 'Please try again later.',
+                                  );
+                                }
+                              }
+                            }
+                          }
+                        },
+                        backgroundColor: kPrimaryColor,
+                        textColor: kPrimaryWhite,
+                        borderColor: kTransparent,
+                      ),
+                    ],
+                  ),
+                ),
+                StreamBuilder(
+                  stream: _database.getAllStudents(
+                    filter: selectedLevelCategory,
+                    searchTerm: _searchTerm,
+                  ),
+                  builder: (context, snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.waiting:
+                      case ConnectionState.active:
+                        if (snapshot.hasData) {
+                          final students = snapshot.data as List<Student>;
+                          return Flexible(
                             child: SingleChildScrollView(
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -361,8 +420,20 @@ class _StudentsState extends ConsumerState<Students> {
                                         Row(
                                           children: [
                                             CustomTextForBorderButton(
-                                              text: addFilter,
-                                              onPressed: () {},
+                                              text: selectedLevelCategory ??
+                                                  addFilter,
+                                              onPressed: () async {
+                                                final selected =
+                                                    await _showMenu(
+                                                  context: context,
+                                                  width: 400,
+                                                  listItems: levels,
+                                                );
+                                                setState(() {
+                                                  selectedLevelCategory =
+                                                      selected;
+                                                });
+                                              },
                                               backgroundColor: kPrimaryWhite,
                                               textColor: kGry600,
                                               borderColor: kGry500,
@@ -447,168 +518,161 @@ class _StudentsState extends ConsumerState<Students> {
                                 ),
                               ),
                             ),
-                          )
+                          );
+                        } else {
+                          return EmptyStateWidget(
+                            namePlaceholder: student,
+                            actionButton: CustomTextButton(
+                              text: addStudent,
+                              isLoading: false,
+                              onPressed: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => const AddStudents(),
+                                ));
+                              },
+                              backgroundColor: kDarkYellow,
+                              textColor: kPrimaryWhite,
+                              borderColor: kTransparent,
+                              icon: Icons.add,
+                            ),
+                          );
+                        }
+                      default:
+                        return EmptyStateWidget(
+                          namePlaceholder: student,
+                          actionButton: CustomTextButton(
+                            text: addStudent,
+                            isLoading: false,
+                            onPressed: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => const AddStudents(),
+                              ));
+                            },
+                            backgroundColor: kDarkYellow,
+                            textColor: kPrimaryWhite,
+                            borderColor: kTransparent,
+                            icon: Icons.add,
+                          ),
+                        );
+                    }
+                  },
+                )
+              ],
+            ),
+            _showSignOut
+                ? Padding(
+                    padding: const EdgeInsets.only(
+                      top: kFullPadding,
+                      right: kRegularPadding,
+                    ),
+                    child: Container(
+                      width: 200,
+                      decoration: BoxDecoration(
+                          color: kPrimaryWhite,
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(4),
+                          ),
+                          border: Border.all(
+                            color: kGry500,
+                            width: 0.5,
+                          )),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: kSmallPadding,
+                        horizontal: kSmallPadding,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            height: 28,
+                            width: 28,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                            ),
+                            child: ProfileImage(
+                              imageUrl:
+                                  SessionManager.getProfileImageUrl() ?? '',
+                              radius: 14,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: kMediumPadding),
+                            child: Text(
+                              'Admin',
+                              style: textTheme.titleMedium!.copyWith(
+                                fontSize: 13,
+                                color: kBlack,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                top: kSmallPadding, bottom: kPadding),
+                            child: Container(
+                              height: 1,
+                              decoration: const BoxDecoration(
+                                color: kGry600,
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () async {
+                              LoadingScreen()
+                                  .show(context: context, showProgress: true);
+                              await _auth.logOut();
+                              LoadingScreen().hide();
+                              Navigator.of(context, rootNavigator: true)
+                                  .pushNamedAndRemoveUntil(
+                                signInRoute,
+                                (route) => false,
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  top: kSmallPadding, bottom: kPadding),
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset(AssetPaths.logoutIcon),
+                                  XBox(kPadding),
+                                  Text(
+                                    logout,
+                                    style: textTheme.titleMedium!.copyWith(
+                                      fontSize: 13,
+                                      color: kBlack,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                          //   InkWell(
+                          //     onTap: () {},
+                          //     child: Padding(
+                          //       padding: const EdgeInsets.only(
+                          //         top: kSmallPadding,
+                          //       ),
+                          //       child: Row(
+                          //         children: [
+                          //           SvgPicture.asset(AssetPaths.profileIcon),
+                          //           XBox(kPadding),
+                          //           Text(
+                          //             pROfile,
+                          //             style: textTheme.titleMedium!.copyWith(
+                          //               fontSize: 13,
+                          //               color: kBlack,
+                          //             ),
+                          //           )
+                          //         ],
+                          //       ),
+                          //     ),
+                          //   ),
                         ],
                       ),
-                      _showSignOut
-                          ? Padding(
-                              padding: const EdgeInsets.only(
-                                top: kFullPadding,
-                                right: kRegularPadding,
-                              ),
-                              child: Container(
-                                width: 200,
-                                decoration: BoxDecoration(
-                                    color: kPrimaryWhite,
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.circular(4),
-                                    ),
-                                    border: Border.all(
-                                      color: kGry500,
-                                      width: 0.5,
-                                    )),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: kSmallPadding,
-                                  horizontal: kSmallPadding,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      height: 28,
-                                      width: 28,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: ProfileImage(
-                                        imageUrl: SessionManager
-                                                .getProfileImageUrl() ??
-                                            '',
-                                        radius: 14,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                          top: kMediumPadding),
-                                      child: Text(
-                                        'Admin',
-                                        style: textTheme.titleMedium!.copyWith(
-                                          fontSize: 13,
-                                          color: kBlack,
-                                        ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                          top: kSmallPadding, bottom: kPadding),
-                                      child: Container(
-                                        height: 1,
-                                        decoration: const BoxDecoration(
-                                          color: kGry600,
-                                        ),
-                                      ),
-                                    ),
-                                    InkWell(
-                                      onTap: () async {
-                                        LoadingScreen().show(
-                                            context: context,
-                                            showProgress: true);
-                                        await _auth.logOut();
-                                        LoadingScreen().hide();
-                                        Navigator.of(context,
-                                                rootNavigator: true)
-                                            .pushNamedAndRemoveUntil(
-                                          signInRoute,
-                                          (route) => false,
-                                        );
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: kSmallPadding,
-                                            bottom: kPadding),
-                                        child: Row(
-                                          children: [
-                                            SvgPicture.asset(
-                                                AssetPaths.logoutIcon),
-                                            XBox(kPadding),
-                                            Text(
-                                              logout,
-                                              style: textTheme.titleMedium!
-                                                  .copyWith(
-                                                fontSize: 13,
-                                                color: kBlack,
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    //   InkWell(
-                                    //     onTap: () {},
-                                    //     child: Padding(
-                                    //       padding: const EdgeInsets.only(
-                                    //         top: kSmallPadding,
-                                    //       ),
-                                    //       child: Row(
-                                    //         children: [
-                                    //           SvgPicture.asset(AssetPaths.profileIcon),
-                                    //           XBox(kPadding),
-                                    //           Text(
-                                    //             pROfile,
-                                    //             style: textTheme.titleMedium!.copyWith(
-                                    //               fontSize: 13,
-                                    //               color: kBlack,
-                                    //             ),
-                                    //           )
-                                    //         ],
-                                    //       ),
-                                    //     ),
-                                    //   ),
-                                  ],
-                                ),
-                              ),
-                            )
-                          : Container()
-                    ],
-                  );
-                } else {
-                  return EmptyStateWidget(
-                    namePlaceholder: student,
-                    actionButton: CustomTextButton(
-                      text: addStudent,
-                      isLoading: false,
-                      onPressed: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => const AddStudents(),
-                        ));
-                      },
-                      backgroundColor: kDarkYellow,
-                      textColor: kPrimaryWhite,
-                      borderColor: kTransparent,
-                      icon: Icons.add,
                     ),
-                  );
-                }
-              default:
-                return EmptyStateWidget(
-                  namePlaceholder: student,
-                  actionButton: CustomTextButton(
-                    text: addStudent,
-                    isLoading: false,
-                    onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const AddStudents(),
-                      ));
-                    },
-                    backgroundColor: kDarkYellow,
-                    textColor: kPrimaryWhite,
-                    borderColor: kTransparent,
-                    icon: Icons.add,
-                  ),
-                );
-            }
-          },
+                  )
+                : Container()
+          ],
         ),
       ),
     );

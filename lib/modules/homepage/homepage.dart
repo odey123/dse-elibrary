@@ -43,7 +43,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Future<void> _launchURL() async {
     String url =
-        '$projectExternalUrl?email=${SessionManager.getEmail()}&uid=${SessionManager.getUserId()}&role=${SessionManager.getRole()}&first_name=${SessionManager.getFirstName()}&last_name=${SessionManager.getLastName()}&gender=${SessionManager.getGender()}';
+        '$projectExternalUrl?email=${SessionManager.getEmail()}&role=${SessionManager.getRole()}';
     log(url);
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url));

@@ -134,21 +134,30 @@ class DatabaseAsyncNotifier extends _$DatabaseAsyncNotifier {
   }
 
   Stream<List<Student>> getAllStudents({
+    required String? filter,
     String searchTerm = '',
   }) {
+    Query<Map<String, dynamic>> query =
+        initialize().collection(studentsCollection);
+
+    if (filter != null && filter.isNotEmpty) {
+      query = query.where(levelFieldName, isEqualTo: filter);
+    }
+
     final normalizedSearchTerm =
         searchTerm.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
 
-    return initialize().collection(studentsCollection).snapshots().map((event) {
-      if (event.docs.isEmpty) return [];
+    if (normalizedSearchTerm.isNotEmpty) {
+      query = query.orderBy(searchFieldName).startAt(
+          [normalizedSearchTerm]).endAt(['$normalizedSearchTerm\uf8ff']);
+    }
 
-      return event.docs
-          .map((doc) => Student.fromSnapshot(doc))
-          .where((student) {
-        final field =
-            student.searchText.toLowerCase().replaceAll(RegExp(r'\s+'), '');
-        return field.contains(normalizedSearchTerm);
-      }).toList();
+    return query.snapshots().map((event) {
+      if (event.docs.isNotEmpty) {
+        return event.docs.map((doc) => Student.fromSnapshot(doc)).toList();
+      } else {
+        return [];
+      }
     });
   }
 

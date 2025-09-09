@@ -2,138 +2,52 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:systems_app/app/function/handle_profile_submit.dart';
-import 'package:systems_app/app/function/image_picker.dart';
 import 'package:systems_app/app/helpers/session_manager.dart';
-import 'package:systems_app/modules/shared/add_book.dart';
-import 'package:systems_app/modules/shared/add_project_paper.dart';
-import 'package:systems_app/modules/reuseables/profile_drawer.dart';
+import 'package:systems_app/app/loading/loading_screen.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
+import 'package:systems_app/modules/shared/add_academic_file.dart';
+import 'package:systems_app/modules/shared/add_non_academic_file.dart';
+import 'package:systems_app/modules/shared/profile_image.dart';
+import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
-import 'package:systems_app/services/cloud/database/database_actions.dart';
-import 'package:systems_app/services/cloud/storage/storage.actions.dart';
 import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
 import 'package:systems_app/utils/strings.dart';
 
-class AddNew extends ConsumerStatefulWidget {
+class AddDepartmentalFile extends ConsumerStatefulWidget {
   final GlobalKey<NavigatorState>? navigatorKeyForDesktopWeb;
-  const AddNew({
+  const AddDepartmentalFile({
     super.key,
     this.navigatorKeyForDesktopWeb,
   });
 
   @override
-  ConsumerState<AddNew> createState() => _AddNewState();
+  ConsumerState<AddDepartmentalFile> createState() =>
+      _AddDepartmentalFileState();
 }
 
-class _AddNewState extends ConsumerState<AddNew> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+class _AddDepartmentalFileState extends ConsumerState<AddDepartmentalFile> {
   late final AuthenticationAsyncNotifier _auth;
-  late final DatabaseAsyncNotifier _database;
-  late final StorageAsyncNotifier _storage;
-  late final TextEditingController _firstName;
-  late final TextEditingController _lastName;
-  late final TextEditingController _prefferedAcademicName;
-  late final TextEditingController _prefix;
-  late final TextEditingController _levelCourseAdvisor;
-  late final TextEditingController _currentLevel;
-  late final TextEditingController _email;
-  bool _isProfileEditLoading = false;
+  bool _showSignOut = false;
 
   @override
   void initState() {
-    _database = ref.read(databaseAsyncNotifierProvider.notifier);
     _auth = ref.read(authenticationAsyncNotifierProvider.notifier);
-    _storage = ref.read(storageAsyncNotifierProvider.notifier);
-    _firstName = TextEditingController();
-    _lastName = TextEditingController();
-    _prefferedAcademicName = TextEditingController();
-    _prefix = TextEditingController();
-    _levelCourseAdvisor = TextEditingController();
-    _currentLevel = TextEditingController();
-    _email = TextEditingController();
-    setControllerText();
     super.initState();
-  }
-
-  void openEndDrawer() {
-    _scaffoldKey.currentState?.openEndDrawer();
-  }
-
-  void setControllerText() {
-    _firstName.text = SessionManager.getFirstName() ?? '';
-    _lastName.text = SessionManager.getLastName() ?? '';
-    _prefferedAcademicName.text =
-        SessionManager.getPreferredAcademicName() ?? '';
-    _prefix.text = SessionManager.getPrefix() ?? '';
-    _levelCourseAdvisor.text = SessionManager.getLevelCourseAdvisor() ?? '';
-    _currentLevel.text = SessionManager.getLevel() ?? '';
-    _email.text = SessionManager.getEmail() ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!kIsWeb || isPhoneWeb) {
-          if (!didPop) {
-            navigatorKey.currentState?.pop();
-          }
-        }
-      },
       child: Scaffold(
-        key: _scaffoldKey,
         backgroundColor: kGry400,
-        endDrawer: ProfileDrawer(
-          firstNameController: _firstName,
-          lastNameController: _lastName,
-          emailController: _email,
-          levelController: SessionManager.getRole() == lecturerRole ||
-                  SessionManager.getRole() == hodRole
-              ? _levelCourseAdvisor
-              : _currentLevel,
-          prefixController: _prefix,
-          preferredAcademicNameController: _prefferedAcademicName,
-          profileStream: _database.getUserProfile(
-            ownerUserId: _auth.currentUser!.uid,
-            role: SessionManager.getRole() ?? '',
-          ),
-          onSubmit: () async {
-            await handleProfileSubmit(
-              context: context,
-              isLecturer: SessionManager.getRole() == lecturerRole ||
-                  SessionManager.getRole() == hodRole,
-              firstNameController: _firstName,
-              lastNameController: _lastName,
-              preferredAcademicNameController: _prefferedAcademicName,
-              prefixController: _prefix,
-              auth: _auth,
-              database: _database,
-              onLoadingStart: () =>
-                  setState(() => _isProfileEditLoading = true),
-              onLoadingEnd: () => setState(() => _isProfileEditLoading = false),
-              mounted: mounted,
-            );
-          },
-          onImageTap: () => pickImage(
-            context: context,
-            storage: _storage,
-            database: _database,
-            auth: _auth,
-            mounted: mounted,
-          ),
-          isLecturer: SessionManager.getRole() == lecturerRole ||
-              SessionManager.getRole() == hodRole,
-          isLoading: _isProfileEditLoading,
-        ),
         body: Stack(
           alignment: Alignment.topRight,
           children: [
             Column(
               children: [
-                (!kIsWeb || isPhoneWeb)
+                (isPhoneWeb)
                     ? Container()
                     : Container(
                         color: kPrimaryWhite,
@@ -173,7 +87,7 @@ class _AddNewState extends ConsumerState<AddNew> {
                                         Transform.translate(
                                           offset: const Offset(0, 1),
                                           child: Text(
-                                            addNew,
+                                            'Add New',
                                             style:
                                                 textTheme.titleMedium!.copyWith(
                                               fontSize: 13,
@@ -201,6 +115,37 @@ class _AddNewState extends ConsumerState<AddNew> {
                                       ),
                                     ),
                                     XBox(kRegularPadding),
+                                    Container(
+                                      height: 25,
+                                      width: 1,
+                                      decoration:
+                                          const BoxDecoration(color: kLightAsh),
+                                    ),
+                                    XBox(kRegularPadding),
+                                    InkWell(
+                                      overlayColor:
+                                          const WidgetStatePropertyAll(
+                                              kTransparent),
+                                      hoverColor: kTransparent,
+                                      onTap: () {
+                                        setState(() {
+                                          _showSignOut = !_showSignOut;
+                                        });
+                                      },
+                                      child: Container(
+                                        height: 26,
+                                        width: 26,
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: ProfileImage(
+                                          imageUrl: SessionManager
+                                                  .getProfileImageUrl() ??
+                                              '',
+                                          radius: 14,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 )
                               ],
@@ -220,7 +165,7 @@ class _AddNewState extends ConsumerState<AddNew> {
                         (!kIsWeb || isPhoneWeb)
                             ? InkWell(
                                 onTap: () {
-                                  navigatorKey.currentState?.pop();
+                                  Navigator.pop(context);
                                 },
                                 splashColor: Colors.transparent,
                                 highlightColor: Colors.transparent,
@@ -253,9 +198,7 @@ class _AddNewState extends ConsumerState<AddNew> {
                                 ),
                               )
                             : Container(),
-                        (!kIsWeb || isPhoneWeb)
-                            ? YBox(kMediumPadding)
-                            : Container(),
+                        (!kIsWeb || isPhoneWeb) ? YBox(kPadding) : Container(),
                         Align(
                           alignment: Alignment.center,
                           child: Padding(
@@ -276,16 +219,9 @@ class _AddNewState extends ConsumerState<AddNew> {
                         YBox(kRegularPadding),
                         InkWell(
                           onTap: () {
-                            (!kIsWeb || isPhoneWeb)
-                                ? navigatorKey.currentState!
-                                    .push(MaterialPageRoute(
-                                    builder: (context) => const AddBook(),
-                                  ))
-                                : widget
-                                    .navigatorKeyForDesktopWeb!.currentState!
-                                    .push(MaterialPageRoute(
-                                    builder: (context) => const AddBook(),
-                                  ));
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => const AddAcademicFile(),
+                            ));
                           },
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -328,7 +264,7 @@ class _AddNewState extends ConsumerState<AddNew> {
                                       top: 4.0,
                                     ),
                                     child: Text(
-                                      books,
+                                      academicFile,
                                       style: textTheme.titleSmall!.copyWith(
                                         fontSize:
                                             (!kIsWeb || isPhoneWeb) ? 15 : 13,
@@ -344,7 +280,11 @@ class _AddNewState extends ConsumerState<AddNew> {
                         ),
                         YBox(kPadding),
                         InkWell(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => const AddNonAcademicFile(),
+                            ));
+                          },
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: kRegularPadding,
@@ -386,7 +326,7 @@ class _AddNewState extends ConsumerState<AddNew> {
                                       top: 4.0,
                                     ),
                                     child: Text(
-                                      departmentalFile,
+                                      nonAcademicFile,
                                       style: textTheme.titleSmall!.copyWith(
                                         fontSize:
                                             (!kIsWeb || isPhoneWeb) ? 15 : 13,
@@ -406,6 +346,119 @@ class _AddNewState extends ConsumerState<AddNew> {
                 ),
               ],
             ),
+            _showSignOut
+                ? Padding(
+                    padding: const EdgeInsets.only(
+                      top: kFullPadding,
+                      right: kRegularPadding,
+                    ),
+                    child: Container(
+                      width: 200,
+                      decoration: BoxDecoration(
+                          color: kPrimaryWhite,
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(4),
+                          ),
+                          border: Border.all(
+                            color: kGry500,
+                            width: 0.5,
+                          )),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: kSmallPadding,
+                        horizontal: kSmallPadding,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            height: 28,
+                            width: 28,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                            ),
+                            child: ProfileImage(
+                              imageUrl:
+                                  SessionManager.getProfileImageUrl() ?? '',
+                              radius: 14,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: kMediumPadding),
+                            child: Text(
+                              'Admin',
+                              style: textTheme.titleMedium!.copyWith(
+                                fontSize: 13,
+                                color: kBlack,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                top: kSmallPadding, bottom: kPadding),
+                            child: Container(
+                              height: 1,
+                              decoration: const BoxDecoration(
+                                color: kGry600,
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () async {
+                              LoadingScreen()
+                                  .show(context: context, showProgress: true);
+                              await _auth.logOut();
+                              LoadingScreen().hide();
+                              Navigator.of(context, rootNavigator: true)
+                                  .pushNamedAndRemoveUntil(
+                                signInRoute,
+                                (route) => false,
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  top: kSmallPadding, bottom: kPadding),
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset(AssetPaths.logoutIcon),
+                                  XBox(kPadding),
+                                  Text(
+                                    logout,
+                                    style: textTheme.titleMedium!.copyWith(
+                                      fontSize: 13,
+                                      color: kBlack,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                          //   InkWell(
+                          //     onTap: () {},
+                          //     child: Padding(
+                          //       padding: const EdgeInsets.only(
+                          //         top: kSmallPadding,
+                          //       ),
+                          //       child: Row(
+                          //         children: [
+                          //           SvgPicture.asset(AssetPaths.profileIcon),
+                          //           XBox(kPadding),
+                          //           Text(
+                          //             pROfile,
+                          //             style: textTheme.titleMedium!.copyWith(
+                          //               fontSize: 13,
+                          //               color: kBlack,
+                          //             ),
+                          //           )
+                          //         ],
+                          //       ),
+                          //     ),
+                          //   ),
+                        ],
+                      ),
+                    ),
+                  )
+                : Container()
           ],
         ),
       ),

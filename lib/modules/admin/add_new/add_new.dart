@@ -6,7 +6,7 @@ import 'package:systems_app/app/helpers/session_manager.dart';
 import 'package:systems_app/app/loading/loading_screen.dart';
 import 'package:systems_app/modules/reuseables/size_boxes.dart';
 import 'package:systems_app/modules/shared/add_book.dart';
-import 'package:systems_app/modules/shared/add_project_paper.dart';
+import 'package:systems_app/modules/shared/add_departmental_file.dart';
 import 'package:systems_app/modules/shared/profile_image.dart';
 import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/authentication_actions.dart';
@@ -219,68 +219,6 @@ class _AddNewAdminState extends ConsumerState<AddNewAdmin> {
                         InkWell(
                           onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const AddProjectPaper(),
-                            ));
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: kRegularPadding,
-                              vertical: kPadding,
-                            ),
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: kPrimaryWhite,
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(
-                                    4,
-                                  ),
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                vertical: kRegularPadding,
-                                horizontal: kMediumPadding,
-                              ),
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                    child: Container(
-                                      alignment: Alignment.center,
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: const BoxDecoration(
-                                        color: kBlue800,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        Icons.add,
-                                        color: kPrimaryWhite,
-                                        size: (!kIsWeb || isPhoneWeb) ? 15 : 12,
-                                      ),
-                                    ),
-                                  ),
-                                  XBox(kSmallPadding),
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: 4.0,
-                                    ),
-                                    child: Text(
-                                      projectPapers,
-                                      style: textTheme.titleSmall!.copyWith(
-                                        fontSize:
-                                            (!kIsWeb || isPhoneWeb) ? 16 : 13,
-                                        color: kBlack,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        YBox(kPadding),
-                        InkWell(
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(
                               builder: (context) => const AddBook(),
                             ));
                           },
@@ -341,7 +279,11 @@ class _AddNewAdminState extends ConsumerState<AddNewAdmin> {
                         ),
                         YBox(kPadding),
                         InkWell(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => const AddDepartmentalFile(),
+                            ));
+                          },
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: kRegularPadding,
@@ -383,7 +325,7 @@ class _AddNewAdminState extends ConsumerState<AddNewAdmin> {
                                       top: 4.0,
                                     ),
                                     child: Text(
-                                      others,
+                                      departmentalFile,
                                       style: textTheme.titleSmall!.copyWith(
                                         fontSize:
                                             (!kIsWeb || isPhoneWeb) ? 15 : 13,

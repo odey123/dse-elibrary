@@ -465,7 +465,7 @@ class _HomeDashboardAdminState extends ConsumerState<HomeDashboardAdmin> {
                           child: Row(
                             children: [
                               StreamBuilder(
-                                stream: _database.getAllStudents(),
+                                stream: _database.getAllStudents(filter: ''),
                                 builder: (context, snapshot) {
                                   switch (snapshot.connectionState) {
                                     case ConnectionState.waiting:
