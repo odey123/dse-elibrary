@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSE AI Backend Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .loading {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 DSE E-Library AI Backend Tester</h1>
+        <p class="subtitle">Test your AI endpoints directly from the browser</p>
+
+        <!-- Test 1: Chat -->
+        <div class="test-section">
+            <h2>💬 Test 1: Ask AI a Question</h2>
+            <label for="question">Question:</label>
+            <input type="text" id="question" placeholder="What is Systems Engineering?" value="What is Systems Engineering?">
+            
+            <label for="context">Context (optional):</label>
+            <textarea id="context" rows="3" placeholder="Add course material context here..."></textarea>
+            
+            <button onclick="testChat()">Ask AI</button>
+            <div id="chatResponse"></div>
+        </div>
+
+        <!-- Test 2: Practice Questions -->
+        <div class="test-section">
+            <h2>📝 Test 2: Generate Practice Questions</h2>
+            <label for="topic">Topic:</label>
+            <input type="text" id="topic" placeholder="Control Systems" value="Control Systems">
+            
+            <label for="difficulty">Difficulty:</label>
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+            
+            <label for="numQuestions">Number of Questions:</label>
+            <input type="number" id="numQuestions" min="1" max="5" value="2">
+            
+            <button onclick="testPractice()">Generate Questions</button>
+            <div id="practiceResponse"></div>
+        </div>
+
+        <!-- Test 3: Check Answer -->
+        <div class="test-section">
+            <h2>✅ Test 3: Check Answer with Hints</h2>
+            <label for="practiceQuestion">Question:</label>
+            <input type="text" id="practiceQuestion" placeholder="What is 2+2?" value="What is 2+2?">
+            
+            <label for="userAnswer">Your Answer:</label>
+            <input type="text" id="userAnswer" placeholder="4" value="5">
+            
+            <label for="correctAnswer">Correct Answer:</label>
+            <input type="text" id="correctAnswer" placeholder="4" value="4">
+            
+            <label for="hintLevel">Hint Level (0-4):</label>
+            <input type="number" id="hintLevel" min="0" max="4" value="0">
+            
+            <button onclick="testCheckAnswer()">Check Answer</button>
+            <div id="checkResponse"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+
+        async function testChat() {
+            const responseDiv = document.getElementById('chatResponse');
+            const button = event.target;
+            
+            button.disabled = true;
+            responseDiv.className = 'response loading';
+            responseDiv.textContent = '⏳ Asking AI...';
+
+            try {
+                const response = await fetch(`${API_URL}/api/chat/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: document.getElementById('question').value,
+                        materialText: document.getElementById('context').value || undefined
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    responseDiv.className = 'response success';
+                    responseDiv.textContent = '✅ AI Response:\n\n' + data.answer;
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.textContent = '❌ Error: ' + data.error;
+                }
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.textContent = '❌ Request failed: ' + error.message;
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        async function testPractice() {
+            const responseDiv = document.getElementById('practiceResponse');
+            const button = event.target;
+            
+            button.disabled = true;
+            responseDiv.className = 'response loading';
+            responseDiv.textContent = '⏳ Generating questions...';
+
+            try {
+                const response = await fetch(`${API_URL}/api/practice/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        topic: document.getElementById('topic').value,
+                        difficulty: document.getElementById('difficulty').value,
+                        numQuestions: parseInt(document.getElementById('numQuestions').value)
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    responseDiv.className = 'response success';
+                    let output = '✅ Generated Questions:\n\n';
+                    data.questions.forEach((q, i) => {
+                        output += `${i + 1}. ${q.question}\n`;
+                        output += `   Answer: ${q.answer}\n`;
+                        output += `   Explanation: ${q.explanation}\n\n`;
+                    });
+                    responseDiv.textContent = output;
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.textContent = '❌ Error: ' + data.error;
+                }
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.textContent = '❌ Request failed: ' + error.message;
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        async function testCheckAnswer() {
+            const responseDiv = document.getElementById('checkResponse');
+            const button = event.target;
+            
+            button.disabled = true;
+            responseDiv.className = 'response loading';
+            responseDiv.textContent = '⏳ Checking answer...';
+
+            try {
+                const response = await fetch(`${API_URL}/api/practice/check-answer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: document.getElementById('practiceQuestion').value,
+                        userAnswer: document.getElementById('userAnswer').value,
+                        correctAnswer: document.getElementById('correctAnswer').value,
+                        hintLevel: parseInt(document.getElementById('hintLevel').value)
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    responseDiv.className = 'response ' + (data.correct ? 'success' : 'error');
+                    let output = data.correct ? '✅ ' : '❌ ';
+                    output += data.feedback + '\n\n';
+                    if (data.hint) {
+                        output += `💡 Hint: ${data.hint}\n`;
+                        output += `Next hint level: ${data.nextHintLevel}`;
+                    }
+                    responseDiv.textContent = output;
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.textContent = '❌ Error: ' + data.error;
+                }
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.textContent = '❌ Request failed: ' + error.message;
+            } finally {
+                button.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
