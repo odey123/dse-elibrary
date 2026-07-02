@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors()); // Enable CORS for Flutter app
-app.use(express.json()); // Parse JSON bodies
+app.use(express.json({ limit: '50mb' })); // Parse JSON bodies (large for audio)
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
 // Health check endpoint
@@ -33,10 +33,12 @@ app.get('/api/health', (req, res) => {
 // Import routes
 import chatRoutes from './controllers/chat.controller';
 import practiceRoutes from './controllers/practice.controller';
+import summaryRoutes from './controllers/summary.controller';
 
 // API routes
 app.use('/api/chat', chatRoutes);
 app.use('/api/practice', practiceRoutes);
+app.use('/api/summary', summaryRoutes);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

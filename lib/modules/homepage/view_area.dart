@@ -9,6 +9,8 @@ import 'package:systems_app/modules/courses/courses.dart';
 import 'package:systems_app/modules/home_dashboard/home_dashboard.dart';
 import 'package:systems_app/modules/my_courses/my_courses.dart';
 import 'package:systems_app/modules/projects/projects.dart';
+import 'package:systems_app/modules/ai_test/ai_test_screen.dart';
+import 'package:systems_app/modules/practice/practice_screen.dart';
 import 'package:systems_app/routes.dart';
 
 class ViewArea extends StatefulWidget {
@@ -82,6 +84,12 @@ class _ViewAreaState extends State<ViewArea> {
             builder = (context) => Accreditation(
                   navigatorKeyForDesktopWeb: widget.navigatorKey,
                 );
+            break;
+          case aiTestRoute:
+            builder = (context) => const AITestScreen();
+            break;
+          case practiceRoute:
+            builder = (context) => const PracticeScreen();
             break;
           default:
             builder = (context) => HomeDashboard(

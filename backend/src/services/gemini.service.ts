@@ -15,7 +15,9 @@ export async function askQuestion(
     let prompt = question;
     
     if (context) {
-      prompt = `Based on the following course material:\n\n${context}\n\nQuestion: ${question}\n\nPlease provide a clear and helpful answer.`;
+      prompt = `Based on the following course material:\n\n${context}\n\nQuestion: ${question}\n\nPlease provide a clear and helpful answer. IMPORTANT: Do NOT use LaTeX or math markup. Write all math in plain readable text.`;
+    } else {
+      prompt = `${question}\n\nIMPORTANT: Do NOT use LaTeX or math markup (no $, \\, \\mathbb, \\frac, etc.). Write all math in plain readable text using words and simple symbols like /, *, ^.`;
     }
 
     // Generate content
@@ -49,10 +51,20 @@ export async function generateQuestions(
   try {
     const prompt = `Generate ${count} ${difficulty} difficulty practice questions about: ${topic}
 
+IMPORTANT FORMATTING RULES:
+- Do NOT use LaTeX, MathJax, or any math markup (no $, \\, \\mathbb, \\frac, \\begin, etc.)
+- Write all math in plain text that anyone can read
+- Use words like "squared", "cubed", "to the power of" instead of superscripts
+- Use "/" for fractions (e.g., "3/4" not "\\frac{3}{4}")
+- Use "*" for multiplication
+- Use "R^3" not "\\mathbb{R}^3"
+- Use "{(x, y, z) | condition}" not "\\{...\\mid...\\}"
+- Write matrices as rows like: [1, 2, 3; 4, 5, 6] or describe them in words
+
 For each question, provide:
-1. The question text
-2. The correct answer
-3. A brief explanation
+1. The question text (plain readable text, NO LaTeX)
+2. The correct answer (plain readable text, NO LaTeX)
+3. A brief explanation (plain readable text, NO LaTeX)
 
 Format the response as a JSON array with this structure:
 [

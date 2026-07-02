@@ -18,3 +18,6 @@ const String lecturersRoute = 'lecturers';
 const String hodRoute = 'hod';
 const String coursesRoute = 'courses';
 const String addNewAdminRoute = 'addnewadmin';
+const String aiTestRoute = 'aitest';  // AI features test screen
+const String practiceRoute = 'practice';  // Practice questions screen
+

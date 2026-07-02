@@ -27,6 +27,8 @@ import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
 import 'package:systems_app/utils/strings.dart';
 import 'package:systems_app/utils/text_button_comp.dart';
+import 'package:systems_app/modules/ai_chat/ai_chat_sidebar.dart';
+import 'package:systems_app/modules/ai_chat/audio_summary_player.dart';
 
 class CourseDetailScreen extends ConsumerStatefulWidget {
   final Course course;
@@ -58,6 +60,11 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
   late final TextEditingController _currentLevel;
   late final TextEditingController _email;
   bool _isProfileEditLoading = false;
+  bool _showChat = false;
+  bool _showAudioPlayer = false;
+  String? _audioMaterialUrl;
+  String? _audioMaterialName;
+  Map<String, String> _courseMaterials = {};
 
   @override
   void initState() {
@@ -175,6 +182,28 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
               SessionManager.getRole() == hodRole,
           isLoading: _isProfileEditLoading,
         ),
+        floatingActionButton: _courseMaterials.isNotEmpty
+            ? FloatingActionButton.extended(
+                onPressed: () {
+                  setState(() {
+                    _showChat = !_showChat;
+                  });
+                },
+                backgroundColor: kPrimaryColor,
+                icon: Icon(
+                  _showChat ? Icons.close : Icons.chat_rounded,
+                  color: kPrimaryWhite,
+                ),
+                label: Text(
+                  _showChat ? 'Close Chat' : 'Ask AI',
+                  style: textTheme.titleMedium!.copyWith(
+                    color: kPrimaryWhite,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              )
+            : null,
         body: Stack(
           alignment: Alignment.topRight,
           children: [
@@ -809,6 +838,16 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                                         if (snapshot.hasData) {
                                           final materialsFromStream = snapshot
                                               .data as Map<String, String>;
+                                          // Store materials for AI chat
+                                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                                            if (mounted) {
+                                              _courseMaterials = Map.fromEntries(
+                                                materialsFromStream.entries.map((e) =>
+                                                  MapEntry(e.key.replaceAll('_dot_', '.'), e.value),
+                                                ),
+                                              );
+                                            }
+                                          });
                                           if (materialsFromStream.isEmpty) {
                                             return (widget.course.ownerUids.any(
                                                     (uid) =>
@@ -998,28 +1037,84 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                                                           entry.key.replaceAll(
                                                               '_dot_', '.');
                                                       final url = entry.value;
-                                                      return MaterialCard(
-                                                        title: materialName,
-                                                        url: url,
-                                                        coordinatorName: widget
-                                                            .course.ownerName,
-                                                        avatarPath: widget
-                                                            .course
-                                                            .profileImageUrl,
-                                                        onTap: () async {
-                                                          final checker =
-                                                              await confirmationDialog(
-                                                            context: context,
-                                                            body:
-                                                                'Are you sure you want to download this material',
-                                                          );
-                                                          if (checker) {
-                                                            await downloadFile(
-                                                              url,
-                                                              materialName,
-                                                            );
-                                                          }
-                                                        },
+                                                      return Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          MaterialCard(
+                                                            title: materialName,
+                                                            url: url,
+                                                            coordinatorName: widget
+                                                                .course.ownerName,
+                                                            avatarPath: widget
+                                                                .course
+                                                                .profileImageUrl,
+                                                            onTap: () async {
+                                                              final checker =
+                                                                  await confirmationDialog(
+                                                                context: context,
+                                                                body:
+                                                                    'Are you sure you want to download this material',
+                                                              );
+                                                              if (checker) {
+                                                                await downloadFile(
+                                                                  url,
+                                                                  materialName,
+                                                                );
+                                                              }
+                                                            },
+                                                          ),
+                                                          // Audio Summary Button
+                                                          Padding(
+                                                            padding: const EdgeInsets.only(
+                                                              left: kSmallPadding,
+                                                              bottom: kSmallPadding,
+                                                            ),
+                                                            child: InkWell(
+                                                              onTap: () {
+                                                                setState(() {
+                                                                  _showAudioPlayer = true;
+                                                                  _audioMaterialUrl = url;
+                                                                  _audioMaterialName = materialName;
+                                                                });
+                                                              },
+                                                              borderRadius: BorderRadius.circular(8),
+                                                              child: Container(
+                                                                padding: const EdgeInsets.symmetric(
+                                                                  horizontal: kSmallPadding,
+                                                                  vertical: kPadding,
+                                                                ),
+                                                                decoration: BoxDecoration(
+                                                                  gradient: const LinearGradient(
+                                                                    colors: [
+                                                                      Color(0xFF6C63FF),
+                                                                      Color(0xFF3498DB),
+                                                                    ],
+                                                                  ),
+                                                                  borderRadius: BorderRadius.circular(8),
+                                                                ),
+                                                                child: Row(
+                                                                  mainAxisSize: MainAxisSize.min,
+                                                                  children: [
+                                                                    const Icon(
+                                                                      Icons.headphones_rounded,
+                                                                      color: Colors.white,
+                                                                      size: 14,
+                                                                    ),
+                                                                    const SizedBox(width: 5),
+                                                                    Text(
+                                                                      'Audio Summary',
+                                                                      style: textTheme.titleSmall!.copyWith(
+                                                                        color: Colors.white,
+                                                                        fontSize: 11,
+                                                                        fontWeight: FontWeight.w600,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
                                                       );
                                                     },
                                                   ),
@@ -1110,6 +1205,67 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen>
                 ),
               ],
             ),
+            // AI Chat Sidebar Overlay
+            if (_showChat)
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _showChat = false;
+                    });
+                  },
+                  child: Container(
+                    color: kBlack.withOpacity(0.3),
+                  ),
+                ),
+              ),
+            if (_showChat)
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: AIChatSidebar(
+                  courseId: widget.course.courseId,
+                  courseName: widget.course.courseName,
+                  materials: _courseMaterials,
+                  onClose: () {
+                    setState(() {
+                      _showChat = false;
+                    });
+                  },
+                ),
+              ),
+            // Audio Summary Player Overlay
+            if (_showAudioPlayer && _audioMaterialUrl != null)
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _showAudioPlayer = false;
+                    });
+                  },
+                  child: Container(
+                    color: kBlack.withOpacity(0.5),
+                  ),
+                ),
+              ),
+            if (_showAudioPlayer && _audioMaterialUrl != null)
+              Positioned(
+                left: (!kIsWeb || isPhoneWeb) ? 0 : null,
+                right: (!kIsWeb || isPhoneWeb) ? 0 : 0,
+                bottom: 0,
+                width: (!kIsWeb || isPhoneWeb) ? null : 420,
+                child: AudioSummaryPlayer(
+                  materialUrl: _audioMaterialUrl!,
+                  materialName: _audioMaterialName ?? 'Material',
+                  courseName: widget.course.courseName,
+                  onClose: () {
+                    setState(() {
+                      _showAudioPlayer = false;
+                    });
+                  },
+                ),
+              ),
           ],
         ),
       ),

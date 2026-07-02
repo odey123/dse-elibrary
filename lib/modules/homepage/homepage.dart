@@ -338,6 +338,40 @@ class _HomePageState extends ConsumerState<HomePage> {
                                                   _launchURL();
                                                 },
                                               ),
+                                              TabItem(
+                                                label: 'AI Assistant',
+                                                iconPath: AssetPaths.paperIcon,
+                                                selectedTab: tabSelected,
+                                                currentTab: 'AI Assistant',
+                                                unselectedtextColor:
+                                                    kPrimaryWhite,
+                                                onTap: (tab) {
+                                                  navigateTo(
+                                                    aiTestRoute,
+                                                    navigatorKeyForDesktopWeb,
+                                                  );
+                                                  setState(() {
+                                                    tabSelected = tab;
+                                                  });
+                                                },
+                                              ),
+                                              TabItem(
+                                                label: 'Practice Questions',
+                                                iconPath: AssetPaths.markIcon,
+                                                selectedTab: tabSelected,
+                                                currentTab: 'Practice Questions',
+                                                unselectedtextColor:
+                                                    kPrimaryWhite,
+                                                onTap: (tab) {
+                                                  navigateTo(
+                                                    practiceRoute,
+                                                    navigatorKeyForDesktopWeb,
+                                                  );
+                                                  setState(() {
+                                                    tabSelected = tab;
+                                                  });
+                                                },
+                                              ),
                                               (role == hodRole)
                                                   ? TabItem(
                                                       label: accreditation,

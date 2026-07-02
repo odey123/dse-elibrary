@@ -1,0 +1,121 @@
+Add this code block after line 231 (after the closing of the header container):
+
+```dart
+            // Material selector (if materials are provided)
+            if (widget.materials != null && widget.materials!.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.all(kRegularPadding),
+                decoration: BoxDecoration(
+                  color: kPrimaryWhite,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: kGry300.withOpacity(0.5),
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Ask about a specific material:',
+                      style: textTheme.titleSmall!.copyWith(
+                        color: kGry800,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: kSmallPadding),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: kSmallPadding + 2,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color= kGry300,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _selectedMaterial != null
+                              ? kPrimaryColor
+                              : kGry400,
+                          width: 1,
+                        ),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String?>(
+                          value: _selectedMaterial,
+                          isExpanded: true,
+                          dropdownColor: kPrimaryWhite,
+                          hint: Text(
+                            'General questions (no material)',
+                            style: textTheme.titleSmall!.copyWith(
+                              color: kGry600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          items: [
+                            DropdownMenuItem<String?>(
+                              value: null,
+                              child: Text(
+                                'General questions',
+                                style: textTheme.titleSmall!.copyWith(
+                                  color: kBlack800,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            ...widget.materials!.keys.map((materialName) {
+                              return DropdownMenuItem<String?>(
+                                value: materialName,
+                                child: Text(
+                                  materialName,
+                                  style: textTheme.titleSmall!.copyWith(
+                                    color: kBlack800,
+                                    fontSize: 13,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              );
+                            }),
+                          ],
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedMaterial = value;
+                            });
+                          },
+                          icon: const Icon(
+                            Icons.arrow_drop_down,
+                            color: kGry600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (_selectedMaterial != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: kSmallPadding),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.picture_as_pdf,
+                              size: 14,
+                              color: kPrimaryColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                'Asking about: $_selectedMaterial',
+                                style: textTheme.titleSmall!.copyWith(
+                                  color: kPrimaryColor,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+```

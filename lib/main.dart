@@ -22,6 +22,8 @@ import 'package:systems_app/modules/home_dashboard/home_dashboard.dart';
 import 'package:systems_app/modules/homepage/homepage.dart';
 import 'package:systems_app/modules/my_courses/my_courses.dart';
 import 'package:systems_app/modules/projects/projects.dart';
+import 'package:systems_app/modules/ai_test/ai_test_screen.dart';
+import 'package:systems_app/modules/practice/practice_screen.dart';
 import 'package:systems_app/routes.dart';
 import 'package:systems_app/services/auth/auth_checker.dart';
 import 'package:systems_app/utils/constant.dart';
@@ -75,6 +77,8 @@ class _MyAppState extends State<MyApp> {
         coursesRoute: (context) => const Courses(),
         accreditationRoute: (context) => const Accreditation(),
         addNewAdminRoute: (context) => const AddNewAdmin(),
+        aiTestRoute: (context) => const AITestScreen(),
+        practiceRoute: (context) => const PracticeScreen(),
       },
     );
   }

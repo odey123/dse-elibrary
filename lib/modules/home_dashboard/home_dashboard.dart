@@ -23,6 +23,7 @@ import 'package:systems_app/services/cloud/storage/storage.actions.dart';
 import 'package:systems_app/utils/assets_path.dart';
 import 'package:systems_app/utils/constant.dart';
 import 'package:systems_app/utils/strings.dart';
+import 'package:systems_app/modules/ai_chat/ai_chat_sidebar.dart';
 
 class HomeDashboard extends ConsumerStatefulWidget {
   final GlobalKey<NavigatorState>? navigatorKeyForDesktopWeb;
@@ -52,6 +53,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
   bool _isLoading = false;
   bool _showSignOut = false;
   String _searchTerm = '';
+  bool _showAIChat = false;
 
   @override
   void initState() {
@@ -147,9 +149,10 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                 decoration: const BoxDecoration(
                   color: kPrimaryColor,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                     (!kIsWeb || isPhoneWeb)
                         ? YBox(kLargePadding + kSmallPadding)
                         : YBox(kMacroPadding),
@@ -298,7 +301,39 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                         );
                       },
                     ),
-                    Expanded(child: Container()),
+                    TabItem(
+                      label: 'Practice Questions',
+                      iconPath: AssetPaths.homeIcon,
+                      selectedTab: tabSelected,
+                      currentTab: 'Practice Questions',
+                      unselectedtextColor: kPrimaryWhite,
+                      onTap: (tab) {
+                        navigateTo(
+                          practiceRoute,
+                          navigatorKey,
+                        );
+                        setState(() {
+                          tabSelected = tab;
+                        });
+                      },
+                    ),
+                    TabItem(
+                      label: 'AI Assistant',
+                      iconPath: AssetPaths.homeIcon,
+                      selectedTab: tabSelected,
+                      currentTab: 'AI Assistant',
+                      unselectedtextColor: kPrimaryWhite,
+                      onTap: (tab) {
+                        Navigator.pop(context); // Close drawer
+                        navigateTo(
+                          aiTestRoute,
+                          navigatorKey,
+                        );
+                        setState(() {
+                          tabSelected = tab;
+                        });
+                      },
+                    ),
                     Padding(
                       padding: const EdgeInsets.only(
                           top: kSmallPadding, bottom: kPadding),
@@ -308,6 +343,23 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                           color: kPrimaryWhite,
                         ),
                       ),
+                    ),
+                    TabItem(
+                      label: 'Practice Questions',
+                      iconPath: AssetPaths.homeIcon,
+                      selectedTab: tabSelected,
+                      currentTab: 'Practice Questions',
+                      unselectedtextColor: kPrimaryWhite,
+                      onTap: (tab) {
+                        Navigator.pop(context); // Close drawer
+                        navigateTo(
+                          practiceRoute,
+                          navigatorKey,
+                        );
+                        setState(() {
+                          tabSelected = tab;
+                        });
+                      },
                     ),
                     InkWell(
                       onTap: () {
@@ -382,6 +434,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                       ),
                     ),
                   ],
+                ),
                 ),
               ),
             )
@@ -1221,9 +1274,38 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard> {
                     ),
                   ),
                 )
-              : Container()
+              : Container(),
+          // AI Chat Sidebar Overlay
+          if (_showAIChat)
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: AIChatSidebar(
+                courseName: 'AI Assistant',
+                onClose: () {
+                  setState(() {
+                    _showAIChat = false;
+                  });
+                },
+              ),
+            ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          setState(() {
+            _showAIChat = !_showAIChat;
+          });
+        },
+        backgroundColor: kPrimaryColor,
+        icon: const Icon(Icons.chat_bubble_outline, color: kPrimaryWhite),
+        label: const Text(
+          'AI Assistant',
+          style: TextStyle(color: kPrimaryWhite, fontWeight: FontWeight.w600),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
 }
